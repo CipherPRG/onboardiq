@@ -82,3 +82,14 @@ python -m http.server 8765 --directory web --bind 127.0.0.1   # open http://127.
 ```
 The page runs no third-party scripts (Content-Security-Policy `script-src 'self'`) and inserts every string
 from a session as text, never as HTML.
+
+## Live mode (local server)
+
+```bash
+python -m onboardiq.server        # then open http://127.0.0.1:8765
+```
+The same page as the replays gains a **Run live** panel: choose the MIB modules, the device and how to prove
+CPU/memory picks (read-only plus a second object, load on this machine, or load you start on the device when
+asked). Steps and measurements stream to the page as they happen; finished runs are recorded and appear in the
+session list. The server listens on 127.0.0.1 only, checks the Host header, refuses cross-site requests, keeps the
+API key in the process and the SNMP community in memory for the run only, and serves files from `web/` only.

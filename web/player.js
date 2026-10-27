@@ -95,15 +95,16 @@ function makeChart(series, unit, tone) {
   fig.append(el("p", { class: "caption" }, "Measured " + what));
 
   let d = "";
-  async function draw() {
+  async function draw(instant = false) {
     for (let i = 0; i < pts.length; i++) {
       const [x, y] = pts[i];
       if (i === series.base.length) { band.style.opacity = "1"; bandLabel.style.opacity = "1"; }
       d += (i ? "L" : "M") + X(x).toFixed(1) + "," + Y(y).toFixed(1);
       line.setAttribute("d", d);
       dots.append(svg("circle", { cx: X(x).toFixed(1), cy: Y(y).toFixed(1), r: 2.6 }));
-      await sleep(i === series.base.length ? 700 : 260);
+      if (!instant) await sleep(i === series.base.length ? 700 : 260);
     }
+    if (instant && series.load.length) { band.style.opacity = "1"; bandLabel.style.opacity = "1"; }
   }
   return { fig, draw };
 }
@@ -146,7 +147,7 @@ function claimBlock(ev) {
   return { card, test, waiting };
 }
 
-async function showVerify(ev, slot) {
+async function showVerify(ev, slot, instant = false) {
   const p = ev.pick || {};
   let [title, sub, tone] = VERDICT[ev.verdict] || [ev.verdict, "", "muted"];
   const evidence = ev.evidence || [];
@@ -157,9 +158,9 @@ async function showVerify(ev, slot) {
   if (ev.series && (ev.series.base.length || ev.series.load.length)) {
     const ch = makeChart(ev.series, p.canonical_unit, tone);
     slot.test.append(ch.fig);
-    $("status").textContent = `Measuring ${ev.object}: baseline, then under load…`;
-    await ch.draw();
-  } else {
+    if (!instant) $("status").textContent = `Measuring ${ev.object}: baseline, then under load…`;
+    await ch.draw(instant);
+  } else if (!instant) {
     await sleep(600);
   }
   const stamp = el("p", { class: "stamp appear " + tone });
@@ -173,7 +174,7 @@ async function showVerify(ev, slot) {
     ul.append(li);
   }
   slot.test.append(ul);
-  await sleep(1400);
+  if (!instant) await sleep(1400);
 }
 
 async function playSession(pb) {
@@ -242,6 +243,153 @@ async function playSession(pb) {
   $("play").textContent = "Play";
 }
 
+// ---------------------------------------------------------------- live runs (local server only)
+// A live chart redrawn as each measurement arrives; replaced by the verified chart at the verdict.
+function liveChart(ev) {
+  const p = ev.pick || {};
+  const scale = p.scale_to_canonical === null || p.scale_to_canonical === undefined ? 1 : p.scale_to_canonical;
+  const counter = p.value_type === "counter";
+  const samples = [];   // {t, phase, rows}
+  const box = el("div");
+  const note = el("p", { class: "waiting" }, "Measuring on the device…");
+  box.append(note);
+  function value(rows, prev) {
+    if (counter) {
+      if (!prev) return null;
+      let tot = 0;
+      for (const [r, v] of Object.entries(rows)) if (prev.rows[r] !== undefined && v >= prev.rows[r]) tot += v - prev.rows[r];
+      return tot / Math.max(1e-6, rows.__t - prev.rows.__t);
+    }
+    // the row that has moved most so far (the one the verifier will judge)
+    let best = null, spread = -1;
+    for (const r of Object.keys(rows)) {
+      if (r === "__t" || rows[r] === null) continue;
+      const vs = samples.map((s) => s.rows[r]).filter((v) => typeof v === "number");
+      const sp = vs.length ? Math.max(...vs) - Math.min(...vs) : 0;
+      if (sp > spread) { spread = sp; best = r; }
+    }
+    return best === null ? null : rows[best] * scale;
+  }
+  return {
+    box,
+    add(sample) {
+      const rows = { ...sample.rows, __t: sample.t };
+      samples.push({ t: sample.t, phase: sample.phase, rows });
+      const series = { base: [], load: [], counter, rows: Object.keys(sample.rows).length };
+      const t0 = samples[0].t;
+      samples.forEach((s, i) => {
+        const v = value(s.rows, i ? samples[i - 1] : null);
+        if (v === null || Number.isNaN(v)) return;
+        (s.phase === "load" ? series.load : series.base).push([Math.round((s.t - t0) * 10) / 10, v]);
+      });
+      if (series.base.length + series.load.length < 1) return;
+      const ch = makeChart(series, p.canonical_unit, "");
+      ch.draw(true);
+      box.replaceChildren(ch.fig, el("p", { class: "waiting" },
+        sample.phase === "load" ? "Under load…" : (sample.phase === "base" ? "Baseline…" : "Observing…")));
+    },
+  };
+}
+
+const liveState = { slot: null, chart: null, run: null };
+
+function onLiveEvent(ev, pb) {
+  const k = ev.kind;
+  if (k === "start") {
+    $("device").textContent = ev.device;
+    $("status").textContent = `Muse Spark is reading ${ev.objects} MIB objects (${ev.modules})…`;
+    Object.assign(pb, { objects: ev.objects, modules: ev.modules });
+  } else if (k === "read") {
+    $("status").textContent = "Picks made. Testing them on the device…";
+  } else if (k === "verify-start") {
+    const f = familySection(ev.family);
+    f.current = claimBlock(ev);
+    f.sec.append(f.current.card);
+    liveState.chart = liveChart(ev);
+    f.current.waiting.replaceWith(liveState.chart.box);
+    f.current.waiting = liveState.chart.box;
+    $("status").textContent = `Testing ${FAMILY[ev.family] || ev.family}: ${ev.object}`;
+  } else if (k === "sample") {
+    if (liveState.chart) liveState.chart.add(ev);
+  } else if (k === "verify") {
+    liveState.chart = null;
+    showVerify(ev, familySection(ev.family).current, true);
+    pb.events.push(ev);
+  } else if (k === "repick") {
+    const f = familySection(ev.family);
+    const box = el("div", { class: "reread appear" });
+    const p = el("p");
+    p.append(el("strong", {}, "Re-read the manual with this evidence. "), document.createTextNode(ev.reasoning || ""));
+    box.append(p);
+    f.sec.append(box);
+    $("status").textContent = "The model is re-reading the manual with the evidence…";
+  } else if (k === "no-pick") {
+    familySection(ev.family).sec.append(el("p", { class: "waiting appear" }, "The model found no object for this in the manual."));
+  } else if (k === "final") {
+    const f = familySection(ev.family);
+    const [title, sub, tone] = VERDICT[ev.verdict] || [ev.verdict, "", "muted"];
+    f.final.className = "final appear " + tone;
+    f.final.replaceChildren(document.createTextNode(title + " "), el("span", {}, sub +
+      (ev.attempts > 1 ? ` after ${ev.attempts} attempts` : "")));
+  } else if (k === "prompt") {
+    $("prompt").hidden = false;
+    if (/^STOP/i.test(ev.text)) { $("prompt-text").textContent = ev.text; $("prompt-cmd").textContent = ""; }
+    else if (/^START/i.test(ev.text)) $("prompt-text").textContent = ev.text;
+    else $("prompt-cmd").textContent = ev.text;
+  } else if (k === "prompt-wait") {
+    $("prompt-ok").hidden = false;
+    $("prompt-ok").textContent = /^STOP/i.test($("prompt-text").textContent) ? "The load has stopped" : "The load is running";
+  } else if (k === "end" || k === "error") {
+    $("prompt").hidden = true;
+    $("run").disabled = false;
+    if (k === "error") { $("status").textContent = "The run stopped: " + ev.message; return; }
+    const verdicts = Object.values(ev.summary);
+    const proven = verdicts.filter((v) => v.startsWith("proven")).length;
+    $("status").textContent = `Finished: ${proven} of ${verdicts.length} metrics proven, ${ev.seconds} s, ` +
+      `${ev.snmp_calls} SNMP queries, model cost $${Number(ev.cost_usd).toFixed(3)}` + (ev.saved ? ". Saved to the session list." : ".");
+    if (ev.saved) loadList();
+  }
+}
+
+async function post(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-OnboardIQ": "1" },
+    body: JSON.stringify(body) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `request failed (${r.status})`);
+  return data;
+}
+
+async function startLive(form) {
+  const fd = new FormData(form);
+  const mode = fd.get("mode");
+  const body = {
+    device: fd.get("device"), modules: String(fd.get("modules") || "").split(",").map((m) => m.trim()).filter(Boolean),
+    host: fd.get("host"), port: fd.get("port") ? Number(fd.get("port")) : null, community: fd.get("community"),
+    families: fd.getAll("families"), lab: mode === "lab", load_by_hand: mode === "hand" ? fd.get("hand") : null,
+    record: true,
+  };
+  $("live-error").textContent = "";
+  play.token++;   // stop any replay
+  $("families").replaceChildren();
+  for (const k of Object.keys(families)) delete families[k];
+  try {
+    $("run").disabled = true;
+    const { id } = await post("/api/runs", body);
+    const pb = { events: [] };
+    const es = new EventSource(`/api/runs/${id}/events`);
+    es.onmessage = (m) => {
+      const ev = JSON.parse(m.data);
+      onLiveEvent(ev, pb);
+      if (ev.kind === "end" || ev.kind === "error") es.close();
+    };
+    es.onerror = () => { es.close(); $("run").disabled = false; };
+    liveState.run = id;
+  } catch (e) {
+    $("live-error").textContent = e.message;
+    $("run").disabled = false;
+  }
+}
+
 // ---------------------------------------------------------------- wiring
 let current = null;
 async function load(id, button) {
@@ -265,8 +413,9 @@ $("play").addEventListener("click", () => {
 $("restart").addEventListener("click", () => current && playSession(current));
 $("speed").addEventListener("change", (e) => { play.speed = Number(e.target.value) || 1; });
 
-(async () => {
-  const list = await (await fetch("sessions/index.json")).json();
+async function loadList() {
+  const list = await (await fetch("sessions/index.json", { cache: "no-store" })).json();
+  $("session-list").replaceChildren();
   for (const s of list) {
     const verdicts = Object.values(s.summary);
     const proven = verdicts.filter((v) => v.startsWith("proven")).length;
@@ -278,4 +427,34 @@ $("speed").addEventListener("change", (e) => { play.speed = Number(e.target.valu
     li.append(b);
     $("session-list").append(li);
   }
+}
+
+(async () => {
+  await loadList();
+  // Live mode only when this page is served by the local OnboardIQ server.
+  try {
+    const st = await (await fetch("/api/status", { cache: "no-store" })).json();
+    if (st && st.live) {
+      $("live").hidden = false;
+      $("lede").textContent = "Replay recorded sessions, or onboard a device live from this machine. In a replay, " +
+        "every reading and model answer comes from the recording; in a live run they come from the device and the model.";
+      $("live-form").addEventListener("submit", (e) => { e.preventDefault(); startLive(e.target); });
+      $("prompt-ok").addEventListener("click", async () => {
+        $("prompt-ok").hidden = true;
+        try { await post(`/api/runs/${liveState.run}/confirm`, {}); } catch (e) { $("status").textContent = e.message; }
+      });
+      const input = $("live-form").elements.modules;
+      let timer = null;
+      input.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+          const last = input.value.split(",").pop().trim();
+          const before = input.value.includes(",") ? input.value.slice(0, input.value.lastIndexOf(",") + 1) : "";
+          if (last.length < 2) return;
+          const mods = await (await fetch("/api/modules?q=" + encodeURIComponent(last))).json();
+          $("module-list").replaceChildren(...mods.map((m) => el("option", { value: before + m })));
+        }, 200);
+      });
+    }
+  } catch (e) { /* static hosting: replays only */ }
 })();

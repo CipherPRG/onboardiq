@@ -16,7 +16,7 @@
   <header class="top">
     <p class="brand">OnboardIQ</p>
     <h1>Watch the agent read a device manual, test its picks on the device, and correct itself.</h1>
-    <p class="lede">These are replays of recorded live sessions. Every reading and every model answer comes from the
+    <p class="lede" id="lede">These are replays of recorded live sessions. Every reading and every model answer comes from the
       recording; the verifier recomputes each check as you watch.</p>
   </header>
 
@@ -24,6 +24,41 @@
     <h2>Recorded sessions</h2>
     <ul id="session-list"></ul>
   </nav>
+
+  <section class="live" id="live" hidden>
+    <h2>Run live</h2>
+    <p class="hint">This page is connected to a local OnboardIQ server, so it can onboard a device now. The
+      model reads the MIB modules you choose, then every pick is tested on the device.</p>
+    <form id="live-form" autocomplete="off">
+      <label class="wide">What the device is
+        <input name="device" required maxlength="200" placeholder="e.g. MikroTik RouterOS router"></label>
+      <label class="wide">MIB modules (comma-separated)
+        <input name="modules" required list="module-list" placeholder="e.g. HOST-RESOURCES-MIB,UCD-SNMP-MIB">
+        <datalist id="module-list"></datalist></label>
+      <label>Host <input name="host" value="localhost" maxlength="253"></label>
+      <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
+      <label>Community <input name="community" type="password" value="public" maxlength="64"></label>
+      <fieldset><legend>Metrics</legend>
+        <label><input type="checkbox" name="families" value="cpu" checked> CPU</label>
+        <label><input type="checkbox" name="families" value="memory" checked> Memory</label>
+        <label><input type="checkbox" name="families" value="temperature" checked> Temperature</label>
+        <label><input type="checkbox" name="families" value="fan" checked> Fan</label>
+      </fieldset>
+      <fieldset class="wide"><legend>How to prove CPU and memory picks</legend>
+        <label><input type="radio" name="mode" value="read" checked> Read-only checks and a second object</label>
+        <label><input type="radio" name="mode" value="lab"> Load this machine (only for this machine's own agent)</label>
+        <label><input type="radio" name="mode" value="hand"> I will start CPU load on the device when asked</label>
+        <input name="hand" maxlength="300" placeholder="How to start the load, e.g. :while (true) do={}">
+      </fieldset>
+      <div class="wide actions"><button type="submit" id="run">Onboard this device</button>
+        <span id="live-error" class="bad" role="alert"></span></div>
+    </form>
+  </section>
+
+  <div id="prompt" class="prompt" hidden role="alertdialog" aria-live="assertive">
+    <p id="prompt-text"></p><p id="prompt-cmd" class="oid"></p>
+    <button type="button" id="prompt-ok" hidden>Done</button>
+  </div>
 
   <section class="stage" aria-live="polite">
     <div class="stage-head">

@@ -61,3 +61,19 @@ svg circle{fill:var(--line)}
 footer{margin-top:28px;color:var(--soft);font-size:14px;max-width:72ch}
 @media (prefers-reduced-motion:reduce){.appear{animation:none}}
 @media (max-width:760px){main{padding:24px 16px 48px}.attempt{grid-template-columns:1fr}.reread{margin-left:8px}}
+.live{padding:22px 0;border-bottom:1px solid var(--rule)}
+.hint{color:var(--soft);margin:6px 0 14px;max-width:70ch}
+form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px;align-items:end}
+form .wide{grid-column:1/-1}
+form label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--soft)}
+form fieldset{border:1px solid var(--rule);border-radius:3px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+form fieldset label{flex-direction:row;align-items:center;color:var(--ink);font-size:15px}
+form legend{color:var(--soft);font-size:14px;padding:0 4px}
+input{font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:3px;padding:7px 9px}
+input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.actions{display:flex;gap:14px;align-items:center}
+#run{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+.prompt{position:sticky;top:0;z-index:2;background:var(--sheet);border:2px solid var(--warn);border-radius:3px;
+padding:14px 16px;margin:16px 0}
+.prompt p{margin:0 0 6px}
+@media (max-width:760px){form{grid-template-columns:1fr}}

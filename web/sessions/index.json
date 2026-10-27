@@ -1,37 +1,5 @@
 [
  {
-  "id": "laptop_full",
-  "device": "Linux server running the net-snmp agent",
-  "highlight": "caught and corrected its CPU pick",
-  "summary": {
-   "cpu": "proven-experiment",
-   "memory": "proven-experiment",
-   "temperature": "not-supported",
-   "fan": "not-supported"
-  },
-  "recorded": "2026-10-27 12:19 UTC"
- },
- {
-  "id": "laptop_hostresources",
-  "device": "Linux server running the net-snmp agent",
-  "highlight": "caught and corrected its memory pick",
-  "summary": {
-   "memory": "proven-experiment",
-   "cpu": "proven-experiment"
-  },
-  "recorded": "2026-10-27 11:42 UTC"
- },
- {
-  "id": "laptop_ucd_hr",
-  "device": "Linux server running the net-snmp agent",
-  "highlight": "2 of 2 metrics proven on the device",
-  "summary": {
-   "cpu": "proven-experiment",
-   "memory": "proven-experiment"
-  },
-  "recorded": "2026-10-27 11:54 UTC"
- },
- {
   "id": "laptop_witness",
   "device": "Linux server running the net-snmp agent",
   "highlight": "memory proven by experiment and by a second object",
@@ -49,5 +17,37 @@
    "cpu": "proven-experiment"
   },
   "recorded": "2026-10-27 15:02 UTC"
+ },
+ {
+  "id": "laptop_full",
+  "device": "Linux server running the net-snmp agent",
+  "highlight": "caught and corrected its CPU pick",
+  "summary": {
+   "cpu": "proven-experiment",
+   "memory": "proven-experiment",
+   "temperature": "not-supported",
+   "fan": "not-supported"
+  },
+  "recorded": "2026-10-27 12:19 UTC"
+ },
+ {
+  "id": "laptop_ucd_hr",
+  "device": "Linux server running the net-snmp agent",
+  "highlight": "2 of 2 metrics proven on the device",
+  "summary": {
+   "cpu": "proven-experiment",
+   "memory": "proven-experiment"
+  },
+  "recorded": "2026-10-27 11:54 UTC"
+ },
+ {
+  "id": "laptop_hostresources",
+  "device": "Linux server running the net-snmp agent",
+  "highlight": "caught and corrected its memory pick",
+  "summary": {
+   "memory": "proven-experiment",
+   "cpu": "proven-experiment"
+  },
+  "recorded": "2026-10-27 11:42 UTC"
  }
 ]
