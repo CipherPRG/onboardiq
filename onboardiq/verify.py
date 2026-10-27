@@ -27,7 +27,8 @@ TYPE_CLASS = {
 RANGE = {"percent": (0, 100), "celsius": (-40, 150), "rpm": (0, 40000), "bytes": (0, 2 ** 50)}
 CANDIDATE_SCALES = [1, 0.1, 0.01, 0.001, 1024, 1 / 1024, 1024 ** 2, 1 / 1024 ** 2, 8, 1 / 8, 100]
 NUM = re.compile(r"-?\d+(?:\.\d+)?")
-PHASE = {"name": "static"}   # which step is polling: static | observe | base | load (used by session recording)
+PHASE = {"name": "static"}
+EVENTS = {"hook": None}      # optional callable(dict): one call per poll, for live views   # which step is polling: static | observe | base | load (used by session recording)
 
 
 @dataclass
@@ -105,6 +106,8 @@ def _series(snmp, oid, seconds, interval):
     out, t0 = [], time.time()
     while True:
         out.append((time.time(), _poll(snmp, oid)))
+        if EVENTS["hook"]:
+            EVENTS["hook"]({"kind": "sample", "phase": PHASE["name"], "rows": out[-1][1]})
         if time.time() - t0 >= seconds and len(out) >= 2:
             return out
         time.sleep(interval)

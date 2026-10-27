@@ -24,7 +24,8 @@ def test_mistake_is_caught_and_corrected(monkeypatch):
     assert m["verdict"] == "proven-experiment" and m["attempts"] == 2
     assert m["pick"]["object_name"] == "memAvailReal"
     assert "change +0" in seen["evidence"]                      # the Reader was told why
-    assert [t["kind"] for t in out["trace"]] == ["read", "verify", "repick", "verify", "final"]
+    assert [t["kind"] for t in out["trace"]] == ["read", "verify-start", "verify", "repick", "verify-start",
+                                                  "verify", "final", "done"]
 
 
 def test_absent_everywhere_is_not_supported(monkeypatch):
@@ -34,3 +35,20 @@ def test_absent_everywhere_is_not_supported(monkeypatch):
                         initial={"temperature": pick("1.9.9.10", "lmTemp", 0.001, "celsius")},
                         max_attempts=2, verify_kw={"observe_s": 0.01}, log=lambda *a: None)
     assert out["spec"]["temperature"]["verdict"] == "not-supported"
+
+
+
+def test_events_stream_and_hook_is_restored(monkeypatch):
+    from onboardiq import verify
+    events = []
+    monkeypatch.setattr(reader, "repick", lambda *a, **k: (pick("1.9.9.5", "memAvailReal"), "use available",
+                                                           {"cost_usd": 0, "cached": True}))
+    agent.onboard("test box", [], DEV, lab=True, families=["memory"],
+                  initial={"memory": pick("1.9.9.6", "hrMemorySize")},
+                  verify_kw={"load": DEV.load, **FAST}, log=lambda *a: None, on_event=events.append)
+    kinds = [e["kind"] for e in events]
+    assert kinds[0] == "read" and kinds[-1] == "done" and "sample" in kinds
+    phases = {e["phase"] for e in events if e["kind"] == "sample"}
+    assert {"base", "load"} <= phases
+    assert all(e["family"] == "memory" for e in events if e["kind"] == "sample")
+    assert verify.EVENTS["hook"] is None
