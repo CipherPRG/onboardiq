@@ -64,6 +64,7 @@ class Result:
     rows: int = 0
     seconds: float = 0.0
     series: dict | None = None   # what the experiment measured, for charts: see _chart_series
+    partial: bool = False        # only some rows of the column fit: stop before load/witness tests
 
     def add(self, check: str, ok: bool | None, detail: str):
         self.evidence.append({"check": check, "ok": ok, "detail": detail})
@@ -218,6 +219,17 @@ def static_checks(snmp, item: Item) -> Result:
                                    + ", ".join(fmt(v * item.scale, unit) for v in values[:3])
                                    + (f" {unit}" if unit != "bytes" else ""))
         else:
+            lo, hi = RANGE[unit]
+            inside = [v for v in values if lo <= v * item.scale <= hi]
+            if inside and len(values) > 1:
+                # Some rows fit and some do not: typical of one column shared by several sensor kinds
+                # (voltages, fans and temperatures together) or of absent-sensor markers (-1, 2^32-128).
+                # Neither proven nor rejected: the column may be right, but which rows are must be settled.
+                res.add("range", None, f"{len(inside)} of {len(values)} rows give a valid {unit} with scale "
+                                       f"{item.scale:g}; the others ({sample}) look like other sensor kinds or "
+                                       "absent-sensor markers in the same column, so the rows need a filter")
+                res.verdict, res.partial = "unproven", True
+                return res
             res.suggested_scale = fits[0] if fits else None
             return res.reject("range", f"{sample} x {item.scale:g} is outside {RANGE[unit]} {unit}"
                                        + (f"; scale {fits[0]:g} would fit" if fits else ""))
@@ -489,7 +501,7 @@ def verify_item(snmp, item: Item, lab: bool = False, observe_s: float = 20, **kw
     witness_interval = kw.pop("witness_interval", 2)
     observe_interval = kw.pop("observe_interval", 5)
     res = static_checks(snmp, item)
-    if res.verdict != "rejected":
+    if res.verdict != "rejected" and not res.partial:
         res = experiment(snmp, res, **kw) if lab else observe(snmp, res, seconds=observe_s, interval=observe_interval)
         res = witness_check(snmp, res, interval=witness_interval)
         if res.verdict == "proven-static" and item.family in ("cpu", "memory"):

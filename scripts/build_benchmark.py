@@ -81,10 +81,12 @@ def extract(defn):
 
     sensors = mods.get("sensors") or {}
     for fam, kind in (("temperature", "temperature"), ("fan", "fanspeed")):
-        for e in (sensors.get(kind) or {}).get("data") or []:
+        group = sensors.get(kind) or {}
+        opts = group.get("options") or {}          # group-wide divisor/multiplier/user_func
+        for e in group.get("data") or []:
             n = _name(e.get("value")) or _name(e.get("oid"))
             if n and not n[1].endswith("Table"):
-                out.setdefault(fam, {})[n] = _sensor_scale(e)
+                out.setdefault(fam, {})[n] = _sensor_scale({**opts, **e})
     return out
 
 
