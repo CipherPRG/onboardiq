@@ -100,3 +100,11 @@ def test_providers_have_separate_ledgers_and_limits(env, monkeypatch):
     monkeypatch.setenv("OIQ_BASETEN_DAILY_USD", "99")
     with pytest.raises(sg.SpendLimitError):
         sg.SpendGuard(provider="baseten")
+
+
+def test_reader_maps_renamed_fields_without_inventing():
+    from onboardiq import reader
+    out = reader._parse('{"cpu": {"oid": "1.3.6.1.4.1.664.5.53.1.4.3", "module_name": "ADTRAN-AOSCPU::adGenAOS1MinCpuUtil", '
+                        '"scale": 1}, "fan": {"oid": null}}')
+    assert out["cpu"]["object_name"] == "adGenAOS1MinCpuUtil" and out["cpu"]["scale_to_canonical"] == 1
+    assert out["fan"].get("object_name") is None

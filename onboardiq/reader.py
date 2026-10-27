@@ -93,11 +93,38 @@ REPICK_SCHEMA = {"type": "object", "additionalProperties": False, "required": ["
                  "properties": {"pick": PICK_AGENT, "reasoning": {"type": "string"}}}
 
 
+ALIASES = {"object_name": ("name", "module_name", "object"), "scale_to_canonical": ("scale",)}
+
+
+def _normalise(pick):
+    """Providers that do not enforce the JSON schema (Baseten) rename fields; map the known aliases
+    back. Only renames: a value is never invented, and unknown extra fields are ignored downstream."""
+    if not isinstance(pick, dict):
+        return pick
+    for field, alts in ALIASES.items():
+        if pick.get(field) is None:
+            for a in alts:
+                if pick.get(a) is not None:
+                    pick[field] = pick[a]
+                    break
+    name = pick.get("object_name")
+    if isinstance(name, str) and "::" in name:
+        pick["object_name"] = name.split("::", 1)[1]
+    return pick
+
+
 def _parse(content):
     content = content.strip()
     if content.startswith("```"):
         content = content.strip("`").split("\n", 1)[1].rsplit("```", 1)[0]
-    return json.loads(content)
+    data = json.loads(content)
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k in FAMILIES:
+                _normalise(v)
+            elif k == "pick":
+                _normalise(v)
+    return data
 
 
 def read(device, cands, with_mib, model, effort, anonymised=False, agent=False):
