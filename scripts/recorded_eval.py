@@ -43,6 +43,14 @@ def score(pick, key, names):
     return "wrong-scale"
 
 
+def _brief(pick, names):
+    if not pick or not pick.get("oid"):
+        return None
+    return {"object": names.get(pick["oid"].lstrip(".").removesuffix(".0"), pick.get("object_name")),
+            "scale": pick.get("scale_to_canonical"),
+            "witness": (pick.get("witness") or {}).get("object_name")}
+
+
 def recording(sim: Path, os_name: str):
     exact = sim / f"{os_name}.snmprec"
     if exact.exists():
@@ -67,7 +75,7 @@ def main():
     todo = [(o, d) for o, d in sorted(bench.items()) if d["split"] == args.split and recording(sim, o)]
     if args.limit:
         todo = todo[:args.limit]
-    print(f"{len(todo)} {args.split} devices with a recording")
+    print(f"{len(todo)} {args.split} devices with a recording", flush=True)
 
     rows, cost = [], 0.0
     for i, (os_name, d) in enumerate(todo, 1):
@@ -98,7 +106,11 @@ def main():
                          "first": score(first.get(f), d[f], names),
                          "final": score(fin["pick"], d[f], names),
                          "verdict": fin["verdict"], "attempts": fin["attempts"],
-                         "trigger": trig.get(f)})
+                         "trigger": trig.get(f),
+                         "key": d[f],
+                         "first_pick": _brief(first.get(f), names),
+                         "final_pick": _brief(fin["pick"], names),
+                         "evidence": [e["detail"] for e in fin["evidence"]][-4:]})
         s = " ".join(f"{r['family']}:{r['first']}->{r['final']}({r['verdict']})" for r in rows[-len(fams):])
         print(f"[{i}/{len(todo)}] {os_name}: {s}  ${cost:.2f}", flush=True)
 
