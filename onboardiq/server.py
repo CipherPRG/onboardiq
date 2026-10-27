@@ -14,6 +14,7 @@ Security model (this server can start load experiments and holds an API key):
 - static files are served only from web/, with the resolved path checked to stay inside it.
 """
 import json
+import os
 import queue
 import re
 import threading
@@ -24,13 +25,14 @@ from urllib.parse import parse_qs, urlparse
 
 from . import agent, mib, replay
 from .playback import export_all
-from .config import ROOT
+from .config import MODEL, ROOT
 from .snmp import Snmp
 from .verify import prompt_load
 
 WEB = (ROOT / "web").resolve()
 DEMO = ROOT / "demo"
-MIB_DIR = Path.home() / "data" / "mibs_json"
+MIB_DIR = Path(os.environ.get("OIQ_MIB_DIR", Path.home() / "data" / "mibs_json")).expanduser()
+EFFORT = os.environ.get("OIQ_EFFORT", "high")
 LOCAL = {"localhost", "127.0.0.1", "::1"}
 FAMILIES = ("cpu", "memory", "temperature", "fan")
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
@@ -129,15 +131,15 @@ def execute(run: Run, opts: dict):
             verify_kw["load"] = prompt_load({"cpu": opts["load_by_hand"]}, ask=ask, say=say)
             lab = True
         run.emit({"kind": "start", "device": opts["device"], "objects": len(cands),
-                  "modules": ",".join(opts["modules"]), "live": True})
+                  "modules": ",".join(opts["modules"]), "model": MODEL, "live": True})
         out = agent.onboard(opts["device"], cands, dev, lab=lab, families=opts["families"],
-                            log=lambda m: None, on_event=run.emit, verify_kw=verify_kw)
+                            effort=EFFORT, log=lambda m: None, on_event=run.emit, verify_kw=verify_kw)
         saved = None
         if opts["record"]:
             name = f"{slug(opts['device'])}-{time.strftime('%Y%m%d-%H%M%S')}"
             path = DEMO / f"{name}.json"
             keep = {"device": opts["device"], "modules": ",".join(opts["modules"]), "lab": lab,
-                    "families": ",".join(opts["families"]), "effort": "high", "model": None, "max_attempts": 3}
+                    "families": ",".join(opts["families"]), "effort": EFFORT, "model": MODEL, "max_attempts": 3}
             dev.save(path, args=keep, cands=cands, result={f: v["verdict"] for f, v in out["spec"].items()})
             export_all()
             saved = name
@@ -276,6 +278,8 @@ def main(port: int = 8765):
     STATE["port"] = port
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     print(f"OnboardIQ live: http://127.0.0.1:{port}  (localhost only; Ctrl+C to stop)")
+    print(f"  model {MODEL}, effort {EFFORT}, MIB folder {STATE['mib_dir']}"
+          + ("" if STATE["mib_dir"].is_dir() else "  (NOT FOUND)"))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
@@ -286,4 +290,8 @@ if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8765)
-    main(ap.parse_args().port)
+    ap.add_argument("--mib-dir", help="folder of converted MIB modules (default: $OIQ_MIB_DIR or ~/data/mibs_json)")
+    a = ap.parse_args()
+    if a.mib_dir:
+        STATE["mib_dir"] = Path(a.mib_dir).expanduser()
+    main(a.port)

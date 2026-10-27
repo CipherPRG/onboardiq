@@ -28,6 +28,15 @@ def highlight(events, summary, args) -> str:
     return f"{len(proven)} of {len(summary)} metrics proven on the device"
 
 
+def _model(session):
+    """The model that actually answered, as stored with its recorded answers."""
+    for aid in session.get("llm_order", []):
+        m = session.get("llm_cache", {}).get(aid, {}).get("model")
+        if m:
+            return m
+    return session.get("args", {}).get("model")
+
+
 def export(path: Path) -> dict:
     session = json.loads(path.read_text())
     events = []
@@ -41,6 +50,7 @@ def export(path: Path) -> dict:
         "modules": a.get("modules"),
         "lab": a.get("lab"),
         "objects": len(session.get("cands", [])),
+        "model": _model(session),
         "mode": "Replay of a recorded live session",
         "recorded": session.get("recorded"),
         "summary": {f: v["verdict"] for f, v in out["spec"].items()},

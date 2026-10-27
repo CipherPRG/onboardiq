@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from onboardiq import agent, mib, replay, report  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
+from onboardiq.config import MODEL  # noqa: E402
 
 LOCAL = {"localhost", "127.0.0.1", "::1"}
 LABEL = {"proven-experiment": "PROVEN by experiment", "proven-witness": "PROVEN by a second object",
@@ -69,6 +70,7 @@ def main():
         if args.record:
             keep = ("device", "modules", "lab", "families", "effort", "model", "max_attempts")
             args.lab = lab
+            args.model = args.model or MODEL
             dev.save(args.record, args={k: v for k, v in vars(args).items() if k in keep},
                      cands=cands, result={f: v["verdict"] for f, v in out["spec"].items()})
             print(f"  recorded session -> {args.record}")

@@ -187,7 +187,7 @@ async function playSession(pb) {
   try {
     for (const ev of pb.events) {
       if (ev.kind === "read") {
-        $("status").textContent = `Muse Spark is reading ${pb.objects} MIB objects (${pb.modules})…`;
+        $("status").textContent = `${pb.model || "The model"} is reading ${pb.objects} MIB objects (${pb.modules})…`;
         await sleep(1800);
       } else if (ev.kind === "verify-start") {
         const f = familySection(ev.family);
@@ -297,8 +297,8 @@ function onLiveEvent(ev, pb) {
   const k = ev.kind;
   if (k === "start") {
     $("device").textContent = ev.device;
-    $("status").textContent = `Muse Spark is reading ${ev.objects} MIB objects (${ev.modules})…`;
-    Object.assign(pb, { objects: ev.objects, modules: ev.modules });
+    $("status").textContent = `${ev.model || "The model"} is reading ${ev.objects} MIB objects (${ev.modules})…`;
+    Object.assign(pb, { objects: ev.objects, modules: ev.modules, model: ev.model });
   } else if (k === "read") {
     $("status").textContent = "Picks made. Testing them on the device…";
   } else if (k === "verify-start") {
