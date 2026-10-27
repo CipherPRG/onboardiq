@@ -45,3 +45,17 @@ OIQ_MAX_CALLS_PER_RUN=60 python scripts/accuracy_test.py --truth data/benchmark_
 ```
 The answer key comes from LibreNMS device definitions (GPL) and is generated locally, not committed.
 Tune on `--split dev`; report on `--split test`.
+
+## Judge mode: replay a real session (no device, no API key)
+
+```bash
+pip install -r requirements.txt
+python scripts/onboard.py --replay demo/laptop_hostresources.json
+```
+This replays a recorded live onboarding of a Linux host (net-snmp) given only HOST-RESOURCES-MIB:
+Muse Spark picks `hrMemorySize` (total installed RAM) for memory, the verifier allocates 1 GiB and sees
++0 bytes, rejects it, Muse Spark re-reads with that evidence and picks `hrStorageUsed`, and the verifier
+finds the RAM row and measures +1.1 GB: proven. Every SNMP response and model answer comes from the
+recording, served to the same verifier step in the same order, on a virtual clock.
+
+Record your own: `python scripts/onboard.py --device "..." --modules ... --lab --record demo/mine.json`

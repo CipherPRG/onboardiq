@@ -62,7 +62,11 @@ def main():
         p = f["pick"]
         print(f"  {fam:12} {LABEL[f['verdict']]:30} {p.get('object_name')} x{p.get('scale_to_canonical')}"
               f"  ({f['attempts']} attempt{'s' if f['attempts'] != 1 else ''})")
-    print(f"  {out['seconds']}s, {out['snmp_calls']} SNMP calls, model cost ${out['cost_usd']:.4f}")
+    if "replay" in out:
+        print(f"  replayed {out['replay']['virtual_seconds']}s of live session time, {out['snmp_calls']} SNMP "
+              "responses from the recording, model answers from the recording (no API key used)")
+    else:
+        print(f"  {out['seconds']}s, {out['snmp_calls']} SNMP calls, model cost ${out['cost_usd']:.4f}")
     res = ROOT / "results" / f"onboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     res.parent.mkdir(exist_ok=True)
     res.write_text(json.dumps({"args": vars(args), **out}, indent=2))
