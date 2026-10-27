@@ -18,7 +18,7 @@ def _verify(snmp, family, pick, lab, verify_kw):
     item = Item.from_pick(family, pick)
     res = verify_item(snmp, item, lab=lab, **verify_kw)
     return {"pick": pick, "verdict": res.verdict, "evidence": res.evidence,
-            "suggested_scale": res.suggested_scale, "seconds": res.seconds}
+            "suggested_scale": res.suggested_scale, "seconds": res.seconds, "series": res.series}
 
 
 def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attempts=3, model=None,
@@ -59,7 +59,7 @@ def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attemp
             log(f"    -> {a['verdict']}" + (f": {bad[-1]['detail']}" if bad else ""))
             note("verify", fam, attempt=n, object=pick.get("object_name"), oid=pick.get("oid"),
                  scale=pick.get("scale_to_canonical"), verdict=a["verdict"], evidence=a["evidence"],
-                 seconds=a["seconds"])
+                 seconds=a["seconds"], pick=pick, series=a["series"])
             if a["verdict"] != "rejected":
                 break
             if n == max_attempts:

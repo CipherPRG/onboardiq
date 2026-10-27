@@ -57,3 +57,19 @@ def test_verifier_rejects_injected_oid_without_calling_the_device():
     s = Snmp("localhost", runner=lambda cmd: called.append(cmd) or "")
     r = static_checks(s, Item("cpu", "-c secret 1.3.6", canonical_unit="percent"))
     assert r.verdict == "rejected" and not called
+
+
+def test_report_escapes_model_and_mib_text():
+    from onboardiq import report
+    evil = '<script>alert(1)</script><img src=x onerror=alert(2)>'
+    pick = {"oid": "1.3.6.1.2.1.25.2.2", "object_name": evil, "evidence": evil, "canonical_unit": "bytes",
+            "scale_to_canonical": 1024, "under_load": "rise"}
+    out = {"device": evil, "spec": {"memory": {"verdict": "rejected", "attempts": 1, "pick": pick, "evidence": []}},
+           "trace": [{"kind": "verify", "family": "memory", "attempt": 1, "verdict": "rejected", "pick": pick,
+                      "evidence": [{"check": "experiment", "ok": False, "detail": evil}], "series": None},
+                     {"kind": "repick", "family": "memory", "attempt": 2, "reasoning": evil}],
+           "snmp_calls": 1, "cost_usd": 0}
+    page = report.render(out, title=evil)
+    assert "<script>" not in page and "onerror=alert" not in page.replace("onerror=alert(2)&gt;", "")
+    assert "&lt;script&gt;" in page
+    assert "Content-Security-Policy" in page and "script-src" not in page   # default-src 'none': no scripts at all

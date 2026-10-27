@@ -57,6 +57,7 @@ class Result:
     suggested_scale: float | None = None
     rows: int = 0
     seconds: float = 0.0
+    series: dict | None = None   # what the experiment measured, for charts: see _chart_series
 
     def add(self, check: str, ok: bool | None, detail: str):
         self.evidence.append({"check": check, "ok": ok, "detail": detail})
@@ -77,6 +78,17 @@ def number(var) -> float | None:
         m = NUM.search(var.value)  # "29C", "84 PERCENT", "45.5"
         return float(m.group()) if m else None
     return None
+
+
+def fmt(v, unit=None):
+    """Readable numbers for evidence: 7,942,956 / 0.71 / 8.13 GB."""
+    if v is None:
+        return "?"
+    if unit == "bytes" and abs(v) >= 1e6:
+        return f"{v / 1e9:.2f} GB" if abs(v) >= 1e9 else f"{v / 1e6:.1f} MB"
+    if float(v).is_integer():
+        return f"{int(v):,}"
+    return f"{v:.3g}"
 
 
 def _in_range(values, scale, unit):
@@ -109,6 +121,34 @@ def _rate(series):
         if v0 is not None and v1 is not None and v1 >= v0:
             total += (v1 - v0) / max(t1 - t0, 1e-6)
     return total
+
+
+def _chart_series(base, during, row=None, scale=1.0, counter=False):
+    """{"base": [[t, v]], "load": [[t, v]], "unit_note": str} with t in seconds from the first sample.
+    Gauges: the chosen row's scaled value. Counters: total rate per second between samples."""
+    t0 = base[0][0] if base else 0
+
+    def gauge(series):
+        return [[round(t - t0, 1), round(rows[row] * scale, 3)] for t, rows in series
+                if row in rows and rows[row] is not None]
+
+    def rates(series):
+        # Agents cache counters (net-snmp refreshes every ~5 s): keep only samples where the total
+        # changed, so each rate spans a real update instead of alternating 0 and double.
+        kept = []
+        for s in series:
+            tot = sum(v for v in s[1].values() if v is not None)
+            if not kept or tot != kept[-1][2]:
+                kept.append((s[0], s[1], tot))
+        series = [(t, r) for t, r, _ in kept]
+        out = []
+        for (ta, a), (tb, b) in zip(series, series[1:]):
+            tot = sum((b[r] - a[r]) for r in a if r in b and a[r] is not None and b[r] is not None and b[r] >= a[r])
+            out.append([round(tb - t0, 1), round(tot / max(tb - ta, 1e-6), 2)])
+        return out
+    f = rates if counter else gauge
+    nrows = max((len(r) for _, r in base + during), default=1)
+    return {"base": f(base), "load": f(during), "row": row, "counter": counter, "rows": nrows}
 
 
 def _row_means(series):
@@ -155,12 +195,14 @@ def static_checks(snmp, item: Item) -> Result:
     unit = item.canonical_unit
     if want == "gauge" and unit in RANGE and values:
         fits = [s for s in CANDIDATE_SCALES if _in_range(values, s, unit)]
-        sample = f"raw {values[:3]}"
+        sample = "raw " + ", ".join(fmt(v) for v in values[:3]) + (" ..." if len(values) > 3 else "")
         if item.scale is None:
             res.add("range", None, f"model gave no scale; {sample}; scales giving a valid {unit}: {fits[:4]}")
             res.suggested_scale = fits[0] if len(fits) == 1 else None
         elif _in_range(values, item.scale, unit):
-            res.add("range", True, f"{sample} x {item.scale:g} = {[round(v * item.scale, 2) for v in values[:3]]} {unit}")
+            res.add("range", True, f"{sample} x {item.scale:g} = "
+                                   + ", ".join(fmt(v * item.scale, unit) for v in values[:3])
+                                   + (f" {unit}" if unit != "bytes" else ""))
         else:
             res.suggested_scale = fits[0] if fits else None
             return res.reject("range", f"{sample} x {item.scale:g} is outside {RANGE[unit]} {unit}"
@@ -278,6 +320,7 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
     scale = it.scale if it.scale is not None else (res.suggested_scale or 1)
     if it.value_type == "counter":
         r0, r1 = _rate(base), _rate(during)
+        res.series = _chart_series(base, during, counter=True)
         ok = r1 > max(r0 * 1.5, r0 + 1) if sign > 0 else r1 < r0 * 0.67
         res.add("experiment", ok, f"{it.family} load: counter rate {r0:.1f}/s -> {r1:.1f}/s"
                                   f" (expected {'rise' if sign > 0 else 'fall'}, per {source})")
@@ -291,6 +334,7 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         row = max(common, key=lambda r: sign * (d[r] - b[r]))
         m0, m1 = b[row], d[row]
         delta = (m1 - m0) * scale
+        res.series = _chart_series(base, during, row=row, scale=scale)
         if len(common) > 1:
             res.add("row", None, f"{len(common)} rows; responding row {row.rsplit('.', 1)[-1]} (instance {row})")
         if it.family == "cpu":

@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from onboardiq import agent, mib, replay  # noqa: E402
+from onboardiq import agent, mib, replay, report  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 
 LOCAL = {"localhost", "127.0.0.1", "::1"}
@@ -38,6 +38,7 @@ def main():
     ap.add_argument("--effort", default="high")
     ap.add_argument("--model", default=None)
     ap.add_argument("--max-attempts", type=int, default=3)
+    ap.add_argument("--html", help="also write the onboarding record as an HTML page")
     args = ap.parse_args()
     log = lambda m: print(m, flush=True)  # noqa: E731
     if args.replay:
@@ -72,6 +73,9 @@ def main():
     res.parent.mkdir(exist_ok=True)
     res.write_text(json.dumps({"args": vars(args), **out}, indent=2))
     print(f"  saved {res.relative_to(ROOT)}")
+    if args.html:
+        Path(args.html).write_text(report.render(out, title=f"OnboardIQ: {out.get('device')}"))
+        print(f"  report -> {args.html}")
 
 
 if __name__ == "__main__":
