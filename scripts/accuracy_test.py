@@ -106,11 +106,13 @@ def baseline(cands):
 
 
 # ---------- Muse Spark modes ----------
-def ask_model(device, cands, with_mib, model, effort):
+def ask_model(device, cands, with_mib, model, effort, anonymised=False):
     from onboardiq import llm
 
     if with_mib:
-        user = (f"Device: {device}\nPollable objects from its MIB modules "
+        note = ("\nObject identifiers and names are anonymised (X0001, X0002, ...). Put the X-id of each "
+                "chosen object in both the oid and object_name fields.\n" if anonymised else "")
+        user = (f"Device: {device}\n{note}Pollable objects from its MIB modules "
                 f"({len(cands)} objects; format: OID MODULE::name [kind type extras] description):\n\n"
                 + mib.as_prompt_lines(cands))
     else:
@@ -221,7 +223,7 @@ def main():
                 pred = baseline(cands)
             elif mode == "scrambled":
                 scr, back = scramble(cands)
-                pred, meta = ask_model(truth["device"], scr, True, args.model, args.effort)
+                pred, meta = ask_model(truth["device"], scr, True, args.model, args.effort, anonymised=True)
                 pred = unscramble(pred, back)
             else:
                 pred, meta = ask_model(truth["device"], cands, mode == "with-mib", args.model, args.effort)
