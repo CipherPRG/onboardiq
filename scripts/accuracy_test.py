@@ -227,7 +227,8 @@ def main():
                 pred = unscramble(pred, back)
             else:
                 pred, meta = ask_model(truth["device"], cands, mode == "with-mib", args.model, args.effort)
-                total_cost += meta.get("cost_usd", 0) if not meta.get("cached") else 0
+            if mode != "baseline" and not meta.get("cached"):
+                total_cost += meta.get("cost_usd", 0)
             rows = score(pred, truth)
             results.append({"vendor": vendor, "mode": mode, "scores": rows, "prediction": pred,
                             "usage": meta.get("usage"), "cost_usd": meta.get("cost_usd"),
