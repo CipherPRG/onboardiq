@@ -127,6 +127,9 @@ def score(pred, truth):
         p = pred.get(fam) or {}
         oid = norm(p.get("oid"))
         accepted = {norm(k): v for k, v in truth[fam].items()}
+        # A scalar's instance is <oid>.0; accept it when the object itself is correct.
+        if oid and oid not in accepted and oid.endswith(".0") and oid[:-2] in accepted:
+            oid = oid[:-2]
         oid_ok = oid in accepted
         scale_ok = False
         if oid_ok:
