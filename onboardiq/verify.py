@@ -338,6 +338,16 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         alloc = int(min(1024 ** 3, total_kb * 1024 * 0.25))
     PHASE["name"] = "base"
     base = _series(snmp, it.oid, base_s, interval)
+    # A baseline taken while the device is already busy cannot show a rise: that is an
+    # inconclusive experiment, never evidence against the object.
+    if it.family == "cpu" and it.canonical_unit == "percent" and it.value_type != "counter":
+        scl = it.scale if it.scale is not None else 1
+        busiest = max(_row_means(base).values(), default=0) * scl
+        if sign > 0 and busiest >= 60:
+            PHASE["name"] = "static"
+            res.add("experiment", None, f"inconclusive: the device was already busy before the test "
+                                        f"(busiest row {busiest:.0f}%); stop other load and run again")
+            return res
     try:
         proc = load(it.family, load_s + 10, alloc)
     except NotInducible as why:

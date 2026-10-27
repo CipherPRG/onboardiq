@@ -173,3 +173,11 @@ def test_load_by_hand_prompts_and_skips_memory():
     r = verify_item(DEV, Item("memory", "1.9.9.5", name="memAvail", scale=1024, canonical_unit="bytes"),
                     lab=True, load=hand, **FAST)
     assert r.verdict == "unproven" and "by hand" in r.evidence[-1]["detail"]
+
+
+
+def test_busy_baseline_is_inconclusive_not_rejected():
+    dev = FakeDevice({"1.9.9.20": ("Gauge32", lambda l, t: 95)})   # already loaded before the test
+    r = verify_item(dev, Item("cpu", "1.9.9.20", name="busyPct", canonical_unit="percent"), lab=True,
+                    load=dev.load, **FAST)
+    assert r.verdict == "unproven" and "already busy" in r.evidence[-1]["detail"]
