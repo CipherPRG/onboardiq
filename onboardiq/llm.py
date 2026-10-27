@@ -12,6 +12,7 @@ from .spend_guard import SpendGuard
 
 _guard: SpendGuard | None = None
 _clients: dict = {}
+USED_KEYS: list = []      # cache keys touched by chat() in this process (for session recording)
 
 
 def guard() -> SpendGuard:
@@ -53,6 +54,7 @@ def chat(messages, model: str | None = None, max_tokens: int = 8000,
 
     key = hashlib.sha256(json.dumps([request, extra], sort_keys=True).encode()).hexdigest()
     cache_file = CACHE_DIR / "llm" / f"{key}.json"
+    USED_KEYS.append(key)
     if use_cache and cache_file.exists():
         hit = json.loads(cache_file.read_text())
         hit["cached"] = True

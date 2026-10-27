@@ -27,6 +27,7 @@ TYPE_CLASS = {
 RANGE = {"percent": (0, 100), "celsius": (-40, 150), "rpm": (0, 40000), "bytes": (0, 2 ** 50)}
 CANDIDATE_SCALES = [1, 0.1, 0.01, 0.001, 1024, 1 / 1024, 1024 ** 2, 1 / 1024 ** 2, 8, 1 / 8, 100]
 NUM = re.compile(r"-?\d+(?:\.\d+)?")
+PHASE = {"name": "static"}   # which step is polling: static | observe | base | load (used by session recording)
 
 
 @dataclass
@@ -168,7 +169,9 @@ def static_checks(snmp, item: Item) -> Result:
 def observe(snmp, res: Result, seconds: float = 20, interval: float = 5) -> Result:
     if res.verdict == "rejected":
         return res
+    PHASE["name"] = "observe"
     s = _series(snmp, res.item.oid, seconds, interval)
+    PHASE["name"] = "static"
     if res.item.value_type == "counter":
         r = _rate(s)
         res.add("observe", r > 0 or None, f"counter rate {r:.2f}/s over {s[-1][0] - s[0][0]:.0f}s")
@@ -240,8 +243,10 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
     if it.family == "memory":
         total_kb = _meminfo_kb() or 4 * 1024 * 1024
         alloc = int(min(1024 ** 3, total_kb * 1024 * 0.25))
+    PHASE["name"] = "base"
     base = _series(snmp, it.oid, base_s, interval)
     proc = load(it.family, load_s + 10, alloc)
+    PHASE["name"] = "load"
     try:
         warm = min(load_s / 2, 6 if load_s <= 45 else load_s - 30) if adapt_windows else 0
         time.sleep(warm)                         # let caches and averages catch up
@@ -250,6 +255,7 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         proc.terminate()
         proc.wait(timeout=15)
         _LOAD_STATE["end"] = time.time()
+        PHASE["name"] = "static"
 
     scale = it.scale if it.scale is not None else (res.suggested_scale or 1)
     sign = expected_direction(it)
