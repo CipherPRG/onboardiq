@@ -43,6 +43,7 @@ class FakeDevice:
 ALLOC = 1024 ** 3  # experiment allocates min(1 GiB, 25% RAM); test machines have >= 4 GiB
 DEV = FakeDevice({
     "cpu.counter": ("Counter32", lambda l, t: t * (500 if l else 2)),
+    "cpu.idle.counter": ("Counter32", lambda l, t: t * (2 if l else 900)),
     "cpu.pct": ("Gauge32", lambda l, t: 90 if l else 3),
     "cpu.idle": ("Gauge32", lambda l, t: 8 if l else 96),
     "mem.availKB": ("INTEGER", lambda l, t: 6_000_000 - (ALLOC // 1024 if l else 0)),
@@ -67,6 +68,9 @@ def test_counter_read_as_gauge_is_rejected():
 
 def test_counter_proven_under_cpu_load():
     assert run(Item("cpu", "cpu.counter", value_type="counter")).verdict == "proven-experiment"
+    # idle-time counters slow down under load (found on the laptop: ssCpuRawIdle 1196/s -> 1.6/s)
+    assert run(Item("cpu", "cpu.idle.counter", name="ssCpuRawIdle", value_type="counter")).verdict == "proven-experiment"
+    assert run(Item("cpu", "cpu.idle.counter", name="cpuBusyTicks", value_type="counter")).verdict == "rejected"
 
 
 def test_cpu_percent_and_idle_direction():

@@ -246,8 +246,9 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
     sign = expected_direction(it)
     if it.value_type == "counter":
         r0, r1 = _rate(base), _rate(during)
-        ok = r1 > max(r0 * 1.5, r0 + 1)
-        res.add("experiment", ok, f"{it.family} load: counter rate {r0:.1f}/s -> {r1:.1f}/s")
+        ok = r1 > max(r0 * 1.5, r0 + 1) if sign > 0 else r1 < r0 * 0.67
+        res.add("experiment", ok, f"{it.family} load: counter rate {r0:.1f}/s -> {r1:.1f}/s"
+                                  f" (expected {'rise' if sign > 0 else 'fall'})")
     else:
         m0, m1 = _mean(base), _mean(during)
         if m0 is None or m1 is None:
