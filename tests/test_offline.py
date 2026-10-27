@@ -87,3 +87,16 @@ def test_provider_routing(env, monkeypatch):
         llm.client("baseten")
     # open model has no confirmed price yet -> charged conservatively
     assert sg.cost_usd("meta-models/muse-spark-open-1026", 1_000_000, 0) == pytest.approx(5.0)
+
+
+def test_providers_have_separate_ledgers_and_limits(env, monkeypatch):
+    tmp, sg, _ = env
+    monkeypatch.setenv("OIQ_BASETEN_DAILY_USD", "7")
+    meta, base = sg.SpendGuard(provider="meta"), sg.SpendGuard(provider="baseten")
+    assert meta.daily_usd == 0.05 and base.daily_usd == 7
+    assert meta.state_file != base.state_file
+    base.record("meta-models/muse-spark-open-1026", 1000, 1000)
+    assert meta.spent_today()["usd"] == 0 and base.spent_today()["usd"] > 0
+    monkeypatch.setenv("OIQ_BASETEN_DAILY_USD", "99")
+    with pytest.raises(sg.SpendLimitError):
+        sg.SpendGuard(provider="baseten")

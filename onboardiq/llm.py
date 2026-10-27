@@ -10,16 +10,15 @@ import time
 from .config import CACHE_DIR, MODEL, PROVIDERS, provider_for
 from .spend_guard import SpendGuard
 
-_guard: SpendGuard | None = None
+_guards: dict = {}
 _clients: dict = {}
 USED_KEYS: list = []      # cache keys touched by chat() in this process (for session recording)
 
 
-def guard() -> SpendGuard:
-    global _guard
-    if _guard is None:
-        _guard = SpendGuard()
-    return _guard
+def guard(provider: str = "meta") -> SpendGuard:
+    if provider not in _guards:
+        _guards[provider] = SpendGuard(provider=provider)
+    return _guards[provider]
 
 
 def client(provider: str = "meta"):
@@ -74,7 +73,7 @@ def chat(messages, model: str | None = None, max_tokens: int = 8000,
         hit["cached"] = True
         return hit
 
-    g = guard()
+    g = guard(provider_for(model))
     g.check(model, _estimate_tokens(messages), max_tokens)
     t0 = time.time()
     resp = client(provider_for(model)).chat.completions.create(**request, extra_body=extra)

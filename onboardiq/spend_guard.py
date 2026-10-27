@@ -5,8 +5,9 @@ credits go to the card. Every paid call must pass SpendGuard.check() first and
 SpendGuard.record() after. Limits come from the environment:
 
   OIQ_PAID=off            block every paid call
-  OIQ_DAILY_USD=3         dollars per UTC day on this machine
-  OIQ_MAX_CALLS_PER_RUN=40  paid calls per process
+  OIQ_DAILY_USD=3         dollars per UTC day on this machine (Meta Model API)
+  OIQ_BASETEN_DAILY_USD=3 dollars per UTC day on Baseten (separate credit, separate ledger)
+  OIQ_MAX_CALLS_PER_RUN=40  paid calls per process and provider
 """
 import fcntl
 import json
@@ -58,10 +59,13 @@ def _read_limit(name: str, default: float, ceiling: float) -> float:
 
 
 class SpendGuard:
-    def __init__(self, state_file: Path | None = None):
-        self.state_file = Path(state_file or CACHE_DIR / "spend.json")
+    def __init__(self, state_file: Path | None = None, provider: str = "meta"):
+        # each provider is a different account and credit, so each has its own ledger and limit
+        default = CACHE_DIR / ("spend.json" if provider == "meta" else f"spend_{provider}.json")
+        self.state_file = Path(state_file or default)
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
-        self.daily_usd = _read_limit("OIQ_DAILY_USD", 3, HARD_CEILING_USD)
+        env = "OIQ_DAILY_USD" if provider == "meta" else f"OIQ_{provider.upper()}_DAILY_USD"
+        self.daily_usd = _read_limit(env, 3, HARD_CEILING_USD)
         self.max_calls = int(_read_limit("OIQ_MAX_CALLS_PER_RUN", 40, HARD_CEILING_CALLS))
         self.paid_on = os.environ.get("OIQ_PAID", "on").lower() != "off"
         self.calls_this_run = 0
