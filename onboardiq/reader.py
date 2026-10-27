@@ -126,7 +126,8 @@ def repick(device, cands, family, attempts, model=None, effort="high"):
     user = (f"Device: {device}\nMetric family: {family}\n\n"
             "Your earlier choice(s) were tested on the live device and failed:\n" + "\n".join(tried) +
             "\n\nUsing the evidence, choose again from the objects below. Do not repeat a failed object "
-            "unless the evidence shows only its scale was wrong (then correct the scale). If no object fits, "
+            "unless the evidence shows only its scale or your predicted direction (under_load) was wrong; then "
+            "keep it and correct that. If no object fits, "
             "return oid null. Predict under_load for the new pick. Explain in reasoning what the evidence "
             "told you.\n\n"
             f"Pollable objects ({len(cands)}; format: OID MODULE::name [kind type extras] description):\n\n"
