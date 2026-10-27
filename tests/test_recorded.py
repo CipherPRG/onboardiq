@@ -31,3 +31,12 @@ def test_wrong_scale_on_every_row_is_still_rejected(tmp_path):
     d = rec(tmp_path, ["1.3.6.1.4.1.5.1.1|2|412", "1.3.6.1.4.1.5.1.2|2|398"])
     r = static_checks(d, temp("1.3.6.1.4.1.5.1"))
     assert r.verdict == "rejected" and r.suggested_scale == 0.1
+
+
+def test_witness_of_another_quantity_is_not_compared(tmp_path):
+    d = rec(tmp_path, ["1.3.6.1.4.1.6486.1.1|2|32", "1.3.6.1.4.1.6486.2.1|2|39"])
+    it = temp("1.3.6.1.4.1.6486.1.1")
+    it.witness = {"oid": "1.3.6.1.4.1.6486.2.1", "object_name": "healthDeviceCpuLatest", "scale_to_canonical": 1}
+    r = verify_item(d, it, witness_interval=0, observe_s=0, observe_interval=0)
+    assert any("measures cpu, not temperature" in e["detail"] for e in r.evidence)
+    assert not any("disagree" in e["detail"] for e in r.evidence)

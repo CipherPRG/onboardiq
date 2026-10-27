@@ -38,7 +38,8 @@ def score(pick, key, names):
     if name not in key:
         return "wrong-object"
     want, got = key[name], pick.get("scale_to_canonical")
-    if want is None or (got is not None and abs(got - want) <= 1e-9 * max(1, abs(want))):
+    wants = want if isinstance(want, list) else [want]          # several = firmware-dependent
+    if want is None or (got is not None and any(abs(got - w) <= 1e-9 * max(1, abs(w)) for w in wants)):
         return "right"
     return "wrong-scale"
 

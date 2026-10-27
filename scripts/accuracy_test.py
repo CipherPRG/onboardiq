@@ -118,7 +118,8 @@ def score(pred, truth):
             elif got is None:
                 scale = "flagged"          # model said: cannot tell from the MIB
             else:
-                scale = "correct" if abs(float(got) - want) < 1e-9 else "wrong"
+                wants = want if isinstance(want, list) else [want]   # several = firmware-dependent
+                scale = "correct" if any(abs(float(got) - w) <= 1e-9 * max(1, abs(w)) for w in wants) else "wrong"
         rows[fam] = {
             "oid": oid, "name": p.get("object_name"), "oid_ok": oid_ok,
             "scale_ok": scale == "correct", "scale": scale,

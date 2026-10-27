@@ -447,6 +447,18 @@ def _agg(rows, scale):
     return statistics.fmean(vals) if vals else None
 
 
+FAMILY_WORDS = {"cpu": ("cpu", "processor"), "memory": ("mem",), "temperature": ("temp", "thermal"),
+                "fan": ("fan",)}
+
+
+def _names_other_family(name, family):
+    """A witness whose name says it is another quantity (CPU load offered as a temperature witness)."""
+    n = (name or "").lower()
+    if any(w in n for w in FAMILY_WORDS.get(family, ())):
+        return None
+    return next((f for f, words in FAMILY_WORDS.items() if f != family and any(w in n for w in words)), None)
+
+
 def witness_check(snmp, res: Result, samples: int = 3, interval: float = 2) -> Result:
     """Read the pick and its witness side by side; agreement corroborates, disagreement is a conflict."""
     it, w = res.item, res.item.witness or {}
@@ -456,6 +468,11 @@ def witness_check(snmp, res: Result, samples: int = 3, interval: float = 2) -> R
     from .snmp import OID_RE
     if not OID_RE.match(woid) or woid == it.oid:
         res.add("witness", None, f"witness {w.get('object_name')!r} is not a usable second object")
+        return res
+    other = _names_other_family(w.get("object_name"), it.family)
+    if other:
+        res.add("witness", None, f"witness {w.get('object_name')!r} measures {other}, not {it.family}: "
+                                 "not compared")
         return res
     if it.value_type == "counter":
         res.add("witness", None, "witness comparison is for gauges; counters are checked by experiment")

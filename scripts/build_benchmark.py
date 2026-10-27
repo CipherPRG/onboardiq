@@ -86,7 +86,13 @@ def extract(defn):
         for e in group.get("data") or []:
             n = _name(e.get("value")) or _name(e.get("oid"))
             if n and not n[1].endswith("Table"):
-                out.setdefault(fam, {})[n] = _sensor_scale({**opts, **e})
+                sc, fam_map = _sensor_scale({**opts, **e}), out.setdefault(fam, {})
+                if n in fam_map and fam_map[n] != sc:
+                    # the same object listed twice with different scales (firmware-dependent, e.g.
+                    # Ubiquiti divisor 1 or 10^7): any listed scale is correct; None stays unscored
+                    prev = fam_map[n] if isinstance(fam_map[n], list) else [fam_map[n]]
+                    sc = None if None in prev or sc is None else sorted(set(prev + [sc]))
+                fam_map[n] = sc
     return out
 
 
