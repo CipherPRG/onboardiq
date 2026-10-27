@@ -4,6 +4,9 @@ Modes compared on the same ground truth (eval/ground_truth_day1.json):
   baseline  keyword parser, no AI (first object whose name matches cpu/mem/temp/fan)
   with-mib  Muse Spark reads every pollable object of the vendor's MIB modules
   no-mib    Muse Spark gets only the device name (memorisation check)
+  scrambled Muse Spark reads the MIB with every object name, OID and module replaced by
+            neutral ids (X0001...) and camelCase names scrubbed from descriptions, so only
+            types, units and description text remain: is it reading or recognising names?
 
 Usage:
   python scripts/accuracy_test.py                      # all vendors, all modes
@@ -121,6 +124,30 @@ def ask_model(device, cands, with_mib, model, effort):
     return json.loads(content), r
 
 
+CAMEL = re.compile(r"\b[a-z][a-z0-9]*[A-Z][A-Za-z0-9]*\b")
+
+
+def scramble(cands):
+    """Neutral ids for every object; returns (scrambled candidates, id -> real candidate)."""
+    back, out = {}, []
+    for i, c in enumerate(cands, 1):
+        xid = f"X{i:04d}"
+        back[xid] = c
+        out.append({**c, "oid": xid, "module": "DEVICE-MIB", "name": xid,
+                    "description": CAMEL.sub("<obj>", c["description"])})
+    return out, back
+
+
+def unscramble(pred, back):
+    for fam in FAMILIES:
+        p = pred.get(fam) or {}
+        xid = (p.get("oid") or p.get("object_name") or "").split("::")[-1].split(".")[0].strip()
+        real = back.get(xid)
+        p["oid"] = real["oid"] if real else None
+        p["object_name"] = f"{real['module']}::{real['name']}" if real else None
+    return pred
+
+
 def _obj(name):
     """'MODULE::object' or 'object' -> 'object' (lower case) for name matching."""
     return None if not name else name.split("::")[-1].strip().lower()
@@ -192,6 +219,10 @@ def main():
             meta = {}
             if mode == "baseline":
                 pred = baseline(cands)
+            elif mode == "scrambled":
+                scr, back = scramble(cands)
+                pred, meta = ask_model(truth["device"], scr, True, args.model, args.effort)
+                pred = unscramble(pred, back)
             else:
                 pred, meta = ask_model(truth["device"], cands, mode == "with-mib", args.model, args.effort)
                 total_cost += meta.get("cost_usd", 0) if not meta.get("cached") else 0
