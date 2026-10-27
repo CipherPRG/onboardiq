@@ -34,9 +34,23 @@ def client(provider: str = "meta"):
     return _clients[provider]
 
 
+IMAGE_TOKENS_ESTIMATE = 4000   # per image or document part; deliberately high (no published figure)
+
+
 def _estimate_tokens(messages) -> int:
     # ~3.5 characters per token; deliberately rough and on the high side.
-    return int(sum(len(m["content"]) for m in messages) / 3.5) + 200
+    chars, parts = 0, 0
+    for m in messages:
+        c = m["content"]
+        if isinstance(c, str):
+            chars += len(c)
+            continue
+        for item in c:   # multimodal content: text items count by length, images by a fixed estimate
+            if item.get("type") == "text":
+                chars += len(item.get("text", ""))
+            else:
+                parts += 1
+    return int(chars / 3.5) + parts * IMAGE_TOKENS_ESTIMATE + 200
 
 
 def chat(messages, model: str | None = None, max_tokens: int = 8000,
