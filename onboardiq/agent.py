@@ -14,8 +14,9 @@ from .verify import Item, verify_item
 NOT_SERVED = "is not served by this device"
 
 
-def _verify(snmp, family, pick, lab, verify_kw):
+def _verify(snmp, family, pick, lab, verify_kw, types=None):
     item = Item.from_pick(family, pick)
+    item.mib_type = (types or {}).get(item.oid)
     res = verify_item(snmp, item, lab=lab, **verify_kw)
     return {"pick": pick, "verdict": res.verdict, "evidence": res.evidence,
             "suggested_scale": res.suggested_scale, "seconds": res.seconds, "series": res.series}
@@ -44,6 +45,7 @@ def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attemp
             on_event({"t": round(time.time() - t0, 2), "family": current["family"],
                       "attempt": current["attempt"], **ev})
 
+    types = {c["oid"]: c.get("type") for c in cands}   # declared SYNTAX per object, from the MIB
     from . import verify as _v
     saved_hook, _v.EVENTS["hook"] = _v.EVENTS["hook"], sample
 
@@ -69,7 +71,7 @@ def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attemp
                 log(f"  {fam} attempt {n}: {pick.get('object_name')} x{pick.get('scale_to_canonical')}")
                 current.update(family=fam, attempt=n)
                 note("verify-start", fam, attempt=n, object=pick.get("object_name"), oid=pick.get("oid"), pick=pick)
-                a = _verify(snmp, fam, pick, lab, verify_kw)
+                a = _verify(snmp, fam, pick, lab, verify_kw, types)
                 attempts.append(a)
                 bad = [e for e in a["evidence"] if e["ok"] is False]
                 log(f"    -> {a['verdict']}" + (f": {bad[-1]['detail']}" if bad else ""))

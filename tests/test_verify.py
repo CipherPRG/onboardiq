@@ -220,3 +220,13 @@ def test_wrong_scale_shows_up_as_witness_disagreement():
     r = verify_item(WDEV, temp({"oid": "1.9.8.2", "object_name": "ent", "scale_to_canonical": 1}, scale=1),
                     observe_s=0.01, witness_interval=0.001, observe_interval=0.001)
     assert r.verdict == "rejected" and r.suggested_scale == 0.1
+
+
+
+def test_counterbasedgauge64_is_a_gauge_when_the_mib_says_so():
+    dev = FakeDevice({"1.9.7.1": ("Counter64", lambda l, t: 6_000_000 - (ALLOC // 1024 if l else 0))})
+    it = Item("memory", "1.9.7.1", name="memAvailRealX", scale=1024, canonical_unit="bytes")
+    assert verify_item(dev, it, lab=True, load=dev.load, **FAST).verdict == "rejected"     # no MIB type: counter
+    it.mib_type = "CounterBasedGauge64"
+    r = verify_item(dev, it, lab=True, load=dev.load, **FAST)
+    assert r.verdict == "proven-experiment" and "RFC 2856" in r.evidence[1]["detail"]

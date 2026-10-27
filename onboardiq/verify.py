@@ -26,6 +26,8 @@ TYPE_CLASS = {
 # Physical ranges in canonical units after scaling.
 RANGE = {"percent": (0, 100), "celsius": (-40, 150), "rpm": (0, 40000), "bytes": (0, 2 ** 50)}
 CANDIDATE_SCALES = [1, 0.1, 0.01, 0.001, 1024, 1 / 1024, 1024 ** 2, 1 / 1024 ** 2, 8, 1 / 8, 100]
+# RFC 2856: 64-bit gauges travel as Counter64 on the wire (SNMPv2 has no 64-bit gauge type).
+GAUGE_DECLARED_AS = {"CounterBasedGauge64", "ZeroBasedCounter64"}
 NUM = re.compile(r"-?\d+(?:\.\d+)?")
 PHASE = {"name": "static"}
 EVENTS = {"hook": None}      # optional callable(dict): one call per poll, for live views   # which step is polling: static | observe | base | load (used by session recording)
@@ -42,6 +44,7 @@ class Item:
     row_filter: str | None = None
     under_load: str | None = None       # model's prediction: rise | fall | none (None = not given)
     witness: dict | None = None         # second independent object for the same quantity
+    mib_type: str | None = None         # SYNTAX declared in the MIB (e.g. CounterBasedGauge64)
 
     @classmethod
     def from_pick(cls, family: str, pick: dict) -> "Item":
@@ -188,14 +191,20 @@ def static_checks(snmp, item: Item) -> Result:
     classes = {TYPE_CLASS.get(t, "other") for t in types}
     want = "counter" if item.value_type == "counter" else "gauge"
     if want == "gauge" and classes == {"counter"}:
-        return res.reject("type", "device returns a Counter (it only ever increases, like an odometer); "
-                                  "reading it as a gauge gives meaningless values")
+        if item.mib_type in GAUGE_DECLARED_AS:
+            res.add("type", True, f"{', '.join(types)} on the wire, declared {item.mib_type} in the MIB: "
+                                  "a 64-bit gauge sent with the counter type (RFC 2856)")
+            classes = {"gauge"}
+        else:
+            return res.reject("type", "device returns a Counter (it only ever increases, like an odometer); "
+                                      "reading it as a gauge gives meaningless values")
     if want == "counter" and "counter" not in classes:
         return res.reject("type", f"declared counter but device returns {', '.join(types)}")
     values = [x for x in (number(v) for v in rows) if x is not None]
     if item.value_type in ("gauge", "status") and not values:
         return res.reject("type", f"no numeric value in {rows[0].type} '{rows[0].value[:40]}'")
-    res.add("type", True, f"{', '.join(types)} fits declared {item.value_type}")
+    if not (res.evidence and res.evidence[-1]["check"] == "type"):
+        res.add("type", True, f"{', '.join(types)} fits declared {item.value_type}")
 
     unit = item.canonical_unit
     if want == "gauge" and unit in RANGE and values:
