@@ -25,7 +25,6 @@ def test_record_then_replay_gives_same_verdicts(tmp_path, monkeypatch):
     dev = FakeDevice({"mem.totalKB": ("INTEGER", lambda l, t: 8_000_000),
                       "mem.availKB": ("INTEGER", lambda l, t: 6_000_000 - (ALLOC // 1024 if l else 0))})
     rec = replay.Recorder(dev)
-    rec.snmp.calls = 0
     live = agent.onboard("box", [], rec, lab=True, families=["memory"],
                          verify_kw={"load": dev.load, **FAST}, log=lambda *a: None)
     path = tmp_path / "session.json"

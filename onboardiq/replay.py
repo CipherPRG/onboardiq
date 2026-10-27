@@ -15,16 +15,16 @@ from .snmp import Var
 
 class Recorder:
     def __init__(self, snmp):
-        self.snmp, self.t0, self.calls = snmp, _time.time(), []
+        self.snmp, self.t0, self.log = snmp, _time.time(), []
 
     @property
-    def calls_made(self):
+    def calls(self):
         return self.snmp.calls
 
     def _rec(self, op, args, fn):
         start = _time.time()
         out = fn()
-        self.calls.append({"t": round(start - self.t0, 3), "dt": round(_time.time() - start, 3),
+        self.log.append({"t": round(start - self.t0, 3), "dt": round(_time.time() - start, 3),
                            "phase": verify.PHASE["name"], "op": op,
                            "args": list(args), "vars": [[v.oid, v.type, v.value] for v in out]})
         return out
@@ -42,7 +42,7 @@ class Recorder:
             if f.exists():
                 cache[key] = json.loads(f.read_text())
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        Path(path).write_text(json.dumps({**meta, "snmp": self.calls, "llm_cache": cache,
+        Path(path).write_text(json.dumps({**meta, "snmp": self.log, "llm_cache": cache,
                                           "llm_order": list(llm.USED_KEYS),
                                           "mem_total_kb": verify._meminfo_kb()}, indent=1))
 
