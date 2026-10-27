@@ -35,3 +35,13 @@ CPU objects that look right but are not device-wide.
 Every paid call goes through `onboardiq/spend_guard.py` (daily dollar cap, per-run call cap, `OIQ_PAID=off`
 switch) and identical requests are served from a disk cache. The Meta Model API billing "spend limit"
 only sends an email, so the limit is enforced in code.
+
+## Multi-vendor benchmark
+
+```bash
+python scripts/build_benchmark.py            # needs ~/data/librenms and ~/data/mibs_json
+OIQ_MAX_CALLS_PER_RUN=60 python scripts/accuracy_test.py --truth data/benchmark_librenms.json \
+    --split dev --modes baseline,with-mib,no-mib --effort high
+```
+The answer key comes from LibreNMS device definitions (GPL) and is generated locally, not committed.
+Tune on `--split dev`; report on `--split test`.

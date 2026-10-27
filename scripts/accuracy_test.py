@@ -121,23 +121,46 @@ def ask_model(device, cands, with_mib, model, effort):
     return json.loads(content), r
 
 
+def _obj(name):
+    """'MODULE::object' or 'object' -> 'object' (lower case) for name matching."""
+    return None if not name else name.split("::")[-1].strip().lower()
+
+
 def score(pred, truth):
+    """Per family: oid_ok, and scale as correct / wrong / flagged (model said null).
+
+    Day-1 keys are numeric OIDs; benchmark keys are 'MODULE::object' names.
+    Families absent from the answer key are not scored.
+    """
     rows = {}
     for fam in FAMILIES:
+        if fam not in truth:
+            continue
         p = pred.get(fam) or {}
         oid = norm(p.get("oid"))
-        accepted = {norm(k): v for k, v in truth[fam].items()}
+        by_oid = {norm(k): v for k, v in truth[fam].items() if "::" not in k}
+        by_name = {_obj(k): v for k, v in truth[fam].items() if "::" in k}
         # A scalar's instance is <oid>.0; accept it when the object itself is correct.
-        if oid and oid not in accepted and oid.endswith(".0") and oid[:-2] in accepted:
+        if oid and oid not in by_oid and oid.endswith(".0") and oid[:-2] in by_oid:
             oid = oid[:-2]
-        oid_ok = oid in accepted
-        scale_ok = False
+        if oid in by_oid:
+            oid_ok, want = True, by_oid[oid]
+        elif _obj(p.get("object_name")) in by_name:
+            oid_ok, want = True, by_name[_obj(p.get("object_name"))]
+        else:
+            oid_ok, want = False, None
+        scale = None
         if oid_ok:
-            want = accepted[oid]
             got = p.get("scale_to_canonical")
-            scale_ok = want is None or (got is not None and abs(float(got) - want) < 1e-9)
+            if want is None:
+                scale = "correct"          # not scored for this object
+            elif got is None:
+                scale = "flagged"          # model said: cannot tell from the MIB
+            else:
+                scale = "correct" if abs(float(got) - want) < 1e-9 else "wrong"
         rows[fam] = {
-            "oid": oid, "name": p.get("object_name"), "oid_ok": oid_ok, "scale_ok": scale_ok,
+            "oid": oid, "name": p.get("object_name"), "oid_ok": oid_ok,
+            "scale_ok": scale == "correct", "scale": scale,
             "trap": truth.get("traps", {}).get(oid),
         }
     return rows
@@ -150,10 +173,16 @@ def main():
     ap.add_argument("--modes", default="baseline,with-mib,no-mib")
     ap.add_argument("--model", default=None)
     ap.add_argument("--effort", default="minimal", help="reasoning effort: minimal..xhigh")
-    ap.add_argument("--truth", default=str(ROOT / "eval" / "ground_truth_day1.json"))
+    ap.add_argument("--truth", default=str(ROOT / "eval" / "ground_truth_day1.json"),
+                    help="answer key; data/benchmark_librenms.json for the multi-vendor benchmark")
+    ap.add_argument("--split", default=None, help="benchmark only: dev or test")
+    ap.add_argument("--limit", type=int, default=None, help="first N devices (sorted) after the split filter")
     args = ap.parse_args()
 
     truth_all = json.loads(Path(args.truth).read_text())
+    if args.vendors == "all" or args.split:
+        names = sorted(v for v, t in truth_all.items() if not args.split or t.get("split") == args.split)
+        args.vendors = ",".join(names[: args.limit] if args.limit else names)
     results, total_cost = [], 0.0
     for vendor in args.vendors.split(","):
         truth = truth_all[vendor]
@@ -171,7 +200,7 @@ def main():
                             "usage": meta.get("usage"), "cost_usd": meta.get("cost_usd"),
                             "seconds": meta.get("seconds"), "cached": meta.get("cached")})
             line = "  ".join(
-                f"{fam}:{'OK ' if r['oid_ok'] else 'X  '}{'s' if r['scale_ok'] else '-'}"
+                f"{fam}:{'OK ' if r['oid_ok'] else 'X  '}{'s' if r['scale_ok'] else ('?' if r['scale'] == 'flagged' else '-')}"
                 for fam, r in rows.items())
             info = f" (${meta.get('cost_usd', 0):.4f}, {meta.get('seconds')}s{', cached' if meta.get('cached') else ''})" if meta else ""
             print(f"  {mode:9} {line}{info}")
@@ -179,13 +208,24 @@ def main():
                 if not r["oid_ok"]:
                     print(f"            {fam}: picked {r['oid']} ({r['name']})" + (f"  <- TRAP: {r['trap']}" if r["trap"] else ""))
 
-    print("\n=== Summary (OID correct / OID+scale correct, out of 4 families per vendor)")
+    print("\n=== Summary (OID correct / OID+scale correct, families with an answer key)")
     for mode in args.modes.split(","):
         rs = [r for r in results if r["mode"] == mode]
         n = sum(len(r["scores"]) for r in rs)
+        if not n:
+            continue
         ok = sum(s["oid_ok"] for r in rs for s in r["scores"].values())
         both = sum(s["oid_ok"] and s["scale_ok"] for r in rs for s in r["scores"].values())
-        print(f"  {mode:9} OID {ok}/{n} ({100 * ok / n:.0f}%)   OID+scale {both}/{n} ({100 * both / n:.0f}%)")
+        flagged = sum(s["scale"] == "flagged" for r in rs for s in r["scores"].values())
+        wrong = sum(s["scale"] == "wrong" for r in rs for s in r["scores"].values())
+        print(f"  {mode:9} OID {ok}/{n} ({100 * ok / n:.0f}%)   OID+scale {both}/{n} ({100 * both / n:.0f}%)"
+              f"   scale flagged {flagged}, wrong {wrong}")
+        fams = {}
+        for r in rs:
+            for fam, sc in r["scores"].items():
+                a, b = fams.get(fam, (0, 0))
+                fams[fam] = (a + sc["oid_ok"], b + 1)
+        print("            by family: " + "  ".join(f"{f} {a}/{b}" for f, (a, b) in fams.items()))
     print(f"  API cost this run: ${total_cost:.4f}")
 
     out = ROOT / "results" / f"day1_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
