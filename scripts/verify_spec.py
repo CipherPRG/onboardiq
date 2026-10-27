@@ -49,8 +49,9 @@ def main():
     ap.add_argument("--lab", action="store_true", help="run CPU/memory load experiments (local agent only)")
     ap.add_argument("--families", default=",".join(FAMILIES))
     args = ap.parse_args()
-    if args.lab and args.host not in LOCAL:
-        raise SystemExit("lab experiments only run against this machine's own agent (--host localhost)")
+    if args.lab and (args.host not in LOCAL or args.port not in (None, 161)):
+        raise SystemExit("lab experiments only run against this machine's own agent (--host localhost, default port);\n"
+                         "a forwarded port is another device (VM/container): loading this machine proves nothing about it")
 
     spec = load_spec(args)
     snmp = Snmp(args.host, args.community, port=args.port)

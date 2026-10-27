@@ -47,8 +47,9 @@ def main():
     else:
         if not (args.device and args.modules):
             raise SystemExit("--device and --modules are required (or use --replay)")
-        if args.lab and args.host not in LOCAL:
-            raise SystemExit("lab experiments only run against this machine's own agent (--host localhost)")
+        if args.lab and (args.host not in LOCAL or args.port not in (None, 161)):
+            raise SystemExit("lab experiments only run against this machine's own agent (--host localhost, default port);\n"
+                             "a forwarded port is another device (VM/container): loading this machine proves nothing about it")
         cands = mib.candidates(Path(args.mib_dir).expanduser(), args.modules.split(","))
         snmp = Snmp(args.host, args.community, port=args.port)
         dev = replay.Recorder(snmp) if args.record else snmp
