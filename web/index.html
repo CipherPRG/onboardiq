@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>OnboardIQ replays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header class="top">
+    <p class="brand">OnboardIQ</p>
+    <h1>Watch the agent read a device manual, test its picks on the device, and correct itself.</h1>
+    <p class="lede">These are replays of recorded live sessions. Every reading and every model answer comes from the
+      recording; the verifier recomputes each check as you watch.</p>
+  </header>
+
+  <nav class="sessions" aria-label="Recorded sessions">
+    <h2>Recorded sessions</h2>
+    <ul id="session-list"></ul>
+  </nav>
+
+  <section class="stage" aria-live="polite">
+    <div class="stage-head">
+      <div>
+        <h2 id="device">Choose a session</h2>
+        <p id="status" class="status">Pick a recorded session above to play it.</p>
+      </div>
+      <div class="controls" role="group" aria-label="Playback">
+        <button id="play" type="button" disabled>Play</button>
+        <button id="restart" type="button" disabled>Restart</button>
+        <label>Speed
+          <select id="speed">
+            <option value="1">1×</option>
+            <option value="2" selected>2×</option>
+            <option value="4">4×</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div id="families"></div>
+  </section>
+
+  <footer>
+    <p>Verdicts come from measurements on the device, not from the model. "Proven by experiment" means the value
+      moved the way the model predicted when load was applied; "proven by a second object" means an independent
+      object reported the same quantity.</p>
+  </footer>
+</main>
+<script src="player.js"></script>
+</body>
+</html>

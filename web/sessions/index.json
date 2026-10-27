@@ -1,0 +1,48 @@
+[
+ {
+  "id": "laptop_hostresources",
+  "title": "Linux host: catches its own memory mistake",
+  "device": "Linux server running the net-snmp agent",
+  "summary": {
+   "memory": "proven-experiment",
+   "cpu": "proven-experiment"
+  }
+ },
+ {
+  "id": "laptop_full",
+  "title": "Linux host: all four metrics",
+  "device": "Linux server running the net-snmp agent",
+  "summary": {
+   "cpu": "proven-experiment",
+   "memory": "proven-experiment",
+   "temperature": "not-supported",
+   "fan": "not-supported"
+  }
+ },
+ {
+  "id": "laptop_witness",
+  "title": "Linux host: memory proven two ways",
+  "device": "Linux server running the net-snmp agent",
+  "summary": {
+   "cpu": "proven-experiment",
+   "memory": "proven-experiment"
+  }
+ },
+ {
+  "id": "laptop_ucd_hr",
+  "title": "Linux host: predicted directions",
+  "device": "Linux server running the net-snmp agent",
+  "summary": {
+   "cpu": "proven-experiment",
+   "memory": "proven-experiment"
+  }
+ },
+ {
+  "id": "mikrotik_chr_cpu",
+  "title": "MikroTik RouterOS: CPU under load on the router",
+  "device": "MikroTik RouterOS 7 router (CHR)",
+  "summary": {
+   "cpu": "proven-experiment"
+  }
+ }
+]

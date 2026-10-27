@@ -70,3 +70,15 @@ Record your own: `python scripts/onboard.py --device "..." --modules ... --lab -
 - **What leaves the network:** MIB text, the device description and verifier readings go to the model provider (Meta API, or Baseten for open weights). Credentials never do.
 - **Spend limits** in code (daily cap, per-run cap, off switch); dependencies pinned.
 - SNMPv2c sends the community in clear text on the wire; use SNMPv3 (`authPriv`) on real networks.
+
+## Web player (replays in the browser)
+
+`web/` is a static page that plays recorded sessions: the model's pick, the measurements drawn as they were
+taken, the verdict, and the model's re-read when a pick fails. No server, no API key, no device.
+
+```bash
+python scripts/export_playback.py          # demo/*.json -> web/sessions/*.json
+python -m http.server 8765 --directory web --bind 127.0.0.1   # open http://127.0.0.1:8765
+```
+The page runs no third-party scripts (Content-Security-Policy `script-src 'self'`) and inserts every string
+from a session as text, never as HTML.

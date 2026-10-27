@@ -116,7 +116,7 @@ class _NoLoad:
         return 0
 
 
-def replay(session_path, log=print):
+def replay(session_path, log=print, on_event=None):
     """Re-run the recorded onboarding. Returns the agent output (same shape as live).
 
     The Reader's answers are served in recorded order (not by prompt), and the recording
@@ -139,7 +139,7 @@ def replay(session_path, log=print):
         out = agent.onboard(a["device"], session["cands"], Replayer(session, clock), lab=a["lab"],
                             families=a["families"].split(","), max_attempts=a["max_attempts"],
                             model=a.get("model"), effort=a["effort"],
-                            verify_kw={"load": lambda *x: _NoLoad()}, log=log)
+                            verify_kw={"load": lambda *x: _NoLoad()}, log=log, on_event=on_event)
         out["replay"] = {"virtual_seconds": round(clock.now, 1), "unused_answers": len(answers)}
         return out
     finally:
