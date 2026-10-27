@@ -39,13 +39,14 @@ class Item:
     scale: float | None = 1.0           # raw * scale = canonical; None = model unsure
     canonical_unit: str = "none"
     row_filter: str | None = None
+    under_load: str | None = None       # model's prediction: rise | fall | none (None = not given)
 
     @classmethod
     def from_pick(cls, family: str, pick: dict) -> "Item":
         return cls(family=family, oid=(pick.get("oid") or "").lstrip(".").removesuffix(".0"),
                    name=pick.get("object_name"), value_type=pick.get("value_type") or "gauge",
                    scale=pick.get("scale_to_canonical"), canonical_unit=pick.get("canonical_unit") or "none",
-                   row_filter=pick.get("row_filter"))
+                   row_filter=pick.get("row_filter"), under_load=pick.get("under_load"))
 
 
 @dataclass
@@ -213,10 +214,17 @@ DOWN_WORDS = ("idle", "free", "avail", "unused")
 _LOAD_STATE = {"end": 0.0}  # when the last lab load stopped (for cool-down)
 
 
-def expected_direction(item: Item) -> int:
-    """+1 if the metric should rise under load (used, busy, util), -1 if it should fall (idle, free, available)."""
+def name_rule(item: Item) -> int:
+    """Fallback guess from the object name: idle/free/available fall under load, everything else rises."""
     text = (item.name or "").split("::")[-1].lower()
     return -1 if any(w in text for w in DOWN_WORDS) else 1
+
+
+def expected_direction(item: Item) -> tuple[int, str]:
+    """(+1 rise / -1 fall / 0 no movement, source). The model's own prediction wins; the name rule is a fallback."""
+    if item.under_load in ("rise", "fall", "none"):
+        return {"rise": 1, "fall": -1, "none": 0}[item.under_load], "model"
+    return name_rule(item), "name rule"
 
 
 def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval: float = 3,
@@ -227,6 +235,13 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         return res
     if it.family not in ("cpu", "memory"):
         res.add("experiment", None, f"{it.family} cannot be induced on demand; static checks only")
+        return res
+    sign, source = expected_direction(it)
+    if source == "model" and sign != 0 and sign != name_rule(it):
+        res.add("direction", None, f"model predicts {'rise' if sign > 0 else 'fall'}; the name suggests the "
+                                   "opposite: the experiment decides")
+    if sign == 0:
+        res.add("experiment", None, "model predicts no movement under load: an experiment cannot prove it")
         return res
     # Averaged objects (1/5-minute CPU, load averages) lag the load: give them time.
     text = f"{it.name or ''} {it.row_filter or ''}".lower()
@@ -261,12 +276,11 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         PHASE["name"] = "static"
 
     scale = it.scale if it.scale is not None else (res.suggested_scale or 1)
-    sign = expected_direction(it)
     if it.value_type == "counter":
         r0, r1 = _rate(base), _rate(during)
         ok = r1 > max(r0 * 1.5, r0 + 1) if sign > 0 else r1 < r0 * 0.67
         res.add("experiment", ok, f"{it.family} load: counter rate {r0:.1f}/s -> {r1:.1f}/s"
-                                  f" (expected {'rise' if sign > 0 else 'fall'})")
+                                  f" (expected {'rise' if sign > 0 else 'fall'}, per {source})")
     else:
         b, d = _row_means(base), _row_means(during)
         common = [r for r in b if r in d]
@@ -282,7 +296,7 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         if it.family == "cpu":
             ok = sign * delta > 0 and (it.canonical_unit != "percent" or abs(delta) >= 10)
             res.add("experiment", ok, f"cpu load: {m0 * scale:.1f} -> {m1 * scale:.1f} {it.canonical_unit}"
-                                      f" (change {delta:+.1f}, expected {'rise' if sign > 0 else 'fall'})")
+                                      f" (change {delta:+.1f}, expected {'rise' if sign > 0 else 'fall'}, per {source})")
         else:
             if it.canonical_unit == "percent":
                 expect = alloc / ((_meminfo_kb() or 1) * 1024) * 100
@@ -291,7 +305,7 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
             ratio = abs(delta) / expect if expect else 0
             ok = 0.3 <= ratio <= 3 and sign * delta > 0
             detail = (f"allocated {alloc / 1024 ** 2:.0f} MiB: change {delta:+,.0f} {it.canonical_unit}"
-                      f" (expected {'+' if sign > 0 else '-'}{expect:,.0f}, ratio {ratio:.2g})")
+                      f" (expected {'+' if sign > 0 else '-'}{expect:,.0f} per {source}, ratio {ratio:.2g})")
             if not ok and ratio > 0:
                 for s in CANDIDATE_SCALES:
                     if 0.3 <= abs(m1 - m0) * s / expect <= 3:
@@ -311,8 +325,9 @@ def verify_item(snmp, item: Item, lab: bool = False, observe_s: float = 20, **kw
     res = static_checks(snmp, item)
     if res.verdict != "rejected":
         res = experiment(snmp, res, **kw) if lab else observe(snmp, res, seconds=observe_s)
-        if not lab and res.verdict == "proven-static" and item.family in ("cpu", "memory"):
-            res.verdict = "unproven"   # could have been induced but was not tested
-            res.add("note", None, "run with lab mode on a test device to prove it under load")
+        if res.verdict == "proven-static" and item.family in ("cpu", "memory"):
+            res.verdict = "unproven"   # inducible family, but not proven under load
+            if not lab:
+                res.add("note", None, "run with lab mode on a test device to prove it under load")
     res.seconds = round(time.time() - t0, 1)
     return res

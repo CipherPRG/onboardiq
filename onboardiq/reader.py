@@ -64,8 +64,20 @@ Rules:
 
 
 
+# The agent asks for one more field per pick: the model's own prediction of how the value moves
+# under load, which the verifier then tests (instead of guessing from the object's name).
+# The accuracy benchmarks keep the original schema so their results stay comparable.
+PICK_AGENT = {**PICK, "required": PICK["required"] + ["under_load"],
+              "properties": {**PICK["properties"], "under_load": {
+                  "type": "string", "enum": ["rise", "fall", "none"],
+                  "description": "How this value should move when the device is put under the matching load "
+                                 "(cpu: all cores busy; memory: 1 GiB allocated): rise, fall, or none"}}}
+SCHEMA_AGENT = {**SCHEMA, "properties": {**SCHEMA["properties"], **{f: PICK_AGENT for f in FAMILIES}}}
+AGENT_NOTE = ("\nFor each pick also predict under_load: how the value moves when the device is loaded "
+              "(cpu: all cores busy; memory: 1 GiB allocated). It will be tested on the live device.\n")
+
 REPICK_SCHEMA = {"type": "object", "additionalProperties": False, "required": ["pick", "reasoning"],
-                 "properties": {"pick": PICK, "reasoning": {"type": "string"}}}
+                 "properties": {"pick": PICK_AGENT, "reasoning": {"type": "string"}}}
 
 
 def _parse(content):
@@ -75,12 +87,14 @@ def _parse(content):
     return json.loads(content)
 
 
-def read(device, cands, with_mib, model, effort, anonymised=False):
+def read(device, cands, with_mib, model, effort, anonymised=False, agent=False):
+    """agent=True: the product path, which also asks for each pick's predicted direction under load."""
     from onboardiq import llm
 
     if with_mib:
         note = ("\nObject identifiers and names are anonymised (X0001, X0002, ...). Put the X-id of each "
                 "chosen object in both the oid and object_name fields.\n" if anonymised else "")
+        note += AGENT_NOTE if agent else ""
         user = (f"Device: {device}\n{note}Pollable objects from its MIB modules "
                 f"({len(cands)} objects; format: OID MODULE::name [kind type extras] description):\n\n"
                 + mib.as_prompt_lines(cands))
@@ -88,7 +102,8 @@ def read(device, cands, with_mib, model, effort, anonymised=False):
         user = (f"Device: {device}\nNo MIB text is provided. From your own knowledge, give the "
                 "standard SNMP objects for each health metric family. Use null if unsure.")
     r = llm.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
-                 model=model, max_tokens=16000, json_schema=SCHEMA, reasoning_effort=effort)
+                 model=model, max_tokens=16000, json_schema=SCHEMA_AGENT if agent else SCHEMA,
+                 reasoning_effort=effort)
     return _parse(r["content"]), r
 
 
@@ -112,7 +127,8 @@ def repick(device, cands, family, attempts, model=None, effort="high"):
             "Your earlier choice(s) were tested on the live device and failed:\n" + "\n".join(tried) +
             "\n\nUsing the evidence, choose again from the objects below. Do not repeat a failed object "
             "unless the evidence shows only its scale was wrong (then correct the scale). If no object fits, "
-            "return oid null. Explain in reasoning what the evidence told you.\n\n"
+            "return oid null. Predict under_load for the new pick. Explain in reasoning what the evidence "
+            "told you.\n\n"
             f"Pollable objects ({len(cands)}; format: OID MODULE::name [kind type extras] description):\n\n"
             + mib.as_prompt_lines(cands))
     r = llm.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],

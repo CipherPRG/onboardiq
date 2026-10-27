@@ -120,3 +120,30 @@ def test_table_row_that_responds_is_found():
                               canonical_unit="bytes"), lab=True, load=dev.load, **FAST)
     assert r.verdict == "proven-experiment"
     assert any(e["check"] == "row" and "row 1 " in e["detail"] for e in r.evidence)
+
+
+
+def test_model_prediction_beats_name_rule():
+    loads = []
+
+    def counting_load(*a):
+        loads.append(a)
+        return DEV.load(*a)
+    # name rule would expect "memLeft" to rise; the model says it falls, and the device agrees
+    r = verify_item(DEV, Item("memory", "1.9.9.5", name="memLeft", scale=1024, canonical_unit="bytes",
+                              under_load="fall"), lab=True, load=counting_load, **{k: v for k, v in FAST.items()})
+    assert r.verdict == "proven-experiment" and "per model" in r.evidence[-1]["detail"]
+    assert any(e["check"] == "direction" for e in r.evidence)
+    # the model predicts idle rises under load: the device disagrees
+    assert run(Item("cpu", "1.9.9.4", name="ssCpuIdle", canonical_unit="percent", under_load="rise")).verdict == "rejected"
+    # the model predicts no movement: nothing to prove, and no load is started
+    n = len(loads)
+    r = verify_item(DEV, Item("cpu", "1.9.9.3", canonical_unit="percent", under_load="none"), lab=True,
+                    load=counting_load, **FAST)
+    assert r.verdict == "unproven" and len(loads) == n
+
+
+def test_benchmark_schema_unchanged():
+    from onboardiq import reader
+    assert "under_load" not in reader.PICK["properties"]
+    assert "under_load" in reader.PICK_AGENT["required"]

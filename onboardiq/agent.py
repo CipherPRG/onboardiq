@@ -36,7 +36,7 @@ def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attemp
 
     if initial is None:
         log(f"Reading {len(cands)} MIB objects for: {device}")
-        spec, r = reader.read(device, cands, True, model, effort)
+        spec, r = reader.read(device, cands, True, model, effort, agent=True)
         cost += 0 if r.get("cached") else r["cost_usd"]
         note("read", objects=len(cands), cost_usd=r["cost_usd"], cached=r.get("cached", False))
     else:
