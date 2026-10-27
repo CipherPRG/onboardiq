@@ -109,6 +109,15 @@ def _rate(series):
     return total
 
 
+def _row_means(series):
+    rows = {}
+    for _, vals in series:
+        for row, v in vals.items():
+            if v is not None:
+                rows.setdefault(row, []).append(v)
+    return {r: statistics.fmean(v) for r, v in rows.items()}
+
+
 def _mean(series):
     vals = [v for _, rows in series for v in rows.values() if v is not None]
     return statistics.fmean(vals) if vals else None
@@ -250,10 +259,17 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         res.add("experiment", ok, f"{it.family} load: counter rate {r0:.1f}/s -> {r1:.1f}/s"
                                   f" (expected {'rise' if sign > 0 else 'fall'})")
     else:
-        m0, m1 = _mean(base), _mean(during)
-        if m0 is None or m1 is None:
+        b, d = _row_means(base), _row_means(during)
+        common = [r for r in b if r in d]
+        if not common:
             return res.reject("experiment", "no numeric readings during experiment")
+        # Tables (one row per CPU core, storage area, pool...): judge the row that responded most
+        # in the expected direction, and report it so the row filter is learned, not guessed.
+        row = max(common, key=lambda r: sign * (d[r] - b[r]))
+        m0, m1 = b[row], d[row]
         delta = (m1 - m0) * scale
+        if len(common) > 1:
+            res.add("row", None, f"{len(common)} rows; responding row {row.rsplit('.', 1)[-1]} (instance {row})")
         if it.family == "cpu":
             ok = sign * delta > 0 and (it.canonical_unit != "percent" or abs(delta) >= 10)
             res.add("experiment", ok, f"cpu load: {m0 * scale:.1f} -> {m1 * scale:.1f} {it.canonical_unit}"

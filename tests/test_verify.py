@@ -102,3 +102,21 @@ def test_range_rejects_wrong_temperature_scale_and_suggests():
 def test_without_lab_cpu_memory_stay_unproven():
     r = verify_item(DEV, Item("cpu", "cpu.pct", canonical_unit="percent"), lab=False, observe_s=0.02)
     assert r.verdict == "unproven"
+
+
+class TableDevice(FakeDevice):
+    def walk(self, oid):
+        self.tick += 1
+        if oid != "hr.storage.used":
+            return []
+        ram = 2_000_000 + (ALLOC // 1024 if self.loaded else 0)   # kB units, RAM row responds
+        return [Var(oid + ".1", "INTEGER", str(ram)), Var(oid + ".3", "INTEGER", "50000"),
+                Var(oid + ".31", "INTEGER", "9000000")]
+
+
+def test_table_row_that_responds_is_found():
+    dev = TableDevice({})
+    r = verify_item(dev, Item("memory", "hr.storage.used", name="hrStorageUsed", scale=1024,
+                              canonical_unit="bytes"), lab=True, load=dev.load, **FAST)
+    assert r.verdict == "proven-experiment"
+    assert any(e["check"] == "row" and "row 1 " in e["detail"] for e in r.evidence)
