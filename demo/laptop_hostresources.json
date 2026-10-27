@@ -1,0 +1,5128 @@
+{
+ "args": {
+  "device": "Linux server running the net-snmp agent",
+  "modules": "HOST-RESOURCES-MIB",
+  "mib_dir": "~/data/mibs_json",
+  "host": "localhost",
+  "port": null,
+  "community": "public",
+  "lab": true,
+  "families": "memory,cpu",
+  "effort": "high",
+  "model": null,
+  "max_attempts": 3
+ },
+ "cands": [
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceDescr",
+   "oid": "1.3.6.1.2.1.25.3.2.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this device, including the device's manufacturer and revision, and optionally, its serial number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceErrors",
+   "oid": "1.3.6.1.2.1.25.3.2.1.6",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of errors detected on this device. It should be noted that as this object has a SYNTAX of Counter32, that it does not have a defined initial value. However, it is recommended that this object be initialized to zero, even though management stations must not depend on such an initialization"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceID",
+   "oid": "1.3.6.1.2.1.25.3.2.1.4",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID for this device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceIndex",
+   "oid": "1.3.6.1.2.1.25.3.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each device contained by the host. The value for each device must remain constant at least from one re-initialization of the agent to the next re-initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceStatus",
+   "oid": "1.3.6.1.2.1.25.3.2.1.5",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The current operational state of the device described by this row of the table. A value unknown(1) indicates that the current state of the device is unknown. running(2) indicates that the device is up and running and that no unusual error conditions are known. The warning(3) state indicates that age"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceType",
+   "oid": "1.3.6.1.2.1.25.3.2.1.2",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication of the type of device. If this value is `hrDeviceProcessor { hrDeviceTypes 3 }' then an entry exists in the hrProcessorTable which corresponds to this device. If this value is `hrDeviceNetwork { hrDeviceTypes 4 }', then an entry exists in the hrNetworkTable which corresponds to this de"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageAccess",
+   "oid": "1.3.6.1.2.1.25.3.6.1.1",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication if this long-term storage device is readable and writable or only readable. This should reflect the media type, any write-protect mechanism, and any device configuration that affects the entire device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageCapacity",
+   "oid": "1.3.6.1.2.1.25.3.6.1.4",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The total size for this long-term storage device. If the media is removable and is currently removed, this value should be zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageMedia",
+   "oid": "1.3.6.1.2.1.25.3.6.1.2",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication of the type of media used in this long- term storage device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageRemoveble",
+   "oid": "1.3.6.1.2.1.25.3.6.1.3",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Denotes whether or not the disk media may be removed from the drive."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSAccess",
+   "oid": "1.3.6.1.2.1.25.3.8.1.5",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication if this file system is logically configured by the operating system to be readable and writable or only readable. This does not represent any local access-control policy, except one that is applied to the file system as a whole."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSBootable",
+   "oid": "1.3.6.1.2.1.25.3.8.1.6",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A flag indicating whether this file system is bootable."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSIndex",
+   "oid": "1.3.6.1.2.1.25.3.8.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each file system local to this host. The value for each file system must remain constant at least from one re-initialization of the agent to the next re-initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSLastFullBackupDate",
+   "oid": "1.3.6.1.2.1.25.3.8.1.8",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last date at which this complete file system was copied to another storage device for backup. This information is useful for ensuring that backups are being performed regularly. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 00:00"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSLastPartialBackupDate",
+   "oid": "1.3.6.1.2.1.25.3.8.1.9",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last date at which a portion of this file system was copied to another storage device for backup. This information is useful for ensuring that backups are being performed regularly. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 0"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSMountPoint",
+   "oid": "1.3.6.1.2.1.25.3.8.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The path name of the root of this file system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSRemoteMountPoint",
+   "oid": "1.3.6.1.2.1.25.3.8.1.3",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the name and/or address of the server that this file system is mounted from. This may also include parameters such as the mount point on the remote file system. If this is not a remote file system, this string should have a length of zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSStorageIndex",
+   "oid": "1.3.6.1.2.1.25.3.8.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The index of the hrStorageEntry that represents information about this file system. If there is no such information available, then this value shall be zero. The relevant storage entry will be useful in tracking the percent usage of this file system and diagnosing errors that may occur when it runs "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSType",
+   "oid": "1.3.6.1.2.1.25.3.8.1.4",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of this object identifies the type of this file system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrMemorySize",
+   "oid": "1.3.6.1.2.1.25.2.2",
+   "kind": "scalar",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The amount of physical read-write main memory, typically RAM, contained by the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrNetworkIfIndex",
+   "oid": "1.3.6.1.2.1.25.3.4.1.1",
+   "kind": "column",
+   "type": "InterfaceIndexOrZero",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of ifIndex which corresponds to this network device. If this device is not represented in the ifTable, then this value shall be zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionFSIndex",
+   "oid": "1.3.6.1.2.1.25.3.7.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The index of the file system mounted on this partition. If no file system is mounted on this partition, then this value shall be zero. Note that multiple partitions may point to one file system, denoting that that file system resides on those partitions. Multiple file systems may not reside on one p"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionID",
+   "oid": "1.3.6.1.2.1.25.3.7.1.3",
+   "kind": "column",
+   "type": "OCTET STRING",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A descriptor which uniquely represents this partition to the responsible operating system. On some systems, this might take on a binary representation."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionIndex",
+   "oid": "1.3.6.1.2.1.25.3.7.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each partition on this long-term storage device. The value for each long-term storage device must remain constant at least from one re- initialization of the agent to the next re- initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionLabel",
+   "oid": "1.3.6.1.2.1.25.3.7.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this partition."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionSize",
+   "oid": "1.3.6.1.2.1.25.3.7.1.4",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The size of this partition."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPrinterDetectedErrorState",
+   "oid": "1.3.6.1.2.1.25.3.5.1.2",
+   "kind": "column",
+   "type": "OCTET STRING",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "This object represents any error conditions detected by the printer. The error conditions are encoded as bits in an octet string, with the following definitions: Condition Bit # lowPaper 0 noPaper 1 lowToner 2 noToner 3 doorOpen 4 jammed 5 offline 6 serviceRequested 7 inputTrayMissing 8 outputTrayMi"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPrinterStatus",
+   "oid": "1.3.6.1.2.1.25.3.5.1.1",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The current status of this printer device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrProcessorFrwID",
+   "oid": "1.3.6.1.2.1.25.3.3.1.1",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of the firmware associated with the processor."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrProcessorLoad",
+   "oid": "1.3.6.1.2.1.25.3.3.1.2",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 100,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The average, over the last minute, of the percentage of time that this processor was not idle. Implementations may approximate this one minute smoothing period if necessary."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledDate",
+   "oid": "1.3.6.1.2.1.25.6.3.1.5",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last-modification date of this application as it would appear in a directory listing. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 00:00:00.0, which is encoded as (hex)'00 00 01 01 00 00 00 00'."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledID",
+   "oid": "1.3.6.1.2.1.25.6.3.1.3",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of this installed piece of software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledIndex",
+   "oid": "1.3.6.1.2.1.25.6.3.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each piece of software installed on the host. This value shall be in the range from 1 to the number of pieces of software installed on the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledLastChange",
+   "oid": "1.3.6.1.2.1.25.6.1",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of sysUpTime when an entry in the hrSWInstalledTable was last added, renamed, or deleted. Because this table is likely to contain many entries, polling of this object allows a management station to determine when re-downloading of the table might be useful."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledLastUpdateTime",
+   "oid": "1.3.6.1.2.1.25.6.2",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of sysUpTime when the hrSWInstalledTable was last completely updated. Because caching of this data will be a popular implementation strategy, retrieval of this object allows a management station to obtain a guarantee that no data in this table is older than the indicated time."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledName",
+   "oid": "1.3.6.1.2.1.25.6.3.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this installed piece of software, including the manufacturer, revision, the name by which it is commonly known, and optionally, its serial number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledType",
+   "oid": "1.3.6.1.2.1.25.6.3.1.4",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of this software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWOSIndex",
+   "oid": "1.3.6.1.2.1.25.4.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The value of the hrSWRunIndex for the hrSWRunEntry that represents the primary operating system running on this host. This object is useful for quickly and uniquely identifying that primary operating system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunID",
+   "oid": "1.3.6.1.2.1.25.4.2.1.3",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of this running piece of software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunIndex",
+   "oid": "1.3.6.1.2.1.25.4.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each piece of software running on the host. Wherever possible, this should be the system's native, unique identification number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunName",
+   "oid": "1.3.6.1.2.1.25.4.2.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this running piece of software, including the manufacturer, revision, and the name by which it is commonly known. If this software was installed locally, this should be the same string as used in the corresponding hrSWInstalledName."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunParameters",
+   "oid": "1.3.6.1.2.1.25.4.2.1.5",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the parameters supplied to this software when it was initially loaded."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPath",
+   "oid": "1.3.6.1.2.1.25.4.2.1.4",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the location on long-term storage (e.g. a disk drive) from which this software was loaded."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPerfCPU",
+   "oid": "1.3.6.1.2.1.25.5.1.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The number of centi-seconds of the total system's CPU resources consumed by this process. Note that on a multi-processor system, this value may increment by more than one centi-second in one centi-second of real (wall clock) time."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPerfMem",
+   "oid": "1.3.6.1.2.1.25.5.1.1.2",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real system memory allocated to this process."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunStatus",
+   "oid": "1.3.6.1.2.1.25.4.2.1.7",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The status of this running piece of software. Setting this value to invalid(4) shall cause this software to stop running and to be unloaded. Sets to other values are not valid."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunType",
+   "oid": "1.3.6.1.2.1.25.4.2.1.6",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of this software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageAllocationFailures",
+   "oid": "1.3.6.1.2.1.25.2.3.1.7",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of requests for storage represented by this entry that could not be honored due to not enough storage. It should be noted that as this object has a SYNTAX of Counter32, that it does not have a defined initial value. However, it is recommended that this object be initialized to zero, even "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageAllocationUnits",
+   "oid": "1.3.6.1.2.1.25.2.3.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": "Bytes",
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The size, in bytes, of the data objects allocated from this pool. If this entry is monitoring sectors, blocks, buffers, or packets, for example, this number will commonly be greater than one. Otherwise this number will typically be one."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageDescr",
+   "oid": "1.3.6.1.2.1.25.2.3.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the type and instance of the storage described by this entry."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageIndex",
+   "oid": "1.3.6.1.2.1.25.2.3.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each logical storage area contained by the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageSize",
+   "oid": "1.3.6.1.2.1.25.2.3.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The size of the storage represented by this entry, in units of hrStorageAllocationUnits. This object is writable to allow remote configuration of the size of the storage area in those cases where such an operation makes sense and is possible on the underlying system. For example, the amount of main "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageType",
+   "oid": "1.3.6.1.2.1.25.2.3.1.2",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of storage represented by this entry."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageUsed",
+   "oid": "1.3.6.1.2.1.25.2.3.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemDate",
+   "oid": "1.3.6.1.2.1.25.1.2",
+   "kind": "scalar",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The host's notion of the local date and time of day."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemInitialLoadDevice",
+   "oid": "1.3.6.1.2.1.25.1.3",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The index of the hrDeviceEntry for the device from which this host is configured to load its initial operating system configuration (i.e., which operating system code and/or boot parameters). Note that writing to this object just changes the configuration that will be used the next time the operatin"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemInitialLoadParameters",
+   "oid": "1.3.6.1.2.1.25.1.4",
+   "kind": "scalar",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "This object contains the parameters (e.g. a pathname and parameter) supplied to the load device when requesting the initial operating system configuration from that device. Note that writing to this object just changes the configuration that will be used the next time the operating system is loaded "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemMaxProcesses",
+   "oid": "1.3.6.1.2.1.25.1.7",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The maximum number of process contexts this system can support. If there is no fixed maximum, the value should be zero. On systems that have a fixed maximum, this object can help diagnose failures that occur when this maximum is reached."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemNumUsers",
+   "oid": "1.3.6.1.2.1.25.1.5",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of user sessions for which this host is storing state information. A session is a collection of processes requiring a single act of user authentication and possibly subject to collective job control."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemProcesses",
+   "oid": "1.3.6.1.2.1.25.1.6",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of process contexts currently loaded or running on this system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemUptime",
+   "oid": "1.3.6.1.2.1.25.1.1",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The amount of time since this host was last initialized. Note that this is different from sysUpTime in the SNMPv2-MIB [RFC1907] because sysUpTime is the uptime of the network management portion of the system."
+  }
+ ],
+ "result": {
+  "memory": "proven-experiment",
+  "cpu": "proven-experiment"
+ },
+ "snmp": [
+  {
+   "t": 0.001,
+   "dt": 0.011,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 0.012,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 3.015,
+   "dt": 0.005,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 6.02,
+   "dt": 0.005,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 9.025,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 12.029,
+   "dt": 0.011,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 15.041,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 21.048,
+   "dt": 0.009,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 24.058,
+   "dt": 0.005,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 27.063,
+   "dt": 0.008,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 30.072,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 33.075,
+   "dt": 0.011,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 36.086,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 39.091,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 42.103,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 45.107,
+   "dt": 0.008,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.2.0",
+     "INTEGER",
+     "7942956"
+    ]
+   ]
+  },
+  {
+   "t": 45.232,
+   "dt": 0.004,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1991928"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1991928"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10632"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325328"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746479"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746479"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 60.23,
+   "dt": 0.016,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "804264"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "804264"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10656"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325160"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 63.246,
+   "dt": 0.007,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "804264"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "804264"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10656"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325160"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 66.253,
+   "dt": 0.011,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "802784"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "802784"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10664"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325160"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 69.264,
+   "dt": 0.006,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "802784"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "802784"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10664"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325160"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746482"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 72.27,
+   "dt": 0.011,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "802480"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "802480"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325316"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 75.281,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "802480"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "802480"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325316"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92676"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 81.286,
+   "dt": 0.01,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1858096"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1858096"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10692"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325496"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 84.296,
+   "dt": 0.006,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1858096"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1858096"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10692"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325496"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746483"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 87.302,
+   "dt": 0.008,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1858648"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1858648"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10692"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325508"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746484"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746484"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 90.311,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1858648"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1858648"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10692"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325508"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746484"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746484"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 93.315,
+   "dt": 0.006,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1858248"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1858248"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10700"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325520"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 96.321,
+   "dt": 0.007,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1858248"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1858248"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10700"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325520"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 99.328,
+   "dt": 0.015,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1854796"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1854796"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10708"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325520"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 102.343,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1854796"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1854796"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10708"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325520"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746485"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 105.348,
+   "dt": 0.007,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.1",
+     "INTEGER",
+     "1993124"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.3",
+     "INTEGER",
+     "1993124"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.6",
+     "INTEGER",
+     "10844"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.7",
+     "INTEGER",
+     "325768"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.8",
+     "INTEGER",
+     "92864"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.10",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.11",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.31",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.32",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.33",
+     "INTEGER",
+     "24680"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.34",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.36",
+     "INTEGER",
+     "746486"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.37",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.38",
+     "INTEGER",
+     "746486"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.39",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.45",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.46",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.47",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.48",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.49",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.52",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.53",
+     "INTEGER",
+     "20"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.54",
+     "INTEGER",
+     "16"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.55",
+     "INTEGER",
+     "141"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.60",
+     "INTEGER",
+     "22104"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.61",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.64",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.66",
+     "INTEGER",
+     "3"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.67",
+     "INTEGER",
+     "3"
+    ]
+   ]
+  },
+  {
+   "t": 105.469,
+   "dt": 0.005,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "14"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "42"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "1"
+    ]
+   ]
+  },
+  {
+   "t": 180.469,
+   "dt": 0.008,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 183.477,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 186.481,
+   "dt": 0.007,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 189.488,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 192.493,
+   "dt": 0.006,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 195.499,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "1"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 233.007,
+   "dt": 0.017,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "64"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "63"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "63"
+    ]
+   ]
+  },
+  {
+   "t": 236.024,
+   "dt": 0.019,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "73"
+    ]
+   ]
+  },
+  {
+   "t": 239.043,
+   "dt": 0.017,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "72"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "73"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "73"
+    ]
+   ]
+  },
+  {
+   "t": 242.061,
+   "dt": 0.025,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "82"
+    ]
+   ]
+  },
+  {
+   "t": 245.086,
+   "dt": 0.016,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "81"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "82"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "82"
+    ]
+   ]
+  },
+  {
+   "t": 248.102,
+   "dt": 0.014,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "90"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "90"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "91"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "91"
+    ]
+   ]
+  },
+  {
+   "t": 251.117,
+   "dt": 0.015,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  },
+  {
+   "t": 254.132,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  },
+  {
+   "t": 257.146,
+   "dt": 0.015,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  },
+  {
+   "t": 260.161,
+   "dt": 0.014,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  },
+  {
+   "t": 263.175,
+   "dt": 0.023,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  },
+  {
+   "t": 266.197,
+   "dt": 0.014,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  },
+  {
+   "t": 269.211,
+   "dt": 0.042,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  },
+  {
+   "t": 272.253,
+   "dt": 0.01,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196608",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196609",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196610",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196611",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196612",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196613",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196614",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196615",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196616",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196617",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196618",
+     "INTEGER",
+     "100"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.196619",
+     "INTEGER",
+     "100"
+    ]
+   ]
+  }
+ ],
+ "llm_cache": {
+  "779a22b9f7ff95c0e9a8f6bfc93f53e2810f62f0060b42b46af58ce8bf52a7a5": {
+   "content": "{\"cpu\": {\"canonical_unit\": \"percent\", \"confidence\": 0.95, \"evidence\": \"The average, over the last minute, of the percentage of time that this processor was not idle.\", \"object_name\": \"hrProcessorLoad\", \"oid\": \"1.3.6.1.2.1.25.3.3.1.2\", \"raw_unit\": \"percent\", \"row_filter\": \"average across all hrProcessorTable instances; each row is one processor/core\", \"scale_to_canonical\": 1, \"value_type\": \"gauge\"}, \"fan\": {\"canonical_unit\": \"none\", \"confidence\": 1.0, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"value_type\": \"none\"}, \"memory\": {\"canonical_unit\": \"bytes\", \"confidence\": 0.9, \"evidence\": \"The amount of physical read-write main memory, typically RAM, contained by the host.\", \"object_name\": \"hrMemorySize\", \"oid\": \"1.3.6.1.2.1.25.2.2\", \"raw_unit\": \"KBytes\", \"row_filter\": null, \"scale_to_canonical\": 1024, \"value_type\": \"gauge\"}, \"rejected\": [{\"oid\": \"1.3.6.1.2.1.25.5.1.1.1\", \"reason\": \"hrSWRunPerfCPU is per-process CPU consumption in centi-seconds, not device-wide utilization percent\"}, {\"oid\": \"1.3.6.1.2.1.25.5.1.1.2\", \"reason\": \"hrSWRunPerfMem is per-process memory allocation, not device-wide total\"}, {\"oid\": \"1.3.6.1.2.1.25.2.3.1.6\", \"reason\": \"hrStorageUsed requires filtering to RAM storage type and dynamic scaling by hrStorageAllocationUnits; chose scalar hrMemorySize with fixed KBytes scaling for single-object total\"}, {\"oid\": \"1.3.6.1.2.1.25.2.3.1.5\", \"reason\": \"hrStorageSize is table total in variable allocation units requiring type filter; chose scalar total\"}, {\"oid\": \"1.3.6.1.2.1.25.3.2.1.5\", \"reason\": \"hrDeviceStatus is generic device operational state, not a temperature or fan sensor measurement\"}], \"temperature\": {\"canonical_unit\": \"none\", \"confidence\": 1.0, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"value_type\": \"none\"}}",
+   "usage": {
+    "input": 5577,
+    "output": 6993,
+    "cached": 1137
+   },
+   "cost_usd": 0.035441,
+   "seconds": 26.41,
+   "model": "muse-spark-1.3",
+   "cached": false
+  },
+  "358ac72b12af4908d713d8934c86330048bb0d1c30fc9f06a968c96d15960789": {
+   "content": "{\"pick\": {\"canonical_unit\": \"bytes\", \"confidence\": 0.88, \"evidence\": \"The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits.\", \"object_name\": \"hrStorageUsed\", \"oid\": \"1.3.6.1.2.1.25.2.3.1.6\", \"raw_unit\": \"hrStorageAllocationUnits\", \"row_filter\": \"Select row where hrStorageType = hrStorageRam (1.3.6.1.2.1.25.2.1.2), typically hrStorageDescr = 'Physical memory' / 'Real memory'; exclude Virtual memory, Swap, buffers/cache; use same-index hrStorageSize and hrStorageAllocationUnits (typically 1024) to compute bytes = Used * AllocationUnits and percent = Used/Size*100\", \"scale_to_canonical\": 1024, \"value_type\": \"gauge\"}, \"reasoning\": \"Live evidence: allocating 1024 MiB caused +0 bytes change on hrMemorySize, proving hrMemorySize (1.3.6.1.2.1.25.2.2) is a static total-physical-RAM scalar that does not track utilization, so it must not be repeated. Switched from total to used: hrStorageUsed is allocated amount per storage pool and will increase with allocation. Filter to device-wide RAM row for physical memory used. Rejected look-alikes: hrMemorySize - failed live test, static total; hrStorageSize (1.3.6.1.2.1.25.2.3.1.5) - also static total size in same table, same failure mode; hrSWRunPerfMem (1.3.6.1.2.1.25.5.1.1.2) - per-process, violates device-wide totals rule; hrStorageAllocationUnits/Descr/Type - metadata not values; Virtual memory/Swap/buffers/cache rows - not device-wide physical RAM. Scale is per-row hrStorageAllocationUnits, typically 1024 bytes on net-snmp Linux, so raw*1024=bytes; poll AllocationUnits column to confirm.\"}",
+   "usage": {
+    "input": 5052,
+    "output": 3649,
+    "cached": 0
+   },
+   "cost_usd": 0.021823,
+   "seconds": 17.27,
+   "model": "muse-spark-1.3",
+   "cached": false
+  }
+ },
+ "llm_order": [
+  "779a22b9f7ff95c0e9a8f6bfc93f53e2810f62f0060b42b46af58ce8bf52a7a5",
+  "358ac72b12af4908d713d8934c86330048bb0d1c30fc9f06a968c96d15960789"
+ ],
+ "mem_total_kb": 7942956
+}
