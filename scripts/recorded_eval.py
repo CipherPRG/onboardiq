@@ -89,7 +89,10 @@ def main():
             out = agent.onboard(d["device"], cands, RecordedSnmp(rec), lab=False, families=fams,
                                 effort=args.effort, verify_kw=dict(FAST), log=lambda m: None)
         except Exception as e:  # noqa: BLE001
-            print(f"[{i}/{len(todo)}] {os_name}: ERROR {type(e).__name__}: {str(e)[:120]}")
+            print(f"[{i}/{len(todo)}] {os_name}: ERROR {type(e).__name__}: {str(e)[:120]}", flush=True)
+            if type(e).__name__ == "SpendLimitError":
+                print("  spend limit reached: stopping; rerun later (answers so far are cached, so free)")
+                break
             continue
         cost += out["cost_usd"]
         first = {}
