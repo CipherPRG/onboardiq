@@ -1,0 +1,48 @@
+{
+  "_note": "Correct OIDs per metric family, taken from the public MIB files (LibreNMS mibs/ folder). Value = scale that turns the raw value into the canonical unit (percent, bytes, celsius, rpm; 1 for status), or null when scale is not scored (raw counters). Deprecated objects are deliberately NOT accepted when a current replacement exists.",
+  "cisco": {
+    "device": "Cisco IOS router or switch",
+    "modules": ["CISCO-PROCESS-MIB", "CISCO-MEMORY-POOL-MIB", "CISCO-ENVMON-MIB"],
+    "cpu": {"1.3.6.1.4.1.9.9.109.1.1.1.1.8": 1, "1.3.6.1.4.1.9.9.109.1.1.1.1.7": 1},
+    "memory": {
+      "1.3.6.1.4.1.9.9.109.1.1.1.1.12": 1024, "1.3.6.1.4.1.9.9.109.1.1.1.1.13": 1024,
+      "1.3.6.1.4.1.9.9.109.1.1.1.1.17": 1024, "1.3.6.1.4.1.9.9.109.1.1.1.1.19": 1024,
+      "1.3.6.1.4.1.9.9.48.1.1.1.5": 1, "1.3.6.1.4.1.9.9.48.1.1.1.6": 1
+    },
+    "temperature": {"1.3.6.1.4.1.9.9.13.1.3.1.7": 1},
+    "fan": {"1.3.6.1.4.1.9.9.13.1.4.1.3": 1},
+    "traps": {
+      "1.3.6.1.4.1.9.9.13.1.3.1.3": "temperature: deprecated (StatusValue replaced by StatusValueRev1)",
+      "1.3.6.1.4.1.9.9.13.1.3.1.4": "temperature: threshold, not a measurement",
+      "1.3.6.1.4.1.9.9.109.1.1.1.1.5": "cpu: deprecated cpmCPUTotal5min"
+    }
+  },
+  "fortinet": {
+    "device": "Fortinet FortiGate firewall",
+    "modules": ["FORTINET-FORTIGATE-MIB"],
+    "cpu": {"1.3.6.1.4.1.12356.101.4.1.3": 1},
+    "memory": {"1.3.6.1.4.1.12356.101.4.1.4": 1, "1.3.6.1.4.1.12356.101.4.1.5": 1024},
+    "temperature": {"1.3.6.1.4.1.12356.101.4.3.2.1.3": 1},
+    "fan": {"1.3.6.1.4.1.12356.101.4.3.2.1.3": 1},
+    "traps": {
+      "1.3.6.1.4.1.12356.101.4.1.34": "cpu: data-plane only",
+      "1.3.6.1.4.1.12356.101.13.2.1.1.3": "cpu: per HA cluster member",
+      "1.3.6.1.4.1.12356.101.3.2.1.1.5": "cpu: per virtual domain"
+    }
+  },
+  "linux": {
+    "device": "Linux server running the net-snmp agent",
+    "modules": ["UCD-SNMP-MIB", "HOST-RESOURCES-MIB", "LM-SENSORS-MIB"],
+    "cpu": {
+      "1.3.6.1.2.1.25.3.3.1.2": 1,
+      "1.3.6.1.4.1.2021.11.50": null, "1.3.6.1.4.1.2021.11.52": null, "1.3.6.1.4.1.2021.11.53": null
+    },
+    "memory": {"1.3.6.1.4.1.2021.4.5": 1024, "1.3.6.1.4.1.2021.4.6": 1024},
+    "temperature": {"1.3.6.1.4.1.2021.13.16.2.1.3": 0.001},
+    "fan": {"1.3.6.1.4.1.2021.13.16.3.1.3": 1},
+    "traps": {
+      "1.3.6.1.4.1.2021.11.9": "cpu: deprecated ssCpuUser",
+      "1.3.6.1.4.1.2021.11.11": "cpu: deprecated ssCpuIdle"
+    }
+  }
+}

@@ -1,0 +1,195 @@
+"""Day-1 accuracy test: can Muse Spark pick the right health OIDs from a real vendor MIB?
+
+Modes compared on the same ground truth (eval/ground_truth_day1.json):
+  baseline  keyword parser, no AI (first object whose name matches cpu/mem/temp/fan)
+  with-mib  Muse Spark reads every pollable object of the vendor's MIB modules
+  no-mib    Muse Spark gets only the device name (memorisation check)
+
+Usage:
+  python scripts/accuracy_test.py                      # all vendors, all modes
+  python scripts/accuracy_test.py --modes baseline     # free, no API calls
+"""
+import argparse
+import json
+import re
+import sys
+from datetime import datetime
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from onboardiq import mib  # noqa: E402
+
+FAMILIES = ["cpu", "memory", "temperature", "fan"]
+
+PICK = {
+    "type": ["object"],
+    "additionalProperties": False,
+    "required": ["oid", "object_name", "value_type", "raw_unit", "scale_to_canonical",
+                 "canonical_unit", "row_filter", "evidence", "confidence"],
+    "properties": {
+        "oid": {"type": ["string", "null"], "description": "Numeric OID; for table columns no index"},
+        "object_name": {"type": ["string", "null"]},
+        "value_type": {"type": "string", "enum": ["gauge", "counter", "string", "status", "none"]},
+        "raw_unit": {"type": ["string", "null"]},
+        "scale_to_canonical": {"type": ["number", "null"],
+                               "description": "raw * scale = canonical value; null for raw counters"},
+        "canonical_unit": {"type": "string", "enum": ["percent", "bytes", "celsius", "rpm", "status", "ticks", "none"]},
+        "row_filter": {"type": ["string", "null"],
+                       "description": "How to pick the right table rows, e.g. sensor name contains 'Temp'"},
+        "evidence": {"type": ["string", "null"], "description": "Exact quote from the MIB description"},
+        "confidence": {"type": "number"},
+    },
+}
+SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": FAMILIES + ["rejected"],
+    "properties": {
+        **{f: PICK for f in FAMILIES},
+        "rejected": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["oid", "reason"],
+                "properties": {"oid": {"type": "string"}, "reason": {"type": "string"}},
+            },
+        },
+    },
+}
+
+SYSTEM = """You are a senior SNMP monitoring engineer onboarding a new device.
+Choose ONE object for each health metric family a monitoring system should poll:
+- cpu: device-wide CPU utilisation
+- memory: device-wide memory (utilisation percent, or used/total size)
+- temperature: a temperature measurement (not a threshold)
+- fan: fan speed or fan status
+Rules:
+- Prefer current objects over deprecated ones when a current replacement exists.
+- Prefer device-wide totals over per-process, per-VDOM, per-cluster-member or per-module objects.
+- For table columns give the column OID without an index; explain any row filter needed.
+- scale_to_canonical makes raw * scale = canonical unit (percent, bytes, celsius, rpm, status=1).
+  Read the units and the description text: e.g. kilobytes -> 1024, millidegrees -> 0.001.
+- If the device exposes no object for a family, return oid null. Never invent OIDs.
+- evidence must quote the description text that justifies the choice.
+- List notable look-alike objects you rejected, with the reason."""
+
+
+def norm(oid):
+    return None if not oid else oid.strip().lstrip(".")
+
+
+# ---------- baseline: keyword parser, no AI ----------
+PATTERNS = {
+    "cpu": re.compile(r"cpu", re.I),
+    "memory": re.compile(r"mem", re.I),
+    "temperature": re.compile(r"temp", re.I),
+    "fan": re.compile(r"fan", re.I),
+}
+
+
+def baseline(cands):
+    out = {}
+    for fam, pat in PATTERNS.items():
+        hit = next((c for c in cands if pat.search(c["name"])), None)
+        if not hit:
+            out[fam] = {"oid": None, "scale_to_canonical": None, "object_name": None}
+            continue
+        units = (hit["units"] or "").lower()
+        scale = 1024 if units in ("kilo-bytes", "kb", "kilobytes") else 1
+        out[fam] = {"oid": hit["oid"], "scale_to_canonical": scale, "object_name": hit["name"]}
+    return out
+
+
+# ---------- Muse Spark modes ----------
+def ask_model(device, cands, with_mib, model, effort):
+    from onboardiq import llm
+
+    if with_mib:
+        user = (f"Device: {device}\nPollable objects from its MIB modules "
+                f"({len(cands)} objects; format: OID MODULE::name [kind type extras] description):\n\n"
+                + mib.as_prompt_lines(cands))
+    else:
+        user = (f"Device: {device}\nNo MIB text is provided. From your own knowledge, give the "
+                "standard SNMP objects for each health metric family. Use null if unsure.")
+    r = llm.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
+                 model=model, max_tokens=16000, json_schema=SCHEMA, reasoning_effort=effort)
+    content = r["content"].strip()
+    if content.startswith("```"):
+        content = content.strip("`").split("\n", 1)[1].rsplit("```", 1)[0]
+    return json.loads(content), r
+
+
+def score(pred, truth):
+    rows = {}
+    for fam in FAMILIES:
+        p = pred.get(fam) or {}
+        oid = norm(p.get("oid"))
+        accepted = {norm(k): v for k, v in truth[fam].items()}
+        oid_ok = oid in accepted
+        scale_ok = False
+        if oid_ok:
+            want = accepted[oid]
+            got = p.get("scale_to_canonical")
+            scale_ok = want is None or (got is not None and abs(float(got) - want) < 1e-9)
+        rows[fam] = {
+            "oid": oid, "name": p.get("object_name"), "oid_ok": oid_ok, "scale_ok": scale_ok,
+            "trap": truth.get("traps", {}).get(oid),
+        }
+    return rows
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mib-dir", default=str(Path.home() / "data" / "mibs_json"))
+    ap.add_argument("--vendors", default="cisco,fortinet,linux")
+    ap.add_argument("--modes", default="baseline,with-mib,no-mib")
+    ap.add_argument("--model", default=None)
+    ap.add_argument("--effort", default="medium", help="reasoning effort: minimal..xhigh")
+    ap.add_argument("--truth", default=str(ROOT / "eval" / "ground_truth_day1.json"))
+    args = ap.parse_args()
+
+    truth_all = json.loads(Path(args.truth).read_text())
+    results, total_cost = [], 0.0
+    for vendor in args.vendors.split(","):
+        truth = truth_all[vendor]
+        cands = mib.candidates(Path(args.mib_dir), truth["modules"])
+        print(f"\n=== {vendor}: {len(cands)} pollable objects in {', '.join(truth['modules'])}")
+        for mode in args.modes.split(","):
+            meta = {}
+            if mode == "baseline":
+                pred = baseline(cands)
+            else:
+                pred, meta = ask_model(truth["device"], cands, mode == "with-mib", args.model, args.effort)
+                total_cost += meta.get("cost_usd", 0) if not meta.get("cached") else 0
+            rows = score(pred, truth)
+            results.append({"vendor": vendor, "mode": mode, "scores": rows, "prediction": pred,
+                            "usage": meta.get("usage"), "cost_usd": meta.get("cost_usd"),
+                            "seconds": meta.get("seconds"), "cached": meta.get("cached")})
+            line = "  ".join(
+                f"{fam}:{'OK ' if r['oid_ok'] else 'X  '}{'s' if r['scale_ok'] else '-'}"
+                for fam, r in rows.items())
+            info = f" (${meta.get('cost_usd', 0):.4f}, {meta.get('seconds')}s{', cached' if meta.get('cached') else ''})" if meta else ""
+            print(f"  {mode:9} {line}{info}")
+            for fam, r in rows.items():
+                if not r["oid_ok"]:
+                    print(f"            {fam}: picked {r['oid']} ({r['name']})" + (f"  <- TRAP: {r['trap']}" if r["trap"] else ""))
+
+    print("\n=== Summary (OID correct / OID+scale correct, out of 4 families per vendor)")
+    for mode in args.modes.split(","):
+        rs = [r for r in results if r["mode"] == mode]
+        n = sum(len(r["scores"]) for r in rs)
+        ok = sum(s["oid_ok"] for r in rs for s in r["scores"].values())
+        both = sum(s["oid_ok"] and s["scale_ok"] for r in rs for s in r["scores"].values())
+        print(f"  {mode:9} OID {ok}/{n} ({100 * ok / n:.0f}%)   OID+scale {both}/{n} ({100 * both / n:.0f}%)")
+    print(f"  API cost this run: ${total_cost:.4f}")
+
+    out = ROOT / "results" / f"day1_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(json.dumps(results, indent=2))
+    print(f"  saved {out.relative_to(ROOT)}")
+
+
+if __name__ == "__main__":
+    main()
