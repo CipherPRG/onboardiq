@@ -65,7 +65,7 @@ def test_chat_records_cost_and_caches(env):
         msg = types.SimpleNamespace(content='{"ok": true}')
         return types.SimpleNamespace(usage=usage, choices=[types.SimpleNamespace(message=msg)])
 
-    llm._client = types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=create)))
+    llm._clients["meta"] = types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=create)))
     msgs = [{"role": "user", "content": "hi"}]
     r1 = llm.chat(msgs, max_tokens=100, json_schema={"type": "object"})
     r2 = llm.chat(msgs, max_tokens=100, json_schema={"type": "object"})
@@ -75,3 +75,15 @@ def test_chat_records_cost_and_caches(env):
     assert calls[0]["response_format"]["type"] == "json_schema"
     assert r1["cost_usd"] == pytest.approx((1000 * 1.25 + 100 * 4.25) / 1e6)
     assert llm.guard().spent_today()["calls"] == 1
+
+
+def test_provider_routing(env, monkeypatch):
+    from onboardiq import config
+    assert config.provider_for("muse-spark-1.3") == "meta"
+    assert config.provider_for("meta-models/muse-spark-open-1026") == "baseten"
+    _, sg, llm = env
+    monkeypatch.delenv("BASETEN_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="BASETEN_API_KEY"):
+        llm.client("baseten")
+    # open model has no confirmed price yet -> charged conservatively
+    assert sg.cost_usd("meta-models/muse-spark-open-1026", 1_000_000, 0) == pytest.approx(5.0)

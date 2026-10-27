@@ -16,6 +16,8 @@ from pathlib import Path
 
 from .config import CACHE_DIR
 
+# Baseten "meta-models/muse-spark-open-1026" is deliberately NOT listed: its
+# price is unconfirmed, so it is charged at UNKNOWN_PRICE until verified.
 # USD per 1M tokens: (input, output, cached input). Unknown models get a
 # deliberately high price so estimates err on the safe side.
 PRICES = {

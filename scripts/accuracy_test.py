@@ -149,7 +149,7 @@ def main():
     ap.add_argument("--vendors", default="cisco,fortinet,linux")
     ap.add_argument("--modes", default="baseline,with-mib,no-mib")
     ap.add_argument("--model", default=None)
-    ap.add_argument("--effort", default="medium", help="reasoning effort: minimal..xhigh")
+    ap.add_argument("--effort", default="minimal", help="reasoning effort: minimal..xhigh")
     ap.add_argument("--truth", default=str(ROOT / "eval" / "ground_truth_day1.json"))
     args = ap.parse_args()
 

@@ -7,11 +7,11 @@ import json
 import os
 import time
 
-from .config import API_BASE, CACHE_DIR, MODEL
+from .config import CACHE_DIR, MODEL, PROVIDERS, provider_for
 from .spend_guard import SpendGuard
 
 _guard: SpendGuard | None = None
-_client = None
+_clients: dict = {}
 
 
 def guard() -> SpendGuard:
@@ -21,16 +21,16 @@ def guard() -> SpendGuard:
     return _guard
 
 
-def client():
-    global _client
-    if _client is None:
+def client(provider: str = "meta"):
+    if provider not in _clients:
         from openai import OpenAI
 
-        key = os.environ.get("MODEL_API_KEY")
+        cfg = PROVIDERS[provider]
+        key = os.environ.get(cfg["key_env"])
         if not key:
-            raise RuntimeError("MODEL_API_KEY is not set (copy .env.example to .env)")
-        _client = OpenAI(base_url=API_BASE, api_key=key, timeout=600)
-    return _client
+            raise RuntimeError(f"{cfg['key_env']} is not set (copy .env.example to .env)")
+        _clients[provider] = OpenAI(base_url=cfg["base"], api_key=key, timeout=600)
+    return _clients[provider]
 
 
 def _estimate_tokens(messages) -> int:
@@ -61,7 +61,7 @@ def chat(messages, model: str | None = None, max_tokens: int = 8000,
     g = guard()
     g.check(model, _estimate_tokens(messages), max_tokens)
     t0 = time.time()
-    resp = client().chat.completions.create(**request, extra_body=extra)
+    resp = client(provider_for(model)).chat.completions.create(**request, extra_body=extra)
     seconds = round(time.time() - t0, 2)
 
     u = resp.usage
