@@ -2817,7 +2817,7 @@
   }
  ],
  "llm_cache": {
-  "a597ba74e57b067bdee18fa8fa616e93f5ab5f892186b2467c53e7679a71acc7": {
+  "a0": {
    "content": "{\"cpu\": {\"canonical_unit\": \"ticks\", \"confidence\": 0.95, \"evidence\": \"The number of 'ticks' (typically 1/100s) spent processing user-level code.\", \"object_name\": \"ssCpuRawUser\", \"oid\": \"1.3.6.1.4.1.2021.11.50\", \"raw_unit\": \"ticks\", \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"rise\", \"value_type\": \"counter\"}, \"fan\": {\"canonical_unit\": \"none\", \"confidence\": 1.0, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"none\", \"value_type\": \"none\"}, \"memory\": {\"canonical_unit\": \"bytes\", \"confidence\": 0.95, \"evidence\": \"The amount of real/physical memory currently unused or available.\", \"object_name\": \"memAvailReal\", \"oid\": \"1.3.6.1.4.1.2021.4.6\", \"raw_unit\": \"kB\", \"row_filter\": null, \"scale_to_canonical\": 1024, \"under_load\": \"fall\", \"value_type\": \"gauge\"}, \"rejected\": [{\"oid\": \"1.3.6.1.2.1.25.3.3.1.2\", \"reason\": \"hrProcessorLoad is per-processor table (percentage per CPU) requiring averaging; less preferred than device-wide cumulative ssCpuRaw* scalar\"}, {\"oid\": \"1.3.6.1.4.1.2021.11.11\", \"reason\": \"ssCpuIdle deprecated in favour of 'ssCpuRawIdle(53)' - deprecated, do not use when current replacement exists\"}, {\"oid\": \"1.3.6.1.4.1.2021.11.9\", \"reason\": \"ssCpuUser deprecated in favour of 'ssCpuRawUser(50)' - deprecated percent\"}, {\"oid\": \"1.3.6.1.4.1.2021.11.10\", \"reason\": \"ssCpuSystem deprecated in favour of 'ssCpuRawSystem(52)' - deprecated percent\"}, {\"oid\": \"1.3.6.1.4.1.2021.10.1.5\", \"reason\": \"laLoadInt is load average x100 (queue length), not CPU time utilisation percent/ticks\"}, {\"oid\": \"1.3.6.1.2.1.25.5.1.1.1\", \"reason\": \"hrSWRunPerfCPU is per-process CPU consumption, not device-wide total\"}, {\"oid\": \"1.3.6.1.4.1.2021.4.5\", \"reason\": \"memTotalReal is total installed (static, under_load none) - less useful than avail which falls on 1GiB alloc\"}, {\"oid\": \"1.3.6.1.4.1.2021.4.21\", \"reason\": \"memAvailRealX is 64-bit equivalent of memAvailReal, functionally same - chose classic 32-bit scalar\"}, {\"oid\": \"1.3.6.1.2.1.25.2.2\", \"reason\": \"hrMemorySize is total physical RAM only, static, does not move under allocation\"}, {\"oid\": \"1.3.6.1.2.1.25.2.3.1.6\", \"reason\": \"hrStorageUsed requires row filter for RAM and variable hrStorageAllocationUnits scale - less direct than UCD mem scalar\"}], \"temperature\": {\"canonical_unit\": \"none\", \"confidence\": 1.0, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"none\", \"value_type\": \"none\"}}",
    "usage": {
     "input": 14213,
@@ -2831,7 +2831,7 @@
   }
  },
  "llm_order": [
-  "a597ba74e57b067bdee18fa8fa616e93f5ab5f892186b2467c53e7679a71acc7"
+  "a0"
  ],
  "mem_total_kb": 7942956
 }

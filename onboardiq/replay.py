@@ -36,15 +36,31 @@ class Recorder:
         return self._rec("get", oids, lambda: self.snmp.get(*oids))
 
     def save(self, path, **meta):
-        cache = {}
-        for key in dict.fromkeys(llm.USED_KEYS):
-            f = llm.CACHE_DIR / "llm" / f"{key}.json"
-            if f.exists():
-                cache[key] = json.loads(f.read_text())
+        """Model answers are stored under short ids (a0, a1, ...) in call order, not cache hashes,
+        so a recording contains nothing that looks like a token or key."""
+        ids, cache, order = {}, {}, []
+        for key in llm.USED_KEYS:
+            if key not in ids:
+                f = llm.CACHE_DIR / "llm" / f"{key}.json"
+                if not f.exists():
+                    continue
+                ids[key] = f"a{len(ids)}"
+                cache[ids[key]] = json.loads(f.read_text())
+            order.append(ids[key])
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        Path(path).write_text(json.dumps({**meta, "snmp": self.log, "llm_cache": cache,
-                                          "llm_order": list(llm.USED_KEYS),
+        Path(path).write_text(json.dumps({**meta, "snmp": self.log, "llm_cache": cache, "llm_order": order,
                                           "mem_total_kb": verify._meminfo_kb()}, indent=1))
+
+
+def anonymise_answer_ids(path):
+    """Rewrite an older recording's cache-hash ids to a0, a1, ... (same answers, same order)."""
+    d = json.loads(Path(path).read_text())
+    ids = {}
+    for k in d["llm_order"]:
+        ids.setdefault(k, f"a{len(ids)}")
+    d["llm_cache"] = {ids[k]: v for k, v in d["llm_cache"].items() if k in ids}
+    d["llm_order"] = [ids[k] for k in d["llm_order"]]
+    Path(path).write_text(json.dumps(d, indent=1))
 
 
 class VirtualClock:

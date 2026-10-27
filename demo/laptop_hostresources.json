@@ -5091,7 +5091,7 @@
   }
  ],
  "llm_cache": {
-  "779a22b9f7ff95c0e9a8f6bfc93f53e2810f62f0060b42b46af58ce8bf52a7a5": {
+  "a0": {
    "content": "{\"cpu\": {\"canonical_unit\": \"percent\", \"confidence\": 0.95, \"evidence\": \"The average, over the last minute, of the percentage of time that this processor was not idle.\", \"object_name\": \"hrProcessorLoad\", \"oid\": \"1.3.6.1.2.1.25.3.3.1.2\", \"raw_unit\": \"percent\", \"row_filter\": \"average across all hrProcessorTable instances; each row is one processor/core\", \"scale_to_canonical\": 1, \"value_type\": \"gauge\"}, \"fan\": {\"canonical_unit\": \"none\", \"confidence\": 1.0, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"value_type\": \"none\"}, \"memory\": {\"canonical_unit\": \"bytes\", \"confidence\": 0.9, \"evidence\": \"The amount of physical read-write main memory, typically RAM, contained by the host.\", \"object_name\": \"hrMemorySize\", \"oid\": \"1.3.6.1.2.1.25.2.2\", \"raw_unit\": \"KBytes\", \"row_filter\": null, \"scale_to_canonical\": 1024, \"value_type\": \"gauge\"}, \"rejected\": [{\"oid\": \"1.3.6.1.2.1.25.5.1.1.1\", \"reason\": \"hrSWRunPerfCPU is per-process CPU consumption in centi-seconds, not device-wide utilization percent\"}, {\"oid\": \"1.3.6.1.2.1.25.5.1.1.2\", \"reason\": \"hrSWRunPerfMem is per-process memory allocation, not device-wide total\"}, {\"oid\": \"1.3.6.1.2.1.25.2.3.1.6\", \"reason\": \"hrStorageUsed requires filtering to RAM storage type and dynamic scaling by hrStorageAllocationUnits; chose scalar hrMemorySize with fixed KBytes scaling for single-object total\"}, {\"oid\": \"1.3.6.1.2.1.25.2.3.1.5\", \"reason\": \"hrStorageSize is table total in variable allocation units requiring type filter; chose scalar total\"}, {\"oid\": \"1.3.6.1.2.1.25.3.2.1.5\", \"reason\": \"hrDeviceStatus is generic device operational state, not a temperature or fan sensor measurement\"}], \"temperature\": {\"canonical_unit\": \"none\", \"confidence\": 1.0, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"value_type\": \"none\"}}",
    "usage": {
     "input": 5577,
@@ -5103,7 +5103,7 @@
    "model": "muse-spark-1.3",
    "cached": false
   },
-  "358ac72b12af4908d713d8934c86330048bb0d1c30fc9f06a968c96d15960789": {
+  "a1": {
    "content": "{\"pick\": {\"canonical_unit\": \"bytes\", \"confidence\": 0.88, \"evidence\": \"The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits.\", \"object_name\": \"hrStorageUsed\", \"oid\": \"1.3.6.1.2.1.25.2.3.1.6\", \"raw_unit\": \"hrStorageAllocationUnits\", \"row_filter\": \"Select row where hrStorageType = hrStorageRam (1.3.6.1.2.1.25.2.1.2), typically hrStorageDescr = 'Physical memory' / 'Real memory'; exclude Virtual memory, Swap, buffers/cache; use same-index hrStorageSize and hrStorageAllocationUnits (typically 1024) to compute bytes = Used * AllocationUnits and percent = Used/Size*100\", \"scale_to_canonical\": 1024, \"value_type\": \"gauge\"}, \"reasoning\": \"Live evidence: allocating 1024 MiB caused +0 bytes change on hrMemorySize, proving hrMemorySize (1.3.6.1.2.1.25.2.2) is a static total-physical-RAM scalar that does not track utilization, so it must not be repeated. Switched from total to used: hrStorageUsed is allocated amount per storage pool and will increase with allocation. Filter to device-wide RAM row for physical memory used. Rejected look-alikes: hrMemorySize - failed live test, static total; hrStorageSize (1.3.6.1.2.1.25.2.3.1.5) - also static total size in same table, same failure mode; hrSWRunPerfMem (1.3.6.1.2.1.25.5.1.1.2) - per-process, violates device-wide totals rule; hrStorageAllocationUnits/Descr/Type - metadata not values; Virtual memory/Swap/buffers/cache rows - not device-wide physical RAM. Scale is per-row hrStorageAllocationUnits, typically 1024 bytes on net-snmp Linux, so raw*1024=bytes; poll AllocationUnits column to confirm.\"}",
    "usage": {
     "input": 5052,
@@ -5117,8 +5117,8 @@
   }
  },
  "llm_order": [
-  "779a22b9f7ff95c0e9a8f6bfc93f53e2810f62f0060b42b46af58ce8bf52a7a5",
-  "358ac72b12af4908d713d8934c86330048bb0d1c30fc9f06a968c96d15960789"
+  "a0",
+  "a1"
  ],
  "mem_total_kb": 7942956
 }
