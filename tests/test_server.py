@@ -72,3 +72,22 @@ def test_body_size_limit(srv):
     h = {"Content-Type": "application/json", "X-OnboardIQ": "1"}
     code, _ = req(srv, "POST", "/api/runs", {"device": "x" * 70000}, h)
     assert code == 413
+
+
+def test_module_prefix_resolution(tmp_path):
+    for n in ("HOST-RESOURCES-MIB", "HOST-RESOURCES-TYPES", "UCD-SNMP-MIB"):
+        (tmp_path / f"{n}.json").write_text("{}")
+    saved = server.STATE["mib_dir"]
+    server.STATE["mib_dir"] = tmp_path
+    try:
+        assert server.resolve_module("ucd") == "UCD-SNMP-MIB"
+        assert server.resolve_module("HOST-RESOURCES-MIB") == "HOST-RESOURCES-MIB"
+        import pytest
+        with pytest.raises(ValueError, match="several"):
+            server.resolve_module("HOST-RES")
+        with pytest.raises(ValueError, match="did you mean UCD-SNMP-MIB"):
+            server.resolve_module("SNMP")
+        with pytest.raises(ValueError, match="invalid"):
+            server.resolve_module("../x")
+    finally:
+        server.STATE["mib_dir"] = saved

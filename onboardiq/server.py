@@ -60,14 +60,35 @@ def _clean_text(x, n=200):
     return x
 
 
+def module_names():
+    d = STATE["mib_dir"]
+    return sorted(p.stem for p in d.glob("*.json")) if d.is_dir() else []
+
+
+def resolve_module(m) -> str:
+    """Exact name, else a case-insensitive unique prefix (HOST-RES -> HOST-RESOURCES-MIB).
+    Names come only from the MIB folder listing, so the result is always a real file stem."""
+    m = str(m).strip()
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,80}", m):
+        raise ValueError(f"invalid MIB module name {m[:40]!r}")
+    names = module_names()
+    if m in names:
+        return m
+    hits = [n for n in names if n.upper() == m.upper()] or [n for n in names if n.upper().startswith(m.upper())]
+    if len(hits) == 1:
+        return hits[0]
+    if hits:
+        raise ValueError(f"'{m}' matches several modules: {', '.join(hits[:6])}{'…' if len(hits) > 6 else ''}")
+    near = [n for n in names if m.upper() in n.upper()][:6]
+    raise ValueError(f"unknown MIB module '{m}'" + (f"; did you mean {', '.join(near)}?" if near else ""))
+
+
 def validate(body: dict) -> dict:
     device = _clean_text(body.get("device"))
     modules = body.get("modules") or []
     if not isinstance(modules, list) or not 1 <= len(modules) <= 12:
         raise ValueError("choose 1 to 12 MIB modules")
-    for m in modules:
-        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,80}", str(m)) or not (STATE["mib_dir"] / f"{m}.json").exists():
-            raise ValueError(f"unknown MIB module {m!r}")
+    modules = [resolve_module(m) for m in modules]
     host = _clean_text(body.get("host") or "localhost", 253)
     port = body.get("port")
     port = None if port in (None, "", 161) else int(port)
@@ -167,7 +188,7 @@ class Handler(BaseHTTPRequestHandler):
                                     "mib_dir_found": STATE["mib_dir"].is_dir()})
         if url.path == "/api/modules":
             q = (parse_qs(url.query).get("q") or [""])[0].upper()[:40]
-            names = sorted(p.stem for p in STATE["mib_dir"].glob("*.json")) if STATE["mib_dir"].is_dir() else []
+            names = module_names()
             return self._json(200, [n for n in names if q in n.upper()][:40])
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/events", url.path)
         if m:
