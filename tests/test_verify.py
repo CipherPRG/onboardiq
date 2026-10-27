@@ -147,3 +147,29 @@ def test_benchmark_schema_unchanged():
     from onboardiq import reader
     assert "under_load" not in reader.PICK["properties"]
     assert "under_load" in reader.PICK_AGENT["required"]
+
+
+
+def test_load_by_hand_prompts_and_skips_memory():
+    from onboardiq.verify import prompt_load
+    asked, said = [], []
+    loader = prompt_load({"cpu": "run a busy loop"}, ask=lambda m: asked.append(m) or "", say=said.append)
+
+    def hand(kind, seconds, size):
+        p = loader(kind, seconds, size)
+        DEV.loaded = True
+        stop = p.terminate
+
+        class P:
+            def terminate(self):
+                DEV.loaded = False
+                stop()
+
+            def wait(self, timeout=None):
+                return p.wait()
+        return P()
+    r = verify_item(DEV, Item("cpu", "1.9.9.3", name="busyPct", canonical_unit="percent"), lab=True, load=hand, **FAST)
+    assert r.verdict == "proven-experiment" and len(asked) == 2 and any("START CPU" in s for s in said)
+    r = verify_item(DEV, Item("memory", "1.9.9.5", name="memAvail", scale=1024, canonical_unit="bytes"),
+                    lab=True, load=hand, **FAST)
+    assert r.verdict == "unproven" and "by hand" in r.evidence[-1]["detail"]

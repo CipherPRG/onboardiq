@@ -222,11 +222,16 @@ def observe(snmp, res: Result, seconds: float = 20, interval: float = 5) -> Resu
         r = _rate(s)
         res.add("observe", r > 0 or None, f"counter rate {r:.2f}/s over {s[-1][0] - s[0][0]:.0f}s")
     else:
-        vals = [v for _, rows in s for v in rows.values() if v is not None]
-        moved = len(set(vals)) > 1
-        res.add("observe", None if not moved else True,
-                f"{'moved' if moved else 'constant'} over {s[-1][0] - s[0][0]:.0f}s "
-                f"(min {min(vals, default=0):g}, max {max(vals, default=0):g})")
+        per_row = {}
+        for _, rows in s:
+            for r, v in rows.items():
+                if v is not None:
+                    per_row.setdefault(r, []).append(v)
+        moving = [r for r, vs in per_row.items() if len(set(vs)) > 1]
+        span = max(per_row.items(), key=lambda kv: max(kv[1]) - min(kv[1]), default=(None, [0]))[1]
+        res.add("observe", True if moving else None,
+                f"{len(moving)} of {len(per_row)} row(s) moved over {s[-1][0] - s[0][0]:.0f}s"
+                + (f" (largest swing {fmt(min(span))} -> {fmt(max(span))})" if moving else " (all constant)"))
     return res
 
 
@@ -250,6 +255,34 @@ def default_load(kind: str, seconds: int, size_bytes: int = 0):
     else:
         raise ValueError(kind)
     return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+class NotInducible(Exception):
+    """This load source cannot produce the requested kind of load."""
+
+
+def prompt_load(instructions: dict, ask=input, say=print):
+    """Load applied by a person on the device itself (e.g. a traffic test on a router).
+
+    instructions: {"cpu": "how to start CPU load on this device"}; families without an entry
+    cannot be loaded this way. The verifier pauses until the operator confirms start and stop.
+    """
+    def start(kind, seconds, size_bytes=0):
+        if kind not in instructions:
+            raise NotInducible(f"no way to load {kind} on this device by hand")
+        say(f"\n>>> START {kind.upper()} LOAD ON THE DEVICE NOW and keep it running for about {seconds} s:")
+        say(f"    {instructions[kind]}")
+        ask(">>> Press Enter once the load is running... ")
+
+        class Stop:
+            def terminate(self):
+                say(f"\n>>> STOP the {kind} load on the device now (e.g. Ctrl+C in its console).")
+
+            def wait(self, timeout=None):
+                ask(">>> Press Enter once it has stopped... ")
+                return 0
+        return Stop()
+    return start
 
 
 DOWN_WORDS = ("idle", "free", "avail", "unused")
@@ -305,7 +338,12 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         alloc = int(min(1024 ** 3, total_kb * 1024 * 0.25))
     PHASE["name"] = "base"
     base = _series(snmp, it.oid, base_s, interval)
-    proc = load(it.family, load_s + 10, alloc)
+    try:
+        proc = load(it.family, load_s + 10, alloc)
+    except NotInducible as why:
+        PHASE["name"] = "static"
+        res.add("experiment", None, str(why))
+        return res
     PHASE["name"] = "load"
     try:
         warm = min(load_s / 2, 6 if load_s <= 45 else load_s - 30) if adapt_windows else 0

@@ -39,6 +39,9 @@ def main():
     ap.add_argument("--model", default=None)
     ap.add_argument("--max-attempts", type=int, default=3)
     ap.add_argument("--html", help="also write the onboarding record as an HTML page")
+    ap.add_argument("--load-by-hand", metavar="CPU_INSTRUCTIONS",
+                    help="prove CPU picks on a remote device: you start a load on the device when asked "
+                         "(e.g. a RouterOS busy loop); the agent measures before/during")
     args = ap.parse_args()
     log = lambda m: print(m, flush=True)  # noqa: E731
     if args.replay:
@@ -53,10 +56,18 @@ def main():
         cands = mib.candidates(Path(args.mib_dir).expanduser(), args.modules.split(","))
         snmp = Snmp(args.host, args.community, port=args.port)
         dev = replay.Recorder(snmp) if args.record else snmp
-        out = agent.onboard(args.device, cands, dev, lab=args.lab, families=args.families.split(","),
-                            max_attempts=args.max_attempts, model=args.model, effort=args.effort, log=log)
+        verify_kw = {}
+        lab = args.lab
+        if args.load_by_hand:
+            from onboardiq.verify import prompt_load
+            verify_kw["load"] = prompt_load({"cpu": args.load_by_hand})
+            lab = True    # experiments run, but the load is applied on the device by a person
+        out = agent.onboard(args.device, cands, dev, lab=lab, families=args.families.split(","),
+                            max_attempts=args.max_attempts, model=args.model, effort=args.effort,
+                            verify_kw=verify_kw, log=log)
         if args.record:
             keep = ("device", "modules", "lab", "families", "effort", "model", "max_attempts")
+            args.lab = lab
             dev.save(args.record, args={k: v for k, v in vars(args).items() if k in keep},
                      cands=cands, result={f: v["verdict"] for f, v in out["spec"].items()})
             print(f"  recorded session -> {args.record}")
