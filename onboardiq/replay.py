@@ -48,6 +48,7 @@ class Recorder:
                 cache[ids[key]] = json.loads(f.read_text())
             order.append(ids[key])
         Path(path).parent.mkdir(parents=True, exist_ok=True)
+        meta.setdefault("recorded", _time.strftime("%Y-%m-%d %H:%M UTC", _time.gmtime(self.t0)))
         Path(path).write_text(json.dumps({**meta, "snmp": self.log, "llm_cache": cache, "llm_order": order,
                                           "mem_total_kb": verify._meminfo_kb()}, indent=1))
 

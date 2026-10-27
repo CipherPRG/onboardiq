@@ -13,14 +13,24 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from onboardiq import replay  # noqa: E402
 
-TITLES = {
-    "laptop_hostresources": "Linux host: catches its own memory mistake",
-    "laptop_full": "Linux host: all four metrics",
-    "laptop_witness": "Linux host: memory proven two ways",
-    "laptop_ucd_hr": "Linux host: predicted directions",
-    "mikrotik_chr_cpu": "MikroTik RouterOS: CPU under load on the router",
-}
 KEEP = ("read", "verify-start", "verify", "repick", "no-pick", "final", "done")
+
+
+FAMILY = {"cpu": "CPU", "memory": "memory", "temperature": "temperature", "fan": "fan"}
+
+
+def highlight(events, summary, args) -> str:
+    """One line describing what happened, derived from the session's own events."""
+    corrected = [f for f, v in summary.items() if v.startswith("proven") and any(
+        e["kind"] == "verify" and e["family"] == f and e["verdict"] == "rejected" for e in events)]
+    if corrected:
+        return "caught and corrected its " + " and ".join(FAMILY.get(f, f) for f in corrected) + " pick"
+    witnessed = [e["family"] for e in events if e["kind"] == "verify" and any(
+        c["check"] == "witness" and c["ok"] for c in e.get("evidence", []))]
+    if witnessed:
+        return " and ".join(FAMILY.get(f, f) for f in witnessed) + " proven by experiment and by a second object"
+    proven = [f for f, v in summary.items() if v.startswith("proven")]
+    return f"{len(proven)} of {len(summary)} metrics proven on the device"
 
 
 def export(path: Path) -> dict:
@@ -31,12 +41,13 @@ def export(path: Path) -> dict:
     a = session["args"]
     return {
         "id": path.stem,
-        "title": TITLES.get(path.stem, out["device"]),
+        "highlight": highlight(events, {f: v["verdict"] for f, v in out["spec"].items()}, a),
         "device": out["device"],
         "modules": a.get("modules"),
         "lab": a.get("lab"),
         "objects": len(session.get("cands", [])),
         "mode": "Replay of a recorded live session",
+        "recorded": session.get("recorded"),
         "summary": {f: v["verdict"] for f, v in out["spec"].items()},
         "seconds": out.get("replay", {}).get("virtual_seconds"),
         "snmp_calls": out.get("snmp_calls"),
@@ -49,12 +60,11 @@ def main():
     dest = ROOT / "web" / "sessions"
     dest.mkdir(parents=True, exist_ok=True)
     index = []
-    order = list(TITLES)
-    files.sort(key=lambda f: order.index(f.stem) if f.stem in order else len(order))
     for f in files:
         pb = export(f)
         (dest / f"{pb['id']}.json").write_text(json.dumps(pb, separators=(",", ":")))
-        index.append({"id": pb["id"], "title": pb["title"], "device": pb["device"], "summary": pb["summary"]})
+        index.append({"id": pb["id"], "device": pb["device"], "highlight": pb["highlight"],
+                      "summary": pb["summary"], "recorded": pb["recorded"]})
         print(f"{f.name}: {len(pb['events'])} events -> web/sessions/{pb['id']}.json")
     (dest / "index.json").write_text(json.dumps(index, indent=1))
 

@@ -271,8 +271,8 @@ $("speed").addEventListener("change", (e) => { play.speed = Number(e.target.valu
     const verdicts = Object.values(s.summary);
     const proven = verdicts.filter((v) => v.startsWith("proven")).length;
     const b = el("button", { type: "button", "aria-pressed": "false" });
-    b.append(el("span", { class: "name" }, s.title || s.device),
-             el("span", { class: "tally" }, `${proven} of ${verdicts.length} proven`));
+    b.append(el("span", { class: "name" }, s.device),
+             el("span", { class: "tally" }, s.highlight || `${proven} of ${verdicts.length} proven`));
     b.addEventListener("click", () => load(s.id, b));
     const li = el("li");
     li.append(b);
