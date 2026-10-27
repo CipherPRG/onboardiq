@@ -1,0 +1,34 @@
+# Publishes web/ (the replay player and recorded sessions) to GitHub Pages.
+# Manual only: nothing is published until someone runs this workflow from the Actions tab
+# (and Pages is set to "GitHub Actions" in the repository settings).
+name: Publish replay player
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the page has no secrets or local paths
+        run: |
+          ! grep -rEn '/home/|C:\\\\Users|"community"|"host"|sk-[A-Za-z0-9]{16,}' web/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4
