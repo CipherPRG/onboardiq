@@ -13,12 +13,12 @@ def test_mistake_is_caught_and_corrected(monkeypatch):
 
     def fake_repick(device, cands, family, attempts, model=None, effort="high"):
         seen["evidence"] = attempts[-1]["evidence"][-1]["detail"]
-        return pick("mem.availKB", "memAvailReal"), "total RAM did not move under load; use available memory", \
+        return pick("1.9.9.5", "memAvailReal"), "total RAM did not move under load; use available memory", \
             {"cost_usd": 0.01, "cached": False}
 
     monkeypatch.setattr(reader, "repick", fake_repick)
     out = agent.onboard("test box", [], DEV, lab=True, families=["memory"],
-                        initial={"memory": pick("mem.totalKB", "hrMemorySize")},
+                        initial={"memory": pick("1.9.9.6", "hrMemorySize")},
                         verify_kw={"load": DEV.load, **FAST}, log=lambda *a: None)
     m = out["spec"]["memory"]
     assert m["verdict"] == "proven-experiment" and m["attempts"] == 2
@@ -28,9 +28,9 @@ def test_mistake_is_caught_and_corrected(monkeypatch):
 
 
 def test_absent_everywhere_is_not_supported(monkeypatch):
-    monkeypatch.setattr(reader, "repick", lambda *a, **k: (pick("no.such.2", "otherTemp", 0.1, "celsius"), "",
+    monkeypatch.setattr(reader, "repick", lambda *a, **k: (pick("1.9.9.11", "otherTemp", 0.1, "celsius"), "",
                                                            {"cost_usd": 0, "cached": True}))
     out = agent.onboard("test box", [], DEV, families=["temperature"],
-                        initial={"temperature": pick("no.such.1", "lmTemp", 0.001, "celsius")},
+                        initial={"temperature": pick("1.9.9.10", "lmTemp", 0.001, "celsius")},
                         max_attempts=2, verify_kw={"observe_s": 0.01}, log=lambda *a: None)
     assert out["spec"]["temperature"]["verdict"] == "not-supported"

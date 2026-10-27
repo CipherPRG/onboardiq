@@ -8,8 +8,8 @@ from tests.test_verify import FAST, FakeDevice, ALLOC
 
 def test_record_then_replay_gives_same_verdicts(tmp_path, monkeypatch):
     monkeypatch.setattr(llm, "CACHE_DIR", tmp_path / "cache")
-    answers = [{"memory": pick("mem.totalKB", "hrMemorySize")},
-               {"pick": pick("mem.availKB", "memAvailReal"), "reasoning": "total did not move"}]
+    answers = [{"memory": pick("1.9.9.6", "hrMemorySize")},
+               {"pick": pick("1.9.9.5", "memAvailReal"), "reasoning": "total did not move"}]
 
     def fake_chat(messages, **kw):
         out = {"content": json.dumps(answers.pop(0)), "usage": {}, "cost_usd": 0.01, "seconds": 1,
@@ -22,8 +22,8 @@ def test_record_then_replay_gives_same_verdicts(tmp_path, monkeypatch):
 
     monkeypatch.setattr(llm, "chat", fake_chat)
     monkeypatch.setattr(llm, "USED_KEYS", [])
-    dev = FakeDevice({"mem.totalKB": ("INTEGER", lambda l, t: 8_000_000),
-                      "mem.availKB": ("INTEGER", lambda l, t: 6_000_000 - (ALLOC // 1024 if l else 0))})
+    dev = FakeDevice({"1.9.9.6": ("INTEGER", lambda l, t: 8_000_000),
+                      "1.9.9.5": ("INTEGER", lambda l, t: 6_000_000 - (ALLOC // 1024 if l else 0))})
     rec = replay.Recorder(dev)
     live = agent.onboard("box", [], rec, lab=True, families=["memory"],
                          verify_kw={"load": dev.load, **FAST}, log=lambda *a: None)
