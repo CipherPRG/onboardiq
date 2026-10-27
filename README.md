@@ -59,3 +59,14 @@ finds the RAM row and measures +1.1 GB: proven. Every SNMP response and model an
 recording, served to the same verifier step in the same order, on a virtual clock.
 
 Record your own: `python scripts/onboard.py --device "..." --modules ... --lab --record demo/mine.json`
+
+## Security and privacy
+
+- **Read-only:** only SNMP GET/WALK; the code has no SET path.
+- **No secrets in the repo:** keys live in `.env` (gitignored, mode 600); recordings keep no host, community or local paths.
+- **No secrets on command lines:** the SNMP community or v3 credentials go into a private `snmp.conf` (dir 0700, file 0600) read by net-snmp through `SNMPCONFPATH`, deleted at exit; `ps` never shows them.
+- **Untrusted model output:** only numeric OIDs reach net-snmp (strict regex, `--` ends option parsing); hosts are validated; anything else is rejected before touching the device.
+- **Lab experiments** (CPU/memory load) only run against the machine's own agent.
+- **What leaves the network:** MIB text, the device description and verifier readings go to the model provider (Meta API, or Baseten for open weights). Credentials never do.
+- **Spend limits** in code (daily cap, per-run cap, off switch); dependencies pinned.
+- SNMPv2c sends the community in clear text on the wire; use SNMPv3 (`authPriv`) on real networks.

@@ -5,3 +5,8 @@ __pycache__/
 data/
 mibs/
 cache/
+results/
+*.log
+.env.*
+!.env.example
+demo/*/

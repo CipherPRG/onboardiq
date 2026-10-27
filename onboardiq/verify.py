@@ -129,6 +129,9 @@ def static_checks(snmp, item: Item) -> Result:
     res = Result(item)
     if not item.oid:
         return res.reject("exists", "no object chosen")
+    from .snmp import OID_RE
+    if not OID_RE.match(item.oid):
+        return res.reject("exists", f"not a numeric OID: {item.oid[:40]!r} (never sent to the device)")
     rows = snmp.walk(item.oid)
     res.rows = len(rows)
     if not rows:

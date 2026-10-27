@@ -1,3 +1,4 @@
-openai>=1.40
-pyyaml
-pytest
+# pinned: exact versions verified on the development machine (supply-chain safety)
+openai==3.39.0
+PyYAML==6.0.3
+pytest==9.1.1

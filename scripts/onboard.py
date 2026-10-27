@@ -54,7 +54,8 @@ def main():
         out = agent.onboard(args.device, cands, dev, lab=args.lab, families=args.families.split(","),
                             max_attempts=args.max_attempts, model=args.model, effort=args.effort, log=log)
         if args.record:
-            dev.save(args.record, args={k: v for k, v in vars(args).items() if k not in ("record", "replay")},
+            keep = ("device", "modules", "lab", "families", "effort", "model", "max_attempts")
+            dev.save(args.record, args={k: v for k, v in vars(args).items() if k in keep},
                      cands=cands, result={f: v["verdict"] for f, v in out["spec"].items()})
             print(f"  recorded session -> {args.record}")
     print("\n=== Verified spec")

@@ -2,10 +2,6 @@
  "args": {
   "device": "Linux server running the net-snmp agent",
   "modules": "HOST-RESOURCES-MIB",
-  "mib_dir": "~/data/mibs_json",
-  "host": "localhost",
-  "port": null,
-  "community": "public",
   "lab": true,
   "families": "memory,cpu",
   "effort": "high",
