@@ -27,8 +27,9 @@ LABEL = {"proven-experiment": "PROVEN by experiment", "proven-witness": "PROVEN 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--device", help="what the device is, e.g. 'Arista EOS switch'")
-    ap.add_argument("--modules", help="comma-separated MIB modules (converted JSON)")
+    ap.add_argument("--device", help="what the device is, e.g. 'Arista EOS switch' (default: discovered)")
+    ap.add_argument("--modules", help="comma-separated MIB modules (default: discovered from what the "
+                                      "device serves)")
     ap.add_argument("--record", help="save the session (SNMP responses + model answers) for replay")
     ap.add_argument("--replay", help="replay a recorded session: no device or API key needed")
     ap.add_argument("--mib-dir", default=str(Path.home() / "data" / "mibs_json"))
@@ -50,8 +51,15 @@ def main():
         print(f"REPLAY of a recorded live session: {args.replay}\n")
         out = replay.replay(args.replay, log=log)
     else:
-        if not (args.device and args.modules):
-            raise SystemExit("--device and --modules are required (or use --replay)")
+        if not args.modules or not args.device:
+            from onboardiq import discover
+            probe = Snmp(args.host, args.community, port=args.port)
+            found = discover.discover(probe, Path(args.mib_dir).expanduser())
+            if not found["modules"]:
+                raise SystemExit("discovery found no MIB module this device serves; pass --modules")
+            args.device = args.device or discover.describe(found["identity"])
+            args.modules = args.modules or ",".join(discover.select_modules(found["modules"]))
+            print(f"Discovered: {args.device}\n  serves {found['served_oids']} objects; modules: {args.modules}")
         if args.lab and (args.host not in LOCAL or args.port not in (None, 161)):
             raise SystemExit("lab experiments only run against this machine's own agent (--host localhost, default port);\n"
                              "a forwarded port is another device (VM/container): loading this machine proves nothing about it")
