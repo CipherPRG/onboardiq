@@ -41,13 +41,15 @@ class Item:
     canonical_unit: str = "none"
     row_filter: str | None = None
     under_load: str | None = None       # model's prediction: rise | fall | none (None = not given)
+    witness: dict | None = None         # second independent object for the same quantity
 
     @classmethod
     def from_pick(cls, family: str, pick: dict) -> "Item":
         return cls(family=family, oid=(pick.get("oid") or "").lstrip(".").removesuffix(".0"),
                    name=pick.get("object_name"), value_type=pick.get("value_type") or "gauge",
                    scale=pick.get("scale_to_canonical"), canonical_unit=pick.get("canonical_unit") or "none",
-                   row_filter=pick.get("row_filter"), under_load=pick.get("under_load"))
+                   row_filter=pick.get("row_filter"), under_load=pick.get("under_load"),
+                   witness=pick.get("witness"))
 
 
 @dataclass
@@ -416,11 +418,71 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
     return res
 
 
+TOLERANCE = {"percent": ("abs", 10), "celsius": ("abs", 5), "rpm": ("rel", 0.15), "bytes": ("rel", 0.10)}
+
+
+def _agg(rows, scale):
+    vals = [v * scale for v in rows.values() if v is not None]
+    return statistics.fmean(vals) if vals else None
+
+
+def witness_check(snmp, res: Result, samples: int = 3, interval: float = 2) -> Result:
+    """Read the pick and its witness side by side; agreement corroborates, disagreement is a conflict."""
+    it, w = res.item, res.item.witness or {}
+    woid = (w.get("oid") or "").lstrip(".").removesuffix(".0")
+    if not woid:
+        return res
+    from .snmp import OID_RE
+    if not OID_RE.match(woid) or woid == it.oid:
+        res.add("witness", None, f"witness {w.get('object_name')!r} is not a usable second object")
+        return res
+    if it.value_type == "counter":
+        res.add("witness", None, "witness comparison is for gauges; counters are checked by experiment")
+        return res
+    PHASE["name"] = "witness"
+    pairs = []
+    try:
+        for i in range(samples):
+            a, b = _poll(snmp, it.oid), _poll(snmp, woid)
+            if not b:
+                res.add("witness", None, f"witness {w.get('object_name')} ({woid}) is not served by this device")
+                return res
+            pairs.append((_agg(a, it.scale if it.scale is not None else 1),
+                          _agg(b, w.get("scale_to_canonical") if w.get("scale_to_canonical") is not None else 1)))
+            if i < samples - 1:
+                time.sleep(interval)
+    finally:
+        PHASE["name"] = "static"
+    pairs = [(x, y) for x, y in pairs if x is not None and y is not None]
+    if not pairs:
+        res.add("witness", None, "witness gave no numeric readings")
+        return res
+    x = statistics.fmean(p[0] for p in pairs)
+    y = statistics.fmean(p[1] for p in pairs)
+    kind, tol = TOLERANCE.get(it.canonical_unit, ("rel", 0.15))
+    diff = abs(x - y) if kind == "abs" else abs(x - y) / max(abs(x), abs(y), 1e-9)
+    agree = diff <= tol
+    unit = it.canonical_unit if it.canonical_unit != "none" else ""
+    detail = (f"{it.name} reads {fmt(x, it.canonical_unit)}{(' ' + unit) if unit and unit != 'bytes' else ''}, "
+              f"witness {w.get('object_name')} reads {fmt(y, it.canonical_unit)}"
+              f"{(' ' + unit) if unit and unit != 'bytes' else ''}: "
+              + ("agree" if agree else "disagree") + f" (tolerance {tol:g}{'' if kind == 'abs' else ' relative'})")
+    res.add("witness", agree, detail)
+    if agree and res.verdict in ("proven-static", "unproven"):
+        res.verdict = "proven-witness"
+    elif not agree and res.verdict != "proven-experiment":
+        res.verdict = "unproven"          # two objects disagree: one is wrong, the evidence says which to re-read
+    return res
+
+
 def verify_item(snmp, item: Item, lab: bool = False, observe_s: float = 20, **kw) -> Result:
     t0 = time.time()
+    witness_interval = kw.pop("witness_interval", 2)
+    observe_interval = kw.pop("observe_interval", 5)
     res = static_checks(snmp, item)
     if res.verdict != "rejected":
-        res = experiment(snmp, res, **kw) if lab else observe(snmp, res, seconds=observe_s)
+        res = experiment(snmp, res, **kw) if lab else observe(snmp, res, seconds=observe_s, interval=observe_interval)
+        res = witness_check(snmp, res, interval=witness_interval)
         if res.verdict == "proven-static" and item.family in ("cpu", "memory"):
             res.verdict = "unproven"   # inducible family, but not proven under load
             if not lab:

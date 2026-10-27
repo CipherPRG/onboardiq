@@ -2,7 +2,7 @@
 from onboardiq.snmp import Var, parse
 from onboardiq.verify import Item, static_checks, verify_item
 
-FAST = dict(base_s=0.02, load_s=0.05, interval=0.01, adapt_windows=False)
+FAST = dict(base_s=0.02, load_s=0.05, interval=0.01, adapt_windows=False, witness_interval=0.001, observe_interval=0.001)
 
 
 def test_parse_types_and_missing():
@@ -100,7 +100,7 @@ def test_range_rejects_wrong_temperature_scale_and_suggests():
 
 
 def test_without_lab_cpu_memory_stay_unproven():
-    r = verify_item(DEV, Item("cpu", "1.9.9.3", canonical_unit="percent"), lab=False, observe_s=0.02)
+    r = verify_item(DEV, Item("cpu", "1.9.9.3", canonical_unit="percent"), lab=False, observe_s=0.02, observe_interval=0.001)
     assert r.verdict == "unproven"
 
 
@@ -181,3 +181,42 @@ def test_busy_baseline_is_inconclusive_not_rejected():
     r = verify_item(dev, Item("cpu", "1.9.9.20", name="busyPct", canonical_unit="percent"), lab=True,
                     load=dev.load, **FAST)
     assert r.verdict == "unproven" and "already busy" in r.evidence[-1]["detail"]
+
+
+WDEV = FakeDevice({
+    "1.9.8.1": ("INTEGER", lambda l, t: 452),        # vendor temperature, tenths of a degree
+    "1.9.8.2": ("INTEGER", lambda l, t: 45),         # ENTITY-SENSOR temperature, whole degrees: agrees
+    "1.9.8.3": ("INTEGER", lambda l, t: 71),         # some other sensor: disagrees
+})
+
+
+def temp(witness, oid="1.9.8.1", scale=0.1):
+    return Item("temperature", oid, name="vendorTemp", scale=scale, canonical_unit="celsius", witness=witness)
+
+
+def test_witness_agreement_proves_temperature():
+    r = verify_item(WDEV, temp({"oid": "1.9.8.2", "object_name": "entPhySensorValue", "scale_to_canonical": 1}),
+                    observe_s=0.01, witness_interval=0.001, observe_interval=0.001)
+    assert r.verdict == "proven-witness" and r.evidence[-1]["ok"] is True
+
+
+def test_witness_disagreement_blocks_proof():
+    r = verify_item(WDEV, temp({"oid": "1.9.8.3", "object_name": "otherSensor", "scale_to_canonical": 1}),
+                    observe_s=0.01, witness_interval=0.001, observe_interval=0.001)
+    assert r.verdict == "unproven" and r.evidence[-1]["ok"] is False and "disagree" in r.evidence[-1]["detail"]
+
+
+def test_witness_missing_or_self_changes_nothing():
+    r = verify_item(WDEV, temp({"oid": "1.9.8.99", "object_name": "absent", "scale_to_canonical": 1}),
+                    observe_s=0.01, witness_interval=0.001, observe_interval=0.001)
+    assert r.verdict == "proven-static" and "not served" in r.evidence[-1]["detail"]
+    r = verify_item(WDEV, temp({"oid": "1.9.8.1", "object_name": "vendorTemp", "scale_to_canonical": 0.1}),
+                    observe_s=0.01, witness_interval=0.001, observe_interval=0.001)
+    assert r.verdict == "proven-static" and "not a usable" in r.evidence[-1]["detail"]
+
+
+def test_wrong_scale_shows_up_as_witness_disagreement():
+    # pick scale 1 for tenths: 452 C fails the range check before the witness even runs
+    r = verify_item(WDEV, temp({"oid": "1.9.8.2", "object_name": "ent", "scale_to_canonical": 1}, scale=1),
+                    observe_s=0.01, witness_interval=0.001, observe_interval=0.001)
+    assert r.verdict == "rejected" and r.suggested_scale == 0.1

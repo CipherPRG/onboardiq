@@ -72,9 +72,22 @@ PICK_AGENT = {**PICK, "required": PICK["required"] + ["under_load"],
                   "type": "string", "enum": ["rise", "fall", "none"],
                   "description": "How this value should move when the device is put under the matching load "
                                  "(cpu: all cores busy; memory: 1 GiB allocated): rise, fall, or none"}}}
+# A witness is a second, independent object for the same quantity; on the device both are read
+# and must agree. It proves picks that cannot be loaded (temperature, fans, remote devices).
+WITNESS = {"type": ["object", "null"], "additionalProperties": False,
+           "required": ["oid", "object_name", "scale_to_canonical", "why_independent"],
+           "properties": {"oid": {"type": ["string", "null"]}, "object_name": {"type": ["string", "null"]},
+                          "scale_to_canonical": {"type": ["number", "null"]},
+                          "why_independent": {"type": ["string", "null"]}}}
+PICK_AGENT["required"] = PICK_AGENT["required"] + ["witness"]
+PICK_AGENT["properties"] = {**PICK_AGENT["properties"], "witness": WITNESS}
 SCHEMA_AGENT = {**SCHEMA, "properties": {**SCHEMA["properties"], **{f: PICK_AGENT for f in FAMILIES}}}
 AGENT_NOTE = ("\nFor each pick also predict under_load: how the value moves when the device is loaded "
-              "(cpu: all cores busy; memory: 1 GiB allocated). It will be tested on the live device.\n")
+              "(cpu: all cores busy; memory: 1 GiB allocated). It will be tested on the live device.\n"
+              "For each pick also name a witness: a different object in these modules that reports the same "
+              "quantity in the same canonical unit after its own scale (for example a vendor temperature table "
+              "and ENTITY-SENSOR-MIB, or a vendor CPU percentage and hrProcessorLoad). Both will be read on the "
+              "device and must agree. Use null if no such second object exists; never repeat the pick itself.\n")
 
 REPICK_SCHEMA = {"type": "object", "additionalProperties": False, "required": ["pick", "reasoning"],
                  "properties": {"pick": PICK_AGENT, "reasoning": {"type": "string"}}}

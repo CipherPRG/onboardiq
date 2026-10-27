@@ -19,7 +19,8 @@ from onboardiq import agent, mib, replay, report  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 
 LOCAL = {"localhost", "127.0.0.1", "::1"}
-LABEL = {"proven-experiment": "PROVEN by experiment", "proven-static": "PROVEN (static checks)",
+LABEL = {"proven-experiment": "PROVEN by experiment", "proven-witness": "PROVEN by a second object",
+         "proven-static": "PROVEN (static checks)",
          "unproven": "UNPROVEN", "not-supported": "NOT SUPPORTED on this device", "rejected": "REJECTED"}
 
 

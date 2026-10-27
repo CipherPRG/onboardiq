@@ -33,7 +33,7 @@ def test_absent_everywhere_is_not_supported(monkeypatch):
                                                            {"cost_usd": 0, "cached": True}))
     out = agent.onboard("test box", [], DEV, families=["temperature"],
                         initial={"temperature": pick("1.9.9.10", "lmTemp", 0.001, "celsius")},
-                        max_attempts=2, verify_kw={"observe_s": 0.01}, log=lambda *a: None)
+                        max_attempts=2, verify_kw={"observe_s": 0.01, "witness_interval": 0.001, "observe_interval": 0.001}, log=lambda *a: None)
     assert out["spec"]["temperature"]["verdict"] == "not-supported"
 
 

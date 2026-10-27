@@ -9,6 +9,7 @@ from datetime import datetime
 
 VERDICT = {
     "proven-experiment": ("Proven", "by experiment on the device", "ok"),
+    "proven-witness": ("Proven", "by an independent second object", "ok"),
     "proven-static": ("Proven", "by static checks", "ok"),
     "unproven": ("Not proven", "passed checks that could run, not tested under load", "warn"),
     "not-supported": ("Not on this device", "the device does not serve this object", "muted"),
