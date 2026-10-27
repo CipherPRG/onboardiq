@@ -1,0 +1,292 @@
+"""Verify a monitoring spec against a live device.
+
+Each spec item (the Reader's pick for one metric family) goes through:
+  1. static      exists? right SNMP type for the declared value_type? in a physical range after scaling?
+  2. observe     poll for a short window: do counters count, do gauges move?
+  3. experiment  (lab mode, local host only) apply CPU or memory load and check the
+                 metric responds in the right direction with a plausible magnitude.
+
+Verdicts: proven-experiment | proven-static | unproven | rejected, always with evidence.
+All device access is read-only (GET/WALK).
+"""
+import os
+import re
+import statistics
+import subprocess
+import time
+from dataclasses import dataclass, field
+
+TYPE_CLASS = {
+    "Counter32": "counter", "Counter64": "counter",
+    "Gauge32": "gauge", "INTEGER": "gauge", "Integer32": "gauge", "Unsigned32": "gauge",
+    "UInteger32": "gauge", "Opaque": "gauge",
+    "STRING": "string", "Hex-STRING": "string",
+    "Timeticks": "ticks", "OID": "oid", "IpAddress": "ip",
+}
+# Physical ranges in canonical units after scaling.
+RANGE = {"percent": (0, 100), "celsius": (-40, 150), "rpm": (0, 40000), "bytes": (0, 2 ** 50)}
+CANDIDATE_SCALES = [1, 0.1, 0.01, 0.001, 1024, 1 / 1024, 1024 ** 2, 1 / 1024 ** 2, 8, 1 / 8, 100]
+NUM = re.compile(r"-?\d+(?:\.\d+)?")
+
+
+@dataclass
+class Item:
+    family: str
+    oid: str
+    name: str | None = None
+    value_type: str = "gauge"           # gauge | counter | string | status | none
+    scale: float | None = 1.0           # raw * scale = canonical; None = model unsure
+    canonical_unit: str = "none"
+    row_filter: str | None = None
+
+    @classmethod
+    def from_pick(cls, family: str, pick: dict) -> "Item":
+        return cls(family=family, oid=(pick.get("oid") or "").lstrip(".").removesuffix(".0"),
+                   name=pick.get("object_name"), value_type=pick.get("value_type") or "gauge",
+                   scale=pick.get("scale_to_canonical"), canonical_unit=pick.get("canonical_unit") or "none",
+                   row_filter=pick.get("row_filter"))
+
+
+@dataclass
+class Result:
+    item: Item
+    verdict: str = "unproven"
+    evidence: list = field(default_factory=list)
+    suggested_scale: float | None = None
+    rows: int = 0
+    seconds: float = 0.0
+
+    def add(self, check: str, ok: bool | None, detail: str):
+        self.evidence.append({"check": check, "ok": ok, "detail": detail})
+
+    def reject(self, check: str, detail: str):
+        self.add(check, False, detail)
+        self.verdict = "rejected"
+        return self
+
+
+def number(var) -> float | None:
+    if TYPE_CLASS.get(var.type) in ("gauge", "counter", "ticks"):
+        try:
+            return float(var.value.split()[0])
+        except (ValueError, IndexError):
+            return None
+    if TYPE_CLASS.get(var.type) == "string":
+        m = NUM.search(var.value)  # "29C", "84 PERCENT", "45.5"
+        return float(m.group()) if m else None
+    return None
+
+
+def _in_range(values, scale, unit):
+    lo, hi = RANGE[unit]
+    return all(lo <= v * scale <= hi for v in values)
+
+
+def _poll(snmp, oid):
+    return {v.oid: number(v) for v in snmp.walk(oid)}
+
+
+def _series(snmp, oid, seconds, interval):
+    """[(t, {row: value})] for `seconds` (at least two samples)."""
+    out, t0 = [], time.time()
+    while True:
+        out.append((time.time(), _poll(snmp, oid)))
+        if time.time() - t0 >= seconds and len(out) >= 2:
+            return out
+        time.sleep(interval)
+
+
+def _rate(series):
+    """Mean per-second increase per row for counters (wraps ignored), summed over rows."""
+    if len(series) < 2:
+        return 0.0
+    (t0, a), (t1, b) = series[0], series[-1]
+    total = 0.0
+    for row, v0 in a.items():
+        v1 = b.get(row)
+        if v0 is not None and v1 is not None and v1 >= v0:
+            total += (v1 - v0) / max(t1 - t0, 1e-6)
+    return total
+
+
+def _mean(series):
+    vals = [v for _, rows in series for v in rows.values() if v is not None]
+    return statistics.fmean(vals) if vals else None
+
+
+# ---------------------------------------------------------------- 1. static
+def static_checks(snmp, item: Item) -> Result:
+    res = Result(item)
+    if not item.oid:
+        return res.reject("exists", "no object chosen")
+    rows = snmp.walk(item.oid)
+    res.rows = len(rows)
+    if not rows:
+        return res.reject("exists", f"{item.oid} is not served by this device (No Such Object/Instance)")
+    types = sorted({v.type for v in rows})
+    res.add("exists", True, f"{len(rows)} instance(s), type {', '.join(types)}")
+
+    classes = {TYPE_CLASS.get(t, "other") for t in types}
+    want = "counter" if item.value_type == "counter" else "gauge"
+    if want == "gauge" and classes == {"counter"}:
+        return res.reject("type", "device returns a Counter (it only ever increases, like an odometer); "
+                                  "reading it as a gauge gives meaningless values")
+    if want == "counter" and "counter" not in classes:
+        return res.reject("type", f"declared counter but device returns {', '.join(types)}")
+    values = [x for x in (number(v) for v in rows) if x is not None]
+    if item.value_type in ("gauge", "status") and not values:
+        return res.reject("type", f"no numeric value in {rows[0].type} '{rows[0].value[:40]}'")
+    res.add("type", True, f"{', '.join(types)} fits declared {item.value_type}")
+
+    unit = item.canonical_unit
+    if want == "gauge" and unit in RANGE and values:
+        fits = [s for s in CANDIDATE_SCALES if _in_range(values, s, unit)]
+        sample = f"raw {values[:3]}"
+        if item.scale is None:
+            res.add("range", None, f"model gave no scale; {sample}; scales giving a valid {unit}: {fits[:4]}")
+            res.suggested_scale = fits[0] if len(fits) == 1 else None
+        elif _in_range(values, item.scale, unit):
+            res.add("range", True, f"{sample} x {item.scale:g} = {[round(v * item.scale, 2) for v in values[:3]]} {unit}")
+        else:
+            res.suggested_scale = fits[0] if fits else None
+            return res.reject("range", f"{sample} x {item.scale:g} is outside {RANGE[unit]} {unit}"
+                                       + (f"; scale {fits[0]:g} would fit" if fits else ""))
+    res.verdict = "proven-static"
+    return res
+
+
+# ---------------------------------------------------------------- 2. observe
+def observe(snmp, res: Result, seconds: float = 20, interval: float = 5) -> Result:
+    if res.verdict == "rejected":
+        return res
+    s = _series(snmp, res.item.oid, seconds, interval)
+    if res.item.value_type == "counter":
+        r = _rate(s)
+        res.add("observe", r > 0 or None, f"counter rate {r:.2f}/s over {s[-1][0] - s[0][0]:.0f}s")
+    else:
+        vals = [v for _, rows in s for v in rows.values() if v is not None]
+        moved = len(set(vals)) > 1
+        res.add("observe", None if not moved else True,
+                f"{'moved' if moved else 'constant'} over {s[-1][0] - s[0][0]:.0f}s "
+                f"(min {min(vals, default=0):g}, max {max(vals, default=0):g})")
+    return res
+
+
+# ---------------------------------------------------------------- 3. experiment
+def _meminfo_kb(key="MemTotal"):
+    with open("/proc/meminfo") as f:
+        for line in f:
+            if line.startswith(key + ":"):
+                return int(line.split()[1])
+    return None
+
+
+def default_load(kind: str, seconds: int, size_bytes: int = 0):
+    """Start a local load generator (stress-ng). Returns a Popen to wait on."""
+    if kind == "cpu":
+        n = max(1, (os.cpu_count() or 2))
+        cmd = ["stress-ng", "--cpu", str(n), "--timeout", f"{seconds}s", "--quiet"]
+    elif kind == "memory":
+        cmd = ["stress-ng", "--vm", "1", "--vm-bytes", str(size_bytes), "--vm-keep",
+               "--timeout", f"{seconds}s", "--quiet"]
+    else:
+        raise ValueError(kind)
+    return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+DOWN_WORDS = ("idle", "free", "avail", "unused")
+_LOAD_STATE = {"end": 0.0}  # when the last lab load stopped (for cool-down)
+
+
+def expected_direction(item: Item) -> int:
+    """+1 if the metric should rise under load (used, busy, util), -1 if it should fall (idle, free, available)."""
+    text = (item.name or "").split("::")[-1].lower()
+    return -1 if any(w in text for w in DOWN_WORDS) else 1
+
+
+def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval: float = 3,
+               load=default_load, adapt_windows: bool = True) -> Result:
+    """CPU: all cores busy. Memory: allocate min(1 GiB, 25% of RAM). Others: not inducible."""
+    it = res.item
+    if res.verdict == "rejected":
+        return res
+    if it.family not in ("cpu", "memory"):
+        res.add("experiment", None, f"{it.family} cannot be induced on demand; static checks only")
+        return res
+    # Averaged objects (1/5-minute CPU, load averages) lag the load: give them time.
+    text = f"{it.name or ''} {it.row_filter or ''}".lower()
+    if adapt_windows and it.family == "cpu" and it.value_type != "counter":
+        if re.search(r"5\s*min|5min|300", text):
+            load_s = max(load_s, 330)
+        elif re.search(r"1\s*min|1min|average|avg|load", text) or "hrprocessorload" in text:
+            load_s = max(load_s, 75)
+        else:
+            load_s = max(load_s, 45)
+    # Cool-down: a baseline taken while a previous load is still in an average is wrong.
+    settle = {330: 330, 75: 75}.get(load_s, 15) if it.value_type != "counter" else 5
+    wait = _LOAD_STATE["end"] + settle - time.time()
+    if adapt_windows and wait > 0:
+        time.sleep(wait)
+    alloc = 0
+    if it.family == "memory":
+        total_kb = _meminfo_kb() or 4 * 1024 * 1024
+        alloc = int(min(1024 ** 3, total_kb * 1024 * 0.25))
+    base = _series(snmp, it.oid, base_s, interval)
+    proc = load(it.family, load_s + 10, alloc)
+    try:
+        warm = min(load_s / 2, 6 if load_s <= 45 else load_s - 30) if adapt_windows else 0
+        time.sleep(warm)                         # let caches and averages catch up
+        during = _series(snmp, it.oid, load_s - warm, interval)
+    finally:
+        proc.terminate()
+        proc.wait(timeout=15)
+        _LOAD_STATE["end"] = time.time()
+
+    scale = it.scale if it.scale is not None else (res.suggested_scale or 1)
+    sign = expected_direction(it)
+    if it.value_type == "counter":
+        r0, r1 = _rate(base), _rate(during)
+        ok = r1 > max(r0 * 1.5, r0 + 1)
+        res.add("experiment", ok, f"{it.family} load: counter rate {r0:.1f}/s -> {r1:.1f}/s")
+    else:
+        m0, m1 = _mean(base), _mean(during)
+        if m0 is None or m1 is None:
+            return res.reject("experiment", "no numeric readings during experiment")
+        delta = (m1 - m0) * scale
+        if it.family == "cpu":
+            ok = sign * delta > 0 and (it.canonical_unit != "percent" or abs(delta) >= 10)
+            res.add("experiment", ok, f"cpu load: {m0 * scale:.1f} -> {m1 * scale:.1f} {it.canonical_unit}"
+                                      f" (change {delta:+.1f}, expected {'rise' if sign > 0 else 'fall'})")
+        else:
+            if it.canonical_unit == "percent":
+                expect = alloc / ((_meminfo_kb() or 1) * 1024) * 100
+            else:
+                expect = alloc
+            ratio = abs(delta) / expect if expect else 0
+            ok = 0.3 <= ratio <= 3 and sign * delta > 0
+            detail = (f"allocated {alloc / 1024 ** 2:.0f} MiB: change {delta:+,.0f} {it.canonical_unit}"
+                      f" (expected {'+' if sign > 0 else '-'}{expect:,.0f}, ratio {ratio:.2g})")
+            if not ok and ratio > 0:
+                for s in CANDIDATE_SCALES:
+                    if 0.3 <= abs(m1 - m0) * s / expect <= 3:
+                        res.suggested_scale = s
+                        detail += f"; scale {s:g} would match"
+                        break
+            res.add("experiment", ok, detail)
+    if res.evidence[-1]["ok"] is False:
+        res.verdict = "rejected"
+    elif res.evidence[-1]["ok"]:
+        res.verdict = "proven-experiment"
+    return res
+
+
+def verify_item(snmp, item: Item, lab: bool = False, observe_s: float = 20, **kw) -> Result:
+    t0 = time.time()
+    res = static_checks(snmp, item)
+    if res.verdict != "rejected":
+        res = experiment(snmp, res, **kw) if lab else observe(snmp, res, seconds=observe_s)
+        if not lab and res.verdict == "proven-static" and item.family in ("cpu", "memory"):
+            res.verdict = "unproven"   # could have been induced but was not tested
+            res.add("note", None, "run with lab mode on a test device to prove it under load")
+    res.seconds = round(time.time() - t0, 1)
+    return res
