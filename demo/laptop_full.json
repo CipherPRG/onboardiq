@@ -1,0 +1,3306 @@
+{
+ "args": {
+  "device": "Linux server running the net-snmp agent",
+  "modules": "UCD-SNMP-MIB,HOST-RESOURCES-MIB,LM-SENSORS-MIB",
+  "lab": true,
+  "families": "cpu,memory,temperature,fan",
+  "effort": "high",
+  "model": null,
+  "max_attempts": 3
+ },
+ "cands": [
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskAvail",
+   "oid": "1.3.6.1.4.1.2021.9.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Available space on the disk. For large lightly-used disks (>2Tb), this value will latch at INT32_MAX (2147483647)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskAvailHigh",
+   "oid": "1.3.6.1.4.1.2021.9.1.14",
+   "kind": "column",
+   "type": "Unsigned32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Available space on the disk (kBytes). Together with dskAvailLow composes 64-bit number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskAvailLow",
+   "oid": "1.3.6.1.4.1.2021.9.1.13",
+   "kind": "column",
+   "type": "Unsigned32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Available space on the disk (kBytes). Together with dskAvailHigh composes 64-bit number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskDevice",
+   "oid": "1.3.6.1.4.1.2021.9.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Path of the device for the partition"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskErrorFlag",
+   "oid": "1.3.6.1.4.1.2021.9.1.100",
+   "kind": "column",
+   "type": "UCDErrorFlag",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Error flag signaling that the disk or partition is under the minimum required space configured for it."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskErrorMsg",
+   "oid": "1.3.6.1.4.1.2021.9.1.101",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A text description providing a warning and the space left on the disk."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskIndex",
+   "oid": "1.3.6.1.4.1.2021.9.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 65535,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Integer reference number (row number) for the disk mib."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskMinPercent",
+   "oid": "1.3.6.1.4.1.2021.9.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Percentage of minimum space required on the disk before the errors are triggered. Either this or dskMinimum is configured via the agent's snmpd.conf file."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskMinimum",
+   "oid": "1.3.6.1.4.1.2021.9.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Minimum space required on the disk (in kBytes) before the errors are triggered. Either this or dskMinPercent is configured via the agent's snmpd.conf file."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskPath",
+   "oid": "1.3.6.1.4.1.2021.9.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Path where the disk is mounted."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskPercent",
+   "oid": "1.3.6.1.4.1.2021.9.1.9",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Percentage of space used on disk"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskPercentNode",
+   "oid": "1.3.6.1.4.1.2021.9.1.10",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Percentage of inodes used on disk"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskTotal",
+   "oid": "1.3.6.1.4.1.2021.9.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Total size of the disk/partion (kBytes). For large disks (>2Tb), this value will latch at INT32_MAX (2147483647)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskTotalHigh",
+   "oid": "1.3.6.1.4.1.2021.9.1.12",
+   "kind": "column",
+   "type": "Unsigned32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Total size of the disk/partion (kBytes). Together with dskTotalLow composes 64-bit number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskTotalLow",
+   "oid": "1.3.6.1.4.1.2021.9.1.11",
+   "kind": "column",
+   "type": "Unsigned32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Total size of the disk/partion (kBytes). Together with dskTotalHigh composes 64-bit number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskUsed",
+   "oid": "1.3.6.1.4.1.2021.9.1.8",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Used space on the disk. For large heavily-used disks (>2Tb), this value will latch at INT32_MAX (2147483647)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskUsedHigh",
+   "oid": "1.3.6.1.4.1.2021.9.1.16",
+   "kind": "column",
+   "type": "Unsigned32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Used space on the disk (kBytes). Together with dskUsedLow composes 64-bit number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "dskUsedLow",
+   "oid": "1.3.6.1.4.1.2021.9.1.15",
+   "kind": "column",
+   "type": "Unsigned32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Used space on the disk (kBytes). Together with dskUsedHigh composes 64-bit number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "extCommand",
+   "oid": "1.3.6.1.4.1.2021.8.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The command line to be executed."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "extErrFix",
+   "oid": "1.3.6.1.4.1.2021.8.1.102",
+   "kind": "column",
+   "type": "UCDErrorFix",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Setting this to one will try to fix the problem if the agent has been configured with a script to call to attempt to fix problems automatically using remote snmp operations."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "extErrFixCmd",
+   "oid": "1.3.6.1.4.1.2021.8.1.103",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The command that gets run when the extErrFix column is set to 1."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "extIndex",
+   "oid": "1.3.6.1.4.1.2021.8.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 65535,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Reference Index for extensible scripts. Simply an integer row number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "extNames",
+   "oid": "1.3.6.1.4.1.2021.8.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A Short, one name description of the extensible command."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "extOutput",
+   "oid": "1.3.6.1.4.1.2021.8.1.101",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The first line of output of the executed command."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "extResult",
+   "oid": "1.3.6.1.4.1.2021.8.1.100",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The result code (exit status) from the executed command."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "fileErrorFlag",
+   "oid": "1.3.6.1.4.1.2021.15.1.100",
+   "kind": "column",
+   "type": "UCDErrorFlag",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Limit exceeded flag"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "fileErrorMsg",
+   "oid": "1.3.6.1.4.1.2021.15.1.101",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Filesize error message"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "fileIndex",
+   "oid": "1.3.6.1.4.1.2021.15.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Index of file"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "fileMax",
+   "oid": "1.3.6.1.4.1.2021.15.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "Limit of filesize (kB)"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "fileName",
+   "oid": "1.3.6.1.4.1.2021.15.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Filename"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "fileSize",
+   "oid": "1.3.6.1.4.1.2021.15.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "Size of file (kB)"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laConfig",
+   "oid": "1.3.6.1.4.1.2021.10.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The watch point for load-averages to signal an error. If the load averages rises above this value, the laErrorFlag below is set."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laErrMessage",
+   "oid": "1.3.6.1.4.1.2021.10.1.101",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An error message describing the load-average and its surpased watch-point value."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laErrorFlag",
+   "oid": "1.3.6.1.4.1.2021.10.1.100",
+   "kind": "column",
+   "type": "UCDErrorFlag",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A Error flag to indicate the load-average has crossed its threshold value defined in the snmpd.conf file. It is set to 1 if the threshold is crossed, 0 otherwise."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laIndex",
+   "oid": "1.3.6.1.4.1.2021.10.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 3,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "reference index/row number for each observed loadave."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laLoad",
+   "oid": "1.3.6.1.4.1.2021.10.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The 1,5 and 15 minute load averages (one per row)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laLoadFloat",
+   "oid": "1.3.6.1.4.1.2021.10.1.6",
+   "kind": "column",
+   "type": "Float",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The 1,5 and 15 minute load averages as an opaquely wrapped floating point number."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laLoadInt",
+   "oid": "1.3.6.1.4.1.2021.10.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The 1,5 and 15 minute load averages as an integer. This is computed by taking the floating point loadaverage value and multiplying by 100, then converting the value to an integer."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "laNames",
+   "oid": "1.3.6.1.4.1.2021.10.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The list of loadave names we're watching."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchCount",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.10",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Description."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchCounter",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.9",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Regex match counter. This counter will be reset with each read"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchCurrentCount",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.8",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Description."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchCurrentCounter",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.7",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Regex match counter. This counter will be reset with each logfile rotation."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchCycle",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.11",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "time between updates (if not queried) in seconds"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchErrorFlag",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.100",
+   "kind": "column",
+   "type": "UCDErrorFlag",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "errorflag: is this line configured correctly?"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchFilename",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "filename to be logmatched"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchGlobalCount",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Description."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchGlobalCounter",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.5",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "global count of matches"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchIndex",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "Index of logmatch"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchMaxEntries",
+   "oid": "1.3.6.1.4.1.2021.16.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The maximum number of logmatch entries this snmpd daemon can support."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchName",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "logmatch instance name"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchRegEx",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "regular expression"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "logMatchRegExCompilation",
+   "oid": "1.3.6.1.4.1.2021.16.2.1.101",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "message of regex precompilation"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memAvailReal",
+   "oid": "1.3.6.1.4.1.2021.4.6",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The amount of real/physical memory currently unused or available."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memAvailRealTXT",
+   "oid": "1.3.6.1.4.1.2021.4.10",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "deprecated",
+   "description": "The amount of real/physical memory currently being used by text pages on this host. This object will not be implemented on hosts where the underlying operating system does not distinguish text pages from other uses of physical memory. Note that (despite the name), this value reports the amount used,"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memAvailRealX",
+   "oid": "1.3.6.1.4.1.2021.4.21",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The amount of real/physical memory currently unused or available."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memAvailSwap",
+   "oid": "1.3.6.1.4.1.2021.4.4",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The amount of swap space currently unused or available."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memAvailSwapTXT",
+   "oid": "1.3.6.1.4.1.2021.4.8",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "deprecated",
+   "description": "The amount of swap space or virtual memory currently being used by text pages on this host. This object will not be implemented on hosts where the underlying operating system does not distinguish text pages from other uses of swap space or virtual memory. Note that (despite the name), this value rep"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memAvailSwapX",
+   "oid": "1.3.6.1.4.1.2021.4.19",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The amount of swap space currently unused or available."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memBuffer",
+   "oid": "1.3.6.1.4.1.2021.4.14",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real or virtual memory currently allocated for use as memory buffers. This object will not be implemented on hosts where the underlying operating system does not explicitly identify memory as specifically reserved for this purpose."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memBufferX",
+   "oid": "1.3.6.1.4.1.2021.4.25",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real or virtual memory currently allocated for use as memory buffers. This object will not be implemented on hosts where the underlying operating system does not explicitly identify memory as specifically reserved for this purpose."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memCached",
+   "oid": "1.3.6.1.4.1.2021.4.15",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real or virtual memory currently allocated for use as cached memory. This object will not be implemented on hosts where the underlying operating system does not explicitly identify memory as specifically reserved for this purpose."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memCachedX",
+   "oid": "1.3.6.1.4.1.2021.4.26",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real or virtual memory currently allocated for use as cached memory. This object will not be implemented on hosts where the underlying operating system does not explicitly identify memory as specifically reserved for this purpose."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memErrorName",
+   "oid": "1.3.6.1.4.1.2021.4.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Bogus Name. This should always return the string 'swap'."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memIndex",
+   "oid": "1.3.6.1.4.1.2021.4.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Bogus Index. This should always return the integer 0."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memMinimumSwap",
+   "oid": "1.3.6.1.4.1.2021.4.12",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The minimum amount of swap space expected to be kept free or available during normal operation of this host. If this value (as reported by 'memAvailSwap(4)') falls below the specified level, then 'memSwapError(100)' will be set to 1 and an error message made available via 'memSwapErrorMsg(101)'."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memMinimumSwapX",
+   "oid": "1.3.6.1.4.1.2021.4.23",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The minimum amount of swap space expected to be kept free or available during normal operation of this host. If this value (as reported by 'memAvailSwap(4)') falls below the specified level, then 'memSwapError(100)' will be set to 1 and an error message made available via 'memSwapErrorMsg(101)'."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memShared",
+   "oid": "1.3.6.1.4.1.2021.4.13",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real or virtual memory currently allocated for use as shared memory. This object will not be implemented on hosts where the underlying operating system does not explicitly identify memory as specifically reserved for this purpose."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memSharedX",
+   "oid": "1.3.6.1.4.1.2021.4.24",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real or virtual memory currently allocated for use as shared memory. This object will not be implemented on hosts where the underlying operating system does not explicitly identify memory as specifically reserved for this purpose."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memSwapError",
+   "oid": "1.3.6.1.4.1.2021.4.100",
+   "kind": "scalar",
+   "type": "UCDErrorFlag",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Indicates whether the amount of available swap space (as reported by 'memAvailSwap(4)'), is less than the desired minimum (specified by 'memMinimumSwap(12)')."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memSwapErrorMsg",
+   "oid": "1.3.6.1.4.1.2021.4.101",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Describes whether the amount of available swap space (as reported by 'memAvailSwap(4)'), is less than the desired minimum (specified by 'memMinimumSwap(12)')."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memSysAvail",
+   "oid": "1.3.6.1.4.1.2021.4.27",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of available memory, which is an estimate of how much memory is available for starting new applications, without swapping. This object will not be implemented on hosts where the underlying operating system does not explicitly identify memory as specifically reserved for this purpose"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalFree",
+   "oid": "1.3.6.1.4.1.2021.4.11",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of memory free or available for use on this host. This value typically covers both real memory and swap space or virtual memory."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalFreeX",
+   "oid": "1.3.6.1.4.1.2021.4.22",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of memory free or available for use on this host. This value typically covers both real memory and swap space or virtual memory."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalReal",
+   "oid": "1.3.6.1.4.1.2021.4.5",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real/physical memory installed on this host."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalRealTXT",
+   "oid": "1.3.6.1.4.1.2021.4.9",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real/physical memory allocated for text pages on this host. This object will not be implemented on hosts where the underlying operating system does not distinguish text pages from other uses of physical memory."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalRealX",
+   "oid": "1.3.6.1.4.1.2021.4.20",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real/physical memory installed on this host."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalSwap",
+   "oid": "1.3.6.1.4.1.2021.4.3",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of swap space configured for this host."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalSwapTXT",
+   "oid": "1.3.6.1.4.1.2021.4.7",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of swap space or virtual memory allocated for text pages on this host. This object will not be implemented on hosts where the underlying operating system does not distinguish text pages from other uses of swap space or virtual memory."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memTotalSwapX",
+   "oid": "1.3.6.1.4.1.2021.4.18",
+   "kind": "scalar",
+   "type": "CounterBasedGauge64",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of swap space configured for this host."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memUsedRealTXT",
+   "oid": "1.3.6.1.4.1.2021.4.17",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The amount of real/physical memory currently being used by text pages on this host. This object will not be implemented on hosts where the underlying operating system does not distinguish text pages from other uses of physical memory."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "memUsedSwapTXT",
+   "oid": "1.3.6.1.4.1.2021.4.16",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The amount of swap space or virtual memory currently being used by text pages on this host. This object will not be implemented on hosts where the underlying operating system does not distinguish text pages from other uses of swap space or virtual memory."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "mrIndex",
+   "oid": "1.3.6.1.4.1.2021.102.1.1",
+   "kind": "column",
+   "type": "OBJECT IDENTIFIER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The registry slot of a mibmodule."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "mrModuleName",
+   "oid": "1.3.6.1.4.1.2021.102.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The module name that registered this OID."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prCount",
+   "oid": "1.3.6.1.4.1.2021.2.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of current processes running with the name in question."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prErrFix",
+   "oid": "1.3.6.1.4.1.2021.2.1.102",
+   "kind": "column",
+   "type": "UCDErrorFix",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Setting this to one will try to fix the problem if the agent has been configured with a script to call to attempt to fix problems automatically using remote snmp operations."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prErrFixCmd",
+   "oid": "1.3.6.1.4.1.2021.2.1.103",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The command that gets run when the prErrFix column is set to 1."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prErrMessage",
+   "oid": "1.3.6.1.4.1.2021.2.1.101",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An error message describing the problem (if one exists)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prErrorFlag",
+   "oid": "1.3.6.1.4.1.2021.2.1.100",
+   "kind": "column",
+   "type": "UCDErrorFlag",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A Error flag to indicate trouble with a process. It goes to 1 if there is an error, 0 if no error."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prIndex",
+   "oid": "1.3.6.1.4.1.2021.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 65535,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Reference Index for each observed process."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prMax",
+   "oid": "1.3.6.1.4.1.2021.2.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The maximum number of processes that should be running. An error flag is generated if the number of running processes is > the maximum."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prMin",
+   "oid": "1.3.6.1.4.1.2021.2.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The minimum number of processes that should be running. An error flag is generated if the number of running processes is < the minimum."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "prNames",
+   "oid": "1.3.6.1.4.1.2021.2.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The process name we're counting/checking on."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "snmperrErrMessage",
+   "oid": "1.3.6.1.4.1.2021.101.101",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An error message describing the problem (if one exists)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "snmperrErrorFlag",
+   "oid": "1.3.6.1.4.1.2021.101.100",
+   "kind": "scalar",
+   "type": "UCDErrorFlag",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A Error flag to indicate trouble with the agent. It goes to 1 if there is an error, 0 if no error."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "snmperrIndex",
+   "oid": "1.3.6.1.4.1.2021.101.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Bogus Index for snmperrs (always 0)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "snmperrNames",
+   "oid": "1.3.6.1.4.1.2021.101.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "snmp"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuIdle",
+   "oid": "1.3.6.1.4.1.2021.11.11",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "deprecated",
+   "description": "The percentage of processor time spent idle, calculated over the last minute. This object has been deprecated in favour of 'ssCpuRawIdle(53)', which can be used to calculate the same metric, but over any desired time period."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuNumCpus",
+   "oid": "1.3.6.1.4.1.2021.11.67",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of processors, as counted by the agent. This object's value may be useful in the management of certain operating systems where notions such as load average do not take into account the number of processors in the system. For other objects in the systemStats group whose descriptions refer "
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawGuest",
+   "oid": "1.3.6.1.4.1.2021.11.65",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent by the CPU to run a virtual CPU (guest). This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, "
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawGuestNice",
+   "oid": "1.3.6.1.4.1.2021.11.66",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent by the CPU to run a niced virtual CPU (guest). This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all "
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawIdle",
+   "oid": "1.3.6.1.4.1.2021.11.53",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent idle. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, so their sum will typically be N*100 (for N processors)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawInterrupt",
+   "oid": "1.3.6.1.4.1.2021.11.56",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent processing hardware interrupts. This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, so their "
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawKernel",
+   "oid": "1.3.6.1.4.1.2021.11.55",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent processing kernel-level code. This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. This time may also be included within the 'ssCpuRawSystem(52)' counter. On a multi-processor sy"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawNice",
+   "oid": "1.3.6.1.4.1.2021.11.51",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent processing reduced-priority code. This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, so thei"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawSoftIRQ",
+   "oid": "1.3.6.1.4.1.2021.11.61",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent processing software interrupts. This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, so their "
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawSteal",
+   "oid": "1.3.6.1.4.1.2021.11.64",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent by the hypervisor code to run other VMs even though the CPU in the current VM had something runnable. This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. On a multi-processor sy"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawSystem",
+   "oid": "1.3.6.1.4.1.2021.11.52",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent processing system-level code. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, so their sum will typically be N*100 (for N processors). This object may sometimes be implemented as the combination of the 'ssCpuRawWait(5"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawUser",
+   "oid": "1.3.6.1.4.1.2021.11.50",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent processing user-level code. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, so their sum will typically be N*100 (for N processors)."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuRawWait",
+   "oid": "1.3.6.1.4.1.2021.11.54",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of 'ticks' (typically 1/100s) spent waiting for IO. This object will not be implemented on hosts where the underlying operating system does not measure this particular CPU metric. This time may also be included within the 'ssCpuRawSystem(52)' counter. On a multi-processor system, the 'ssC"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuSystem",
+   "oid": "1.3.6.1.4.1.2021.11.10",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "deprecated",
+   "description": "The percentage of CPU time spent processing system-level code, calculated over the last minute. This object has been deprecated in favour of 'ssCpuRawSystem(52)', which can be used to calculate the same metric, but over any desired time period."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssCpuUser",
+   "oid": "1.3.6.1.4.1.2021.11.9",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "deprecated",
+   "description": "The percentage of CPU time spent processing user-level code, calculated over the last minute. This object has been deprecated in favour of 'ssCpuRawUser(50)', which can be used to calculate the same metric, but over any desired time period."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssErrorName",
+   "oid": "1.3.6.1.4.1.2021.11.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Bogus Name. This should always return the string 'systemStats'."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssIORawReceived",
+   "oid": "1.3.6.1.4.1.2021.11.58",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Number of blocks received from a block device"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssIORawSent",
+   "oid": "1.3.6.1.4.1.2021.11.57",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Number of blocks sent to a block device"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssIOReceive",
+   "oid": "1.3.6.1.4.1.2021.11.6",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "blocks/s",
+   "range": null,
+   "status": "deprecated",
+   "description": "The average amount of data read from disk or other block device, calculated over the last minute. This object has been deprecated in favour of 'ssIORawReceived(58)', which can be used to calculate the same metric, but over any desired time period."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssIOSent",
+   "oid": "1.3.6.1.4.1.2021.11.5",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "blocks/s",
+   "range": null,
+   "status": "deprecated",
+   "description": "The average amount of data written to disk or other block device, calculated over the last minute. This object has been deprecated in favour of 'ssIORawSent(57)', which can be used to calculate the same metric, but over any desired time period."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssIndex",
+   "oid": "1.3.6.1.4.1.2021.11.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Bogus Index. This should always return the integer 1."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssRawContexts",
+   "oid": "1.3.6.1.4.1.2021.11.60",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Number of context switches"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssRawInterrupts",
+   "oid": "1.3.6.1.4.1.2021.11.59",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Number of interrupts processed"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssRawSwapIn",
+   "oid": "1.3.6.1.4.1.2021.11.62",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Number of blocks swapped in"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssRawSwapOut",
+   "oid": "1.3.6.1.4.1.2021.11.63",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Number of blocks swapped out"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssSwapIn",
+   "oid": "1.3.6.1.4.1.2021.11.3",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The average amount of memory swapped in from disk, calculated over the last minute."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssSwapOut",
+   "oid": "1.3.6.1.4.1.2021.11.4",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "kB",
+   "range": null,
+   "status": "current",
+   "description": "The average amount of memory swapped out to disk, calculated over the last minute."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssSysContext",
+   "oid": "1.3.6.1.4.1.2021.11.8",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "switches/s",
+   "range": null,
+   "status": "deprecated",
+   "description": "The average rate of context switches, calculated over the last minute. This object has been deprecated in favour of 'ssRawContext(60)', which can be used to calculate the same metric, but over any desired time period."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "ssSysInterrupts",
+   "oid": "1.3.6.1.4.1.2021.11.7",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": "interrupts/s",
+   "range": null,
+   "status": "deprecated",
+   "description": "The average rate of interrupts processed (including the clock) calculated over the last minute. This object has been deprecated in favour of 'ssRawInterrupts(59)', which can be used to calculate the same metric, but over any desired time period."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionCDate",
+   "oid": "1.3.6.1.4.1.2021.100.4",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Date string from ctime()"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionClearCache",
+   "oid": "1.3.6.1.4.1.2021.100.10",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Set to 1 to clear the exec cache, if enabled"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionConfigureOptions",
+   "oid": "1.3.6.1.4.1.2021.100.6",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Options passed to the configure script when this agent was built."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionDate",
+   "oid": "1.3.6.1.4.1.2021.100.3",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Date string from RCS keyword"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionDoDebugging",
+   "oid": "1.3.6.1.4.1.2021.100.20",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Set to 1 to turn debugging statements on in the agent or 0 to turn it off."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionIdent",
+   "oid": "1.3.6.1.4.1.2021.100.5",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Id string from RCS keyword"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionIndex",
+   "oid": "1.3.6.1.4.1.2021.100.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Index to mib (always 0)"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionRestartAgent",
+   "oid": "1.3.6.1.4.1.2021.100.12",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Set to 1 to restart the agent."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionSavePersistentData",
+   "oid": "1.3.6.1.4.1.2021.100.13",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Set to 1 to force the agent to save it's persistent data immediately."
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionTag",
+   "oid": "1.3.6.1.4.1.2021.100.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "CVS tag keyword"
+  },
+  {
+   "module": "UCD-SNMP-MIB",
+   "name": "versionUpdateConfig",
+   "oid": "1.3.6.1.4.1.2021.100.11",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Set to 1 to read-read the config file(s)."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceDescr",
+   "oid": "1.3.6.1.2.1.25.3.2.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this device, including the device's manufacturer and revision, and optionally, its serial number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceErrors",
+   "oid": "1.3.6.1.2.1.25.3.2.1.6",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of errors detected on this device. It should be noted that as this object has a SYNTAX of Counter32, that it does not have a defined initial value. However, it is recommended that this object be initialized to zero, even though management stations must not depend on such an initialization"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceID",
+   "oid": "1.3.6.1.2.1.25.3.2.1.4",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID for this device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceIndex",
+   "oid": "1.3.6.1.2.1.25.3.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each device contained by the host. The value for each device must remain constant at least from one re-initialization of the agent to the next re-initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceStatus",
+   "oid": "1.3.6.1.2.1.25.3.2.1.5",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The current operational state of the device described by this row of the table. A value unknown(1) indicates that the current state of the device is unknown. running(2) indicates that the device is up and running and that no unusual error conditions are known. The warning(3) state indicates that age"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceType",
+   "oid": "1.3.6.1.2.1.25.3.2.1.2",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication of the type of device. If this value is `hrDeviceProcessor { hrDeviceTypes 3 }' then an entry exists in the hrProcessorTable which corresponds to this device. If this value is `hrDeviceNetwork { hrDeviceTypes 4 }', then an entry exists in the hrNetworkTable which corresponds to this de"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageAccess",
+   "oid": "1.3.6.1.2.1.25.3.6.1.1",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication if this long-term storage device is readable and writable or only readable. This should reflect the media type, any write-protect mechanism, and any device configuration that affects the entire device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageCapacity",
+   "oid": "1.3.6.1.2.1.25.3.6.1.4",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The total size for this long-term storage device. If the media is removable and is currently removed, this value should be zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageMedia",
+   "oid": "1.3.6.1.2.1.25.3.6.1.2",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication of the type of media used in this long- term storage device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageRemoveble",
+   "oid": "1.3.6.1.2.1.25.3.6.1.3",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Denotes whether or not the disk media may be removed from the drive."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSAccess",
+   "oid": "1.3.6.1.2.1.25.3.8.1.5",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication if this file system is logically configured by the operating system to be readable and writable or only readable. This does not represent any local access-control policy, except one that is applied to the file system as a whole."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSBootable",
+   "oid": "1.3.6.1.2.1.25.3.8.1.6",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A flag indicating whether this file system is bootable."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSIndex",
+   "oid": "1.3.6.1.2.1.25.3.8.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each file system local to this host. The value for each file system must remain constant at least from one re-initialization of the agent to the next re-initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSLastFullBackupDate",
+   "oid": "1.3.6.1.2.1.25.3.8.1.8",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last date at which this complete file system was copied to another storage device for backup. This information is useful for ensuring that backups are being performed regularly. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 00:00"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSLastPartialBackupDate",
+   "oid": "1.3.6.1.2.1.25.3.8.1.9",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last date at which a portion of this file system was copied to another storage device for backup. This information is useful for ensuring that backups are being performed regularly. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 0"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSMountPoint",
+   "oid": "1.3.6.1.2.1.25.3.8.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The path name of the root of this file system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSRemoteMountPoint",
+   "oid": "1.3.6.1.2.1.25.3.8.1.3",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the name and/or address of the server that this file system is mounted from. This may also include parameters such as the mount point on the remote file system. If this is not a remote file system, this string should have a length of zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSStorageIndex",
+   "oid": "1.3.6.1.2.1.25.3.8.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The index of the hrStorageEntry that represents information about this file system. If there is no such information available, then this value shall be zero. The relevant storage entry will be useful in tracking the percent usage of this file system and diagnosing errors that may occur when it runs "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSType",
+   "oid": "1.3.6.1.2.1.25.3.8.1.4",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of this object identifies the type of this file system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrMemorySize",
+   "oid": "1.3.6.1.2.1.25.2.2",
+   "kind": "scalar",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The amount of physical read-write main memory, typically RAM, contained by the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrNetworkIfIndex",
+   "oid": "1.3.6.1.2.1.25.3.4.1.1",
+   "kind": "column",
+   "type": "InterfaceIndexOrZero",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of ifIndex which corresponds to this network device. If this device is not represented in the ifTable, then this value shall be zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionFSIndex",
+   "oid": "1.3.6.1.2.1.25.3.7.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The index of the file system mounted on this partition. If no file system is mounted on this partition, then this value shall be zero. Note that multiple partitions may point to one file system, denoting that that file system resides on those partitions. Multiple file systems may not reside on one p"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionID",
+   "oid": "1.3.6.1.2.1.25.3.7.1.3",
+   "kind": "column",
+   "type": "OCTET STRING",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A descriptor which uniquely represents this partition to the responsible operating system. On some systems, this might take on a binary representation."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionIndex",
+   "oid": "1.3.6.1.2.1.25.3.7.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each partition on this long-term storage device. The value for each long-term storage device must remain constant at least from one re- initialization of the agent to the next re- initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionLabel",
+   "oid": "1.3.6.1.2.1.25.3.7.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this partition."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionSize",
+   "oid": "1.3.6.1.2.1.25.3.7.1.4",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The size of this partition."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPrinterDetectedErrorState",
+   "oid": "1.3.6.1.2.1.25.3.5.1.2",
+   "kind": "column",
+   "type": "OCTET STRING",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "This object represents any error conditions detected by the printer. The error conditions are encoded as bits in an octet string, with the following definitions: Condition Bit # lowPaper 0 noPaper 1 lowToner 2 noToner 3 doorOpen 4 jammed 5 offline 6 serviceRequested 7 inputTrayMissing 8 outputTrayMi"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPrinterStatus",
+   "oid": "1.3.6.1.2.1.25.3.5.1.1",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The current status of this printer device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrProcessorFrwID",
+   "oid": "1.3.6.1.2.1.25.3.3.1.1",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of the firmware associated with the processor."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrProcessorLoad",
+   "oid": "1.3.6.1.2.1.25.3.3.1.2",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 100,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The average, over the last minute, of the percentage of time that this processor was not idle. Implementations may approximate this one minute smoothing period if necessary."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledDate",
+   "oid": "1.3.6.1.2.1.25.6.3.1.5",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last-modification date of this application as it would appear in a directory listing. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 00:00:00.0, which is encoded as (hex)'00 00 01 01 00 00 00 00'."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledID",
+   "oid": "1.3.6.1.2.1.25.6.3.1.3",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of this installed piece of software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledIndex",
+   "oid": "1.3.6.1.2.1.25.6.3.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each piece of software installed on the host. This value shall be in the range from 1 to the number of pieces of software installed on the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledLastChange",
+   "oid": "1.3.6.1.2.1.25.6.1",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of sysUpTime when an entry in the hrSWInstalledTable was last added, renamed, or deleted. Because this table is likely to contain many entries, polling of this object allows a management station to determine when re-downloading of the table might be useful."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledLastUpdateTime",
+   "oid": "1.3.6.1.2.1.25.6.2",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of sysUpTime when the hrSWInstalledTable was last completely updated. Because caching of this data will be a popular implementation strategy, retrieval of this object allows a management station to obtain a guarantee that no data in this table is older than the indicated time."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledName",
+   "oid": "1.3.6.1.2.1.25.6.3.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this installed piece of software, including the manufacturer, revision, the name by which it is commonly known, and optionally, its serial number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledType",
+   "oid": "1.3.6.1.2.1.25.6.3.1.4",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of this software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWOSIndex",
+   "oid": "1.3.6.1.2.1.25.4.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The value of the hrSWRunIndex for the hrSWRunEntry that represents the primary operating system running on this host. This object is useful for quickly and uniquely identifying that primary operating system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunID",
+   "oid": "1.3.6.1.2.1.25.4.2.1.3",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of this running piece of software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunIndex",
+   "oid": "1.3.6.1.2.1.25.4.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each piece of software running on the host. Wherever possible, this should be the system's native, unique identification number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunName",
+   "oid": "1.3.6.1.2.1.25.4.2.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this running piece of software, including the manufacturer, revision, and the name by which it is commonly known. If this software was installed locally, this should be the same string as used in the corresponding hrSWInstalledName."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunParameters",
+   "oid": "1.3.6.1.2.1.25.4.2.1.5",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the parameters supplied to this software when it was initially loaded."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPath",
+   "oid": "1.3.6.1.2.1.25.4.2.1.4",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the location on long-term storage (e.g. a disk drive) from which this software was loaded."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPerfCPU",
+   "oid": "1.3.6.1.2.1.25.5.1.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The number of centi-seconds of the total system's CPU resources consumed by this process. Note that on a multi-processor system, this value may increment by more than one centi-second in one centi-second of real (wall clock) time."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPerfMem",
+   "oid": "1.3.6.1.2.1.25.5.1.1.2",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real system memory allocated to this process."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunStatus",
+   "oid": "1.3.6.1.2.1.25.4.2.1.7",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The status of this running piece of software. Setting this value to invalid(4) shall cause this software to stop running and to be unloaded. Sets to other values are not valid."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunType",
+   "oid": "1.3.6.1.2.1.25.4.2.1.6",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of this software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageAllocationFailures",
+   "oid": "1.3.6.1.2.1.25.2.3.1.7",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of requests for storage represented by this entry that could not be honored due to not enough storage. It should be noted that as this object has a SYNTAX of Counter32, that it does not have a defined initial value. However, it is recommended that this object be initialized to zero, even "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageAllocationUnits",
+   "oid": "1.3.6.1.2.1.25.2.3.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": "Bytes",
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The size, in bytes, of the data objects allocated from this pool. If this entry is monitoring sectors, blocks, buffers, or packets, for example, this number will commonly be greater than one. Otherwise this number will typically be one."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageDescr",
+   "oid": "1.3.6.1.2.1.25.2.3.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the type and instance of the storage described by this entry."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageIndex",
+   "oid": "1.3.6.1.2.1.25.2.3.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each logical storage area contained by the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageSize",
+   "oid": "1.3.6.1.2.1.25.2.3.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The size of the storage represented by this entry, in units of hrStorageAllocationUnits. This object is writable to allow remote configuration of the size of the storage area in those cases where such an operation makes sense and is possible on the underlying system. For example, the amount of main "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageType",
+   "oid": "1.3.6.1.2.1.25.2.3.1.2",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of storage represented by this entry."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageUsed",
+   "oid": "1.3.6.1.2.1.25.2.3.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemDate",
+   "oid": "1.3.6.1.2.1.25.1.2",
+   "kind": "scalar",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The host's notion of the local date and time of day."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemInitialLoadDevice",
+   "oid": "1.3.6.1.2.1.25.1.3",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The index of the hrDeviceEntry for the device from which this host is configured to load its initial operating system configuration (i.e., which operating system code and/or boot parameters). Note that writing to this object just changes the configuration that will be used the next time the operatin"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemInitialLoadParameters",
+   "oid": "1.3.6.1.2.1.25.1.4",
+   "kind": "scalar",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "This object contains the parameters (e.g. a pathname and parameter) supplied to the load device when requesting the initial operating system configuration from that device. Note that writing to this object just changes the configuration that will be used the next time the operating system is loaded "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemMaxProcesses",
+   "oid": "1.3.6.1.2.1.25.1.7",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The maximum number of process contexts this system can support. If there is no fixed maximum, the value should be zero. On systems that have a fixed maximum, this object can help diagnose failures that occur when this maximum is reached."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemNumUsers",
+   "oid": "1.3.6.1.2.1.25.1.5",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of user sessions for which this host is storing state information. A session is a collection of processes requiring a single act of user authentication and possibly subject to collective job control."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemProcesses",
+   "oid": "1.3.6.1.2.1.25.1.6",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of process contexts currently loaded or running on this system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemUptime",
+   "oid": "1.3.6.1.2.1.25.1.1",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The amount of time since this host was last initialized. Note that this is different from sysUpTime in the SNMPv2-MIB [RFC1907] because sysUpTime is the uptime of the network management portion of the system."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmFanSensorsDevice",
+   "oid": "1.3.6.1.4.1.2021.13.16.3.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The name of the fan sensor we are reading."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmFanSensorsIndex",
+   "oid": "1.3.6.1.4.1.2021.13.16.3.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 65535,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Reference index for each observed device."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmFanSensorsValue",
+   "oid": "1.3.6.1.4.1.2021.13.16.3.1.3",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The rotation speed of the fan in RPM."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmMiscSensorsDevice",
+   "oid": "1.3.6.1.4.1.2021.13.16.5.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The name of the device we are reading."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmMiscSensorsIndex",
+   "oid": "1.3.6.1.4.1.2021.13.16.5.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 65535,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Reference index for each observed device."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmMiscSensorsValue",
+   "oid": "1.3.6.1.4.1.2021.13.16.5.1.3",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of this sensor."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmTempSensorsDevice",
+   "oid": "1.3.6.1.4.1.2021.13.16.2.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The name of the temperature sensor we are reading."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmTempSensorsIndex",
+   "oid": "1.3.6.1.4.1.2021.13.16.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 65535,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Reference index for each observed device."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmTempSensorsValue",
+   "oid": "1.3.6.1.4.1.2021.13.16.2.1.3",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The temperature of this sensor in mC."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmVoltSensorsDevice",
+   "oid": "1.3.6.1.4.1.2021.13.16.4.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The name of the device we are reading."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmVoltSensorsIndex",
+   "oid": "1.3.6.1.4.1.2021.13.16.4.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 65535,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "Reference index for each observed device."
+  },
+  {
+   "module": "LM-SENSORS-MIB",
+   "name": "lmVoltSensorsValue",
+   "oid": "1.3.6.1.4.1.2021.13.16.4.1.3",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The voltage in mV."
+  }
+ ],
+ "result": {
+  "cpu": "proven-experiment",
+  "memory": "proven-experiment",
+  "temperature": "not-supported",
+  "fan": "not-supported"
+ },
+ "snmp": [
+  {
+   "t": 42.408,
+   "dt": 0.008,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59067816"
+    ]
+   ]
+  },
+  {
+   "t": 42.416,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59067816"
+    ]
+   ]
+  },
+  {
+   "t": 45.42,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59067816"
+    ]
+   ]
+  },
+  {
+   "t": 48.424,
+   "dt": 0.006,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59073812"
+    ]
+   ]
+  },
+  {
+   "t": 51.43,
+   "dt": 0.007,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59079810"
+    ]
+   ]
+  },
+  {
+   "t": 54.437,
+   "dt": 0.007,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59079810"
+    ]
+   ]
+  },
+  {
+   "t": 57.444,
+   "dt": 0.008,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59085808"
+    ]
+   ]
+  },
+  {
+   "t": 63.455,
+   "dt": 0.008,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088014"
+    ]
+   ]
+  },
+  {
+   "t": 66.463,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088022"
+    ]
+   ]
+  },
+  {
+   "t": 69.476,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088022"
+    ]
+   ]
+  },
+  {
+   "t": 72.488,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088030"
+    ]
+   ]
+  },
+  {
+   "t": 75.5,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088030"
+    ]
+   ]
+  },
+  {
+   "t": 78.512,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088035"
+    ]
+   ]
+  },
+  {
+   "t": 81.524,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088044"
+    ]
+   ]
+  },
+  {
+   "t": 84.536,
+   "dt": 0.016,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088044"
+    ]
+   ]
+  },
+  {
+   "t": 87.553,
+   "dt": 0.012,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.53"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.53.0",
+     "Counter32",
+     "59088051"
+    ]
+   ]
+  },
+  {
+   "t": 98.322,
+   "dt": 0.005,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1190190"
+    ]
+   ]
+  },
+  {
+   "t": 98.327,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1190190"
+    ]
+   ]
+  },
+  {
+   "t": 101.331,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1190191"
+    ]
+   ]
+  },
+  {
+   "t": 104.335,
+   "dt": 0.007,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1190191"
+    ]
+   ]
+  },
+  {
+   "t": 107.342,
+   "dt": 0.005,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1190193"
+    ]
+   ]
+  },
+  {
+   "t": 110.347,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1190193"
+    ]
+   ]
+  },
+  {
+   "t": 113.351,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1190194"
+    ]
+   ]
+  },
+  {
+   "t": 119.355,
+   "dt": 0.011,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1192934"
+    ]
+   ]
+  },
+  {
+   "t": 122.366,
+   "dt": 0.018,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1198926"
+    ]
+   ]
+  },
+  {
+   "t": 125.384,
+   "dt": 0.013,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1198926"
+    ]
+   ]
+  },
+  {
+   "t": 128.397,
+   "dt": 0.011,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1204917"
+    ]
+   ]
+  },
+  {
+   "t": 131.408,
+   "dt": 0.015,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1210906"
+    ]
+   ]
+  },
+  {
+   "t": 134.424,
+   "dt": 0.02,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1210906"
+    ]
+   ]
+  },
+  {
+   "t": 137.444,
+   "dt": 0.013,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1216893"
+    ]
+   ]
+  },
+  {
+   "t": 140.457,
+   "dt": 0.014,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1216893"
+    ]
+   ]
+  },
+  {
+   "t": 143.471,
+   "dt": 0.008,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.11.50"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.11.50.0",
+     "Counter32",
+     "1222876"
+    ]
+   ]
+  },
+  {
+   "t": 143.495,
+   "dt": 0.003,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "7036288"
+    ]
+   ]
+  },
+  {
+   "t": 158.495,
+   "dt": 0.007,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "7043852"
+    ]
+   ]
+  },
+  {
+   "t": 161.502,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "7043852"
+    ]
+   ]
+  },
+  {
+   "t": 164.507,
+   "dt": 0.008,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "7043816"
+    ]
+   ]
+  },
+  {
+   "t": 167.515,
+   "dt": 0.004,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "7043816"
+    ]
+   ]
+  },
+  {
+   "t": 170.519,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "7043872"
+    ]
+   ]
+  },
+  {
+   "t": 173.523,
+   "dt": 0.003,
+   "phase": "base",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "7043872"
+    ]
+   ]
+  },
+  {
+   "t": 179.527,
+   "dt": 0.005,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5982304"
+    ]
+   ]
+  },
+  {
+   "t": 182.532,
+   "dt": 0.005,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5982304"
+    ]
+   ]
+  },
+  {
+   "t": 185.537,
+   "dt": 0.005,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5985668"
+    ]
+   ]
+  },
+  {
+   "t": 188.542,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5985668"
+    ]
+   ]
+  },
+  {
+   "t": 191.546,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5988160"
+    ]
+   ]
+  },
+  {
+   "t": 194.55,
+   "dt": 0.011,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5988160"
+    ]
+   ]
+  },
+  {
+   "t": 197.561,
+   "dt": 0.005,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5990516"
+    ]
+   ]
+  },
+  {
+   "t": 200.567,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5990516"
+    ]
+   ]
+  },
+  {
+   "t": 203.571,
+   "dt": 0.004,
+   "phase": "load",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.4.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.4.1.2021.4.6.0",
+     "INTEGER",
+     "5845044"
+    ]
+   ]
+  },
+  {
+   "t": 203.69,
+   "dt": 0.012,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.13.16.2.1.3"
+   ],
+   "vars": []
+  },
+  {
+   "t": 215.281,
+   "dt": 0.009,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.4.1.2021.13.16.3.1.3"
+   ],
+   "vars": []
+  }
+ ],
+ "llm_cache": {
+  "a0": {
+   "content": "{\"cpu\": {\"canonical_unit\": \"ticks\", \"confidence\": 0.95, \"evidence\": \"The number of 'ticks' (typically 1/100s) spent idle. On a multi-processor system, the 'ssCpuRaw*' counters are cumulative over all CPUs, so their sum will typically be N*100 (for N processors).\", \"object_name\": \"ssCpuRawIdle\", \"oid\": \"1.3.6.1.4.1.2021.11.53\", \"raw_unit\": \"ticks\", \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"rise\", \"value_type\": \"counter\"}, \"fan\": {\"canonical_unit\": \"rpm\", \"confidence\": 0.85, \"evidence\": \"The rotation speed of the fan in RPM.\", \"object_name\": \"lmFanSensorsValue\", \"oid\": \"1.3.6.1.4.1.2021.13.16.3.1.3\", \"raw_unit\": \"RPM\", \"row_filter\": \"first available row (lmFanSensorsDevice); no fixed index\", \"scale_to_canonical\": 1.0, \"under_load\": \"rise\", \"value_type\": \"gauge\"}, \"memory\": {\"canonical_unit\": \"bytes\", \"confidence\": 0.95, \"evidence\": \"The amount of real/physical memory currently unused or available.\", \"object_name\": \"memAvailReal\", \"oid\": \"1.3.6.1.4.1.2021.4.6\", \"raw_unit\": \"kB\", \"row_filter\": null, \"scale_to_canonical\": 1024.0, \"under_load\": \"fall\", \"value_type\": \"gauge\"}, \"rejected\": [{\"oid\": \"1.3.6.1.4.1.2021.11.11\", \"reason\": \"ssCpuIdle deprecated in favour of ssCpuRawIdle; deprecated percent, do not use\"}, {\"oid\": \"1.3.6.1.4.1.2021.11.9\", \"reason\": \"ssCpuUser deprecated in favour of ssCpuRawUser; deprecated percent\"}, {\"oid\": \"1.3.6.1.2.1.25.3.3.1.2\", \"reason\": \"hrProcessorLoad is per-processor table, not device-wide cumulative like ssCpuRaw*\"}, {\"oid\": \"1.3.6.1.4.1.2021.10.1.5\", \"reason\": \"laLoadInt is load average (x100 integer), not CPU utilisation ticks/percent\"}, {\"oid\": \"1.3.6.1.4.1.2021.4.5\", \"reason\": \"memTotalReal is total installed, will show none under 1 GiB alloc; need available\"}, {\"oid\": \"1.3.6.1.4.1.2021.4.21\", \"reason\": \"memAvailRealX 64-bit duplicate of chosen memAvailReal, same info\"}, {\"oid\": \"1.3.6.1.2.1.25.2.2\", \"reason\": \"hrMemorySize is total physical RAM only, does not move with allocation\"}, {\"oid\": \"1.3.6.1.2.1.25.2.3.1.6\", \"reason\": \"hrStorageUsed needs hrStorageAllocationUnits math and per-pool row filter, less direct than memAvailReal\"}, {\"oid\": \"1.3.6.1.4.1.2021.13.16.4.1.3\", \"reason\": \"lmVoltSensorsValue is voltage in mV, not temperature\"}, {\"oid\": \"1.3.6.1.4.1.2021.13.16.5.1.3\", \"reason\": \"lmMiscSensorsValue is generic misc sensor, not temperature or fan\"}], \"temperature\": {\"canonical_unit\": \"celsius\", \"confidence\": 0.9, \"evidence\": \"The temperature of this sensor in mC.\", \"object_name\": \"lmTempSensorsValue\", \"oid\": \"1.3.6.1.4.1.2021.13.16.2.1.3\", \"raw_unit\": \"mC\", \"row_filter\": \"first available row; if multiple rows filter lmTempSensorsDevice contains 'Core'/'temp'/CPU\", \"scale_to_canonical\": 0.001, \"under_load\": \"rise\", \"value_type\": \"gauge\"}}",
+   "usage": {
+    "input": 14813,
+    "output": 10202,
+    "cached": 113
+   },
+   "cost_usd": 0.06175,
+   "seconds": 42.4,
+   "model": "muse-spark-1.3",
+   "cached": false
+  },
+  "a1": {
+   "content": "{\"pick\": {\"canonical_unit\": \"ticks\", \"confidence\": 0.95, \"evidence\": \"The number of 'ticks' (typically 1/100s) spent processing user-level code.\", \"object_name\": \"ssCpuRawUser\", \"oid\": \"1.3.6.1.4.1.2021.11.50\", \"raw_unit\": \"ticks\", \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"rise\", \"value_type\": \"counter\"}, \"reasoning\": \"Evidence shows ssCpuRawIdle rate fell 1197.2/s -> 1.5/s under cpu load, i.e. idle is inverse to load. Previous model expected rise and was rejected. Therefore need a busy-side ssCpuRaw* counter whose rate rises under all-cores-busy user load. Chose ssCpuRawUser (device-wide cumulative over all CPUs). Rejected: ssCpuRawIdle (failed object, falls not rises); ssCpuIdle/ssCpuUser/ssCpuSystem (deprecated in favour of Raw counters); hrProcessorLoad (per-processor column, not device-wide total, requires row aggregation); laLoadInt/laLoadFloat (load average, not CPU time utilisation); ssCpuRawSystem/Wait/Kernel etc (also rise but user time is primary for compute load).\"}",
+   "usage": {
+    "input": 14085,
+    "output": 2892,
+    "cached": 0
+   },
+   "cost_usd": 0.029897,
+   "seconds": 10.75,
+   "model": "muse-spark-1.3",
+   "cached": false
+  },
+  "a2": {
+   "content": "{\"pick\": {\"canonical_unit\": \"none\", \"confidence\": 0.95, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"none\", \"value_type\": \"none\"}, \"reasoning\": \"Evidence says lmTempSensorsValue 1.3.6.1.4.1.2021.13.16.2.1.3 is not served (No Such Object/Instance), so LM-SENSORS-MIB lmTempSensorsTable is not instantiated on this net-snmp agent (typical when libsensors not configured/no sensors). Per instructions must not repeat failed object. Scanned all 210 pollable objects: the only object describing a temperature measurement is that failed object ('The temperature of this sensor in mC'). No other UCD/HOST-RESOURCES object measures temperature. Rejected look-alikes: lmTempSensorsValue - failed live test, do not retry; lmMiscSensorsValue ('The value of this sensor.') - generic misc with no unit, not identified as temperature; lmFanSensorsValue ('The rotation speed of the fan in RPM.') - fan family, not temperature; lmVoltSensorsValue ('The voltage in mV.') - voltage; hrDeviceStatus etc - status, not thermal. Therefore no viable temperature object -> oid null.\"}",
+   "usage": {
+    "input": 14108,
+    "output": 2570,
+    "cached": 0
+   },
+   "cost_usd": 0.028557,
+   "seconds": 11.58,
+   "model": "muse-spark-1.3",
+   "cached": false
+  },
+  "a3": {
+   "content": "{\"pick\": {\"canonical_unit\": \"none\", \"confidence\": 0.95, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"none\", \"value_type\": \"none\"}, \"reasoning\": \"Live evidence says lmFanSensorsValue 1.3.6.1.4.1.2021.13.16.3.1.3 is not served (No Such Object/Instance), so LM-SENSORS fan table is not implemented on this net-snmp host and must not be repeated. Reviewed remaining 210 objects: no other fan RPM/status object exists. Rejected look-alikes: lmFanSensorsDevice (name string, not speed/status), lmMiscSensorsValue (Gauge but description only 'The value of this sensor.' with no fan semantics), lmTempSensorsValue/lmVoltSensorsValue (wrong families), hrDeviceStatus (generic device operational state with no fan type evidence, would require speculative filter). Therefore no valid fan object -> oid null, under_load none.\"}",
+   "usage": {
+    "input": 14108,
+    "output": 2426,
+    "cached": 0
+   },
+   "cost_usd": 0.027946,
+   "seconds": 11.73,
+   "model": "muse-spark-1.3",
+   "cached": false
+  }
+ },
+ "llm_order": [
+  "a0",
+  "a1",
+  "a2",
+  "a3"
+ ],
+ "mem_total_kb": 7942956
+}
