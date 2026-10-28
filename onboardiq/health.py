@@ -101,8 +101,8 @@ def score(profile):
         if fam in superseded:
             continue
         if m.get("verdict") not in PROVEN:
-            excluded.append({"family": fam, "reason": "not proven on this device" if m.get("verdict") != "not-supported"
-                             else "not served by this device"})
+            excluded.append({"family": fam, "reason": "not served by this device" if m.get("verdict") == "not-supported"
+                             or not m.get("object") else "not proven on this device"})
             continue
         rows = []
         for r in m.get("rows") or []:
@@ -133,7 +133,8 @@ def score(profile):
     final = min(total, cap) if cap is not None else total
     drivers = sorted(((f["score"], k, f["worst"]) for k, f in fams.items()))[:2]
     summary = "; ".join(f"{k} {w} {s:g}/100" for s, k, w in drivers if s < 100) or "all proven readings are healthy"
-    served = len([1 for k, m in metrics.items() if m.get("verdict") != "not-supported" and k not in superseded])
+    served = len([1 for k, m in metrics.items() if m.get("verdict") != "not-supported" and m.get("object")
+                  and k not in superseded])
     return {"score": round(final), "level": _level(final), "capped_by": worst_level if cap is not None and total > cap else None,
             "summary": summary, "families": fams, "excluded": excluded,
             "coverage": f"{len(fams)} of {served} served families scored"}

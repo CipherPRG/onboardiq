@@ -48,6 +48,12 @@ def main():
             s = res["score"]
             print(f"{res['at']}  health {'n/a' if s is None else str(s) + '/100 ' + res['level']}"
                   f"  | {res.get('summary', res.get('note'))}  | {res['coverage']}", flush=True)
+            for fam, f in res["families"].items():
+                print(f"   {fam:12} {f['score']:>5.0f}/100  worst: {f['worst']}"
+                      + ("  (some rows skipped)" if f["partial"] else ""), flush=True)
+            for e in res["excluded"]:
+                print(f"   not scored: {e['family']}{' ' + str(e['row']) if e.get('row') else ''}: {e['reason']}",
+                      flush=True)
             for a in res["anomalies"]:
                 print(f"   anomaly: {a}", flush=True)
         if args.once:

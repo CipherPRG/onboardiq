@@ -33,7 +33,8 @@ def test_one_dead_fan_cannot_be_averaged_away():
 
 
 def test_unproven_and_not_served_are_excluded_not_guessed():
-    p = prof(cpu=m([{"name": "c", "value": 5.0}]), temperature=m([{"name": "t", "value": 90.0}], verdict="unproven"),
+    p = prof(cpu=m([{"name": "c", "value": 5.0}], object="X::cpu"),
+             temperature=m([{"name": "t", "value": 90.0}], verdict="unproven", object="X::temp"),
              fan=m([], verdict="not-supported"))
     r = health.score(p)
     assert r["score"] == 100 and set(r["families"]) == {"cpu"}
@@ -135,3 +136,25 @@ def test_counter_cpu_is_scored_through_hr_processor_load():
     assert set(r["families"]) == {"cpu_load"} and r["families"]["cpu_load"]["worst"] == "cpu0"
     assert r["score"] < 75 and any("hrProcessorLoad" in e["reason"] for e in r["excluded"])
     assert r["coverage"] == "1 of 1 served families scored"
+
+
+def test_read_only_filesystems_do_not_count_as_disks_and_unserved_families_do_not_count():
+    S, FS = "1.3.6.1.2.1.25.2.3.1", "1.3.6.1.2.1.25.3.8.1"
+
+    class Dev:
+        def walk(self, oid):
+            cols = {S + ".2": [("1", "OID", ".1.3.6.1.2.1.25.2.1.4"), ("2", "OID", ".1.3.6.1.2.1.25.2.1.4")],
+                    S + ".3": [("1", "STRING", "/"), ("2", "STRING", "/usr/src/headers")],
+                    S + ".4": [("1", "INTEGER", "4096"), ("2", "INTEGER", "4096")],
+                    S + ".5": [("1", "INTEGER", "1000"), ("2", "INTEGER", "100")],
+                    S + ".6": [("1", "INTEGER", "100"), ("2", "INTEGER", "100")],
+                    FS + ".5": [("1", "INTEGER", "1"), ("2", "INTEGER", "2")],
+                    FS + ".7": [("1", "INTEGER", "1"), ("2", "INTEGER", "2")]}
+            return [Var(f"{oid}.{i}", t, v) for i, t, v in cols.get(oid, [])]
+
+    d = profile.disk(Dev())
+    assert [r["name"] for r in d["rows"]] == ["/"] and "read-only" in d["skipped"][0]["reason"]
+    unserved = {"verdict": "unproven", "kind": None, "rows": [], "note": "no object chosen"}
+    r = health.score(prof(disk=d, temperature=unserved))
+    assert r["score"] == 100 and r["coverage"] == "1 of 1 served families scored"
+    assert {"family": "temperature", "reason": "not served by this device"} in r["excluded"]

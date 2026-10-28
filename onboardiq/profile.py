@@ -456,6 +456,7 @@ NOT_VERSION = ("serial", "mac", "date", "time", "hardware", "hwrev", "hwversion"
 
 HR_LOAD = "1.3.6.1.2.1.25.3.3.1.2"
 HR_FIXED_DISK = "1.3.6.1.2.1.25.2.1.4"
+HR_FS = "1.3.6.1.2.1.25.3.8.1"
 
 
 def cpu_load(snmp):
@@ -492,6 +493,11 @@ def disk(snmp):
     types = _column(snmp, HR_STORAGE_TYPE)
     if not types:
         return None
+    # hrFSTable (RFC 2790): hrFSAccess 2 = readOnly. A read-only filesystem cannot fill up, and system
+    # mounts (squashfs, headers, WSL) sit at 100% forever, so they must not lower a health score.
+    fs_access, fs_mount = _column(snmp, HR_FS + ".5"), _column(snmp, HR_FS + ".7")
+    read_only = {fs_mount[i].value.strip() for i, a in fs_access.items()
+                 if i in fs_mount and number(a) == 2}
     names, units = _column(snmp, HR_STORAGE + ".3"), _column(snmp, HR_STORAGE + ".4")
     size, used = _column(snmp, HR_STORAGE + ".5"), _column(snmp, HR_STORAGE + ".6")
     rows, skipped = [], []
@@ -501,7 +507,9 @@ def disk(snmp):
         name = names[idx].value.strip() if idx in names else None
         au, sz, us = (number(d[idx]) if idx in d else None for d in (units, size, used))
         row = {"index": idx, "name": name}
-        if not au or not sz or us is None:
+        if idx in read_only:
+            skipped.append({**row, "reason": "read-only file system (hrFSAccess): cannot fill up"})
+        elif not au or not sz or us is None:
             skipped.append({**row, "reason": "size, used or allocation unit not served"})
         elif us > sz:
             skipped.append({**row, "reason": f"used {us:g} is larger than size {sz:g}"})
