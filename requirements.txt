@@ -2,3 +2,4 @@
 openai==3.39.0
 PyYAML==6.0.3
 pytest==9.1.1
+pysmi==2.0.0
