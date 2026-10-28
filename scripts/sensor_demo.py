@@ -26,13 +26,22 @@ def main():
     ap.add_argument("--mib-dir", default=str(Path.home() / "data" / "mibs_json"))
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--os")
+    ap.add_argument("--recording", help="any .snmprec file (instead of --os), with --modules and --device")
+    ap.add_argument("--modules", help="comma-separated MIB modules, with --recording")
+    ap.add_argument("--device", help="what the device is, with --recording, e.g. 'Cisco Catalyst IOS-XE switch'")
     ap.add_argument("--record")
     ap.add_argument("--model", default=None)
     a = ap.parse_args()
     sim = Path(a.librenms).expanduser() / "tests" / "snmpsim"
     mibs = Path(a.mib_dir).expanduser()
     bench = json.loads(Path(a.bench).read_text())
-    if a.list or not a.os:
+    if a.recording:
+        if not (a.modules and a.device):
+            raise SystemExit("--recording needs --modules and --device")
+        d = {"device": a.device, "modules": a.modules.split(","), "cpu": True, "memory": True,
+             "temperature": True, "fan": True}
+        rec = Path(a.recording).expanduser()
+    elif a.list or not a.os:
         print("os                     modules (all in your MIB folder?)")
         for os_name, d in sorted(bench.items()):
             if not (d.get("temperature") and d.get("fan") and recording(sim, os_name)):
@@ -41,10 +50,12 @@ def main():
             have = all((mibs / f"{m}.json").exists() for m in mods)
             print(f"{os_name:22} {','.join(mods)}  {'READY' if have else 'missing MIB'}")
         return
-    d = bench[a.os]
+    else:
+        d = bench[a.os]
+        rec = recording(sim, a.os)
     mods = d["modules"] if isinstance(d["modules"], list) else d["modules"].split(",")
     cands = mib.candidates(mibs, mods)
-    dev = replay.Recorder(RecordedSnmp(recording(sim, a.os)))
+    dev = replay.Recorder(RecordedSnmp(rec))
     fams = [f for f in ("cpu", "memory", "temperature", "fan") if d.get(f)]
     out = agent.onboard(d["device"], cands, dev, lab=False, families=fams, model=a.model,
                         verify_kw=dict(FAST), log=print, modules=mods)
