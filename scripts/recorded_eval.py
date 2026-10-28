@@ -68,6 +68,7 @@ def main():
     ap.add_argument("--split", default="test")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--effort", default="high")
+    ap.add_argument("--model", default=None, help="one model id (no commas) so a run never mixes hosts")
     args = ap.parse_args()
     sim = Path(args.librenms).expanduser() / "tests" / "snmpsim"
     if not sim.is_dir():
@@ -81,6 +82,8 @@ def main():
     rows, cost, errors = [], 0.0, []
     # Rows are appended per device so a crash or a killed terminal keeps everything measured so far
     # (model answers are cached, so a rerun of finished devices costs nothing).
+    if args.model and "," in args.model:
+        raise SystemExit("--model takes one model: a comma list would let a run switch hosts mid-benchmark")
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     partial = ROOT / "results" / f"recorded_eval_{stamp}.partial.jsonl"
     partial.parent.mkdir(exist_ok=True)
@@ -92,7 +95,8 @@ def main():
         rec = recording(sim, os_name)
         try:
             out = agent.onboard(d["device"], cands, RecordedSnmp(rec), lab=False, families=fams,
-                                effort=args.effort, verify_kw=dict(FAST), log=lambda m: None, profile=False)
+                                effort=args.effort, model=args.model, verify_kw=dict(FAST), log=lambda m: None,
+                                profile=False)
         except Exception as e:  # noqa: BLE001
             print(f"[{i}/{len(todo)}] {os_name}: ERROR {type(e).__name__}: {str(e)[:120]}", flush=True)
             errors.append(os_name)

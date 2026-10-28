@@ -108,3 +108,68 @@ def test_reader_maps_renamed_fields_without_inventing():
                         '"scale": 1}, "fan": {"oid": null}}')
     assert out["cpu"]["object_name"] == "adGenAOS1MinCpuUtil" and out["cpu"]["scale_to_canonical"] == 1
     assert out["fan"].get("object_name") is None
+
+
+def _fake_client(create):
+    return types.SimpleNamespace(chat=types.SimpleNamespace(completions=types.SimpleNamespace(create=create)))
+
+
+def _reply(text='{"ok": true}'):
+    usage = types.SimpleNamespace(prompt_tokens=100, completion_tokens=10,
+                                  prompt_tokens_details=types.SimpleNamespace(cached_tokens=0))
+    return types.SimpleNamespace(usage=usage, choices=[types.SimpleNamespace(message=types.SimpleNamespace(content=text))])
+
+
+def test_fireworks_routing_and_own_ledger(env, monkeypatch):
+    from onboardiq import config
+    _, sg, llm = env
+    assert config.provider_for("accounts/fireworks/models/muse-spark-open") == "fireworks"
+    monkeypatch.setenv("OIQ_FIREWORKS_DAILY_USD", "7")
+    fw = sg.SpendGuard(provider="fireworks")
+    assert fw.daily_usd == 7 and fw.state_file.name == "spend_fireworks.json"
+    monkeypatch.delenv("FIREWORKS_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="FIREWORKS_API_KEY"):
+        llm.client("fireworks")
+
+
+def test_failover_goes_to_next_provider_and_says_so(env):
+    _, sg, llm = env
+    llm._clients["baseten"] = _fake_client(lambda **kw: (_ for _ in ()).throw(RuntimeError("no credit")))
+    llm._clients["fireworks"] = _fake_client(lambda **kw: _reply())
+    r = llm.chat([{"role": "user", "content": "hi"}], max_tokens=50, use_cache=False,
+                 model="meta-models/muse-spark-open-1026,accounts/fireworks/models/muse-spark-open")
+    assert r["model"] == "accounts/fireworks/models/muse-spark-open"
+    assert "meta-models/muse-spark-open-1026" in r["fallback_from"][0]
+    # a single model never falls back: its error is raised as it is
+    with pytest.raises(RuntimeError, match="no credit"):
+        llm.chat([{"role": "user", "content": "hi"}], max_tokens=50, use_cache=False, model="meta-models/muse-spark-open-1026")
+
+
+def test_failover_when_a_provider_is_over_its_cap_and_all_failing_raises(env):
+    _, sg, llm = env
+    # the meta ledger is capped at $0.05 in this fixture: spend it, then the call must move on
+    sg.SpendGuard(provider="meta").record("muse-spark-1.3", 40_000, 0)
+    llm._clients["fireworks"] = _fake_client(lambda **kw: _reply())
+    r = llm.chat([{"role": "user", "content": "hi" * 2000}], max_tokens=50, use_cache=False,
+                 model="muse-spark-1.3,accounts/fireworks/models/muse-spark-open")
+    assert r["model"].startswith("accounts/fireworks/") and "daily cap" in r["fallback_from"][0]
+    llm._clients["fireworks"] = _fake_client(lambda **kw: (_ for _ in ()).throw(RuntimeError("down")))
+    with pytest.raises(RuntimeError, match="every provider failed"):
+        llm.chat([{"role": "user", "content": "x"}], max_tokens=50, use_cache=False,
+                 model="meta-models/muse-spark-open-1026,accounts/fireworks/models/muse-spark-open")
+
+
+def test_fireworks_retries_with_its_own_response_format(env):
+    _, _, llm = env
+    seen = []
+
+    def create(**kw):
+        seen.append(kw["response_format"]["type"])
+        if kw["response_format"]["type"] == "json_schema":
+            raise ValueError("invalid response_format: use json_object with a schema")
+        return _reply()
+
+    llm._clients["fireworks"] = _fake_client(create)
+    r = llm.chat([{"role": "user", "content": "hi"}], max_tokens=50, use_cache=False,
+                 json_schema={"type": "object"}, model="accounts/fireworks/models/muse-spark-open")
+    assert seen == ["json_schema", "json_object"] and json.loads(r["content"]) == {"ok": True}

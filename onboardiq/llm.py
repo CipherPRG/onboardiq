@@ -55,14 +55,42 @@ def _estimate_tokens(messages) -> int:
 def chat(messages, model: str | None = None, max_tokens: int = 8000,
          json_schema: dict | None = None, reasoning_effort: str | None = None,
          use_cache: bool = True) -> dict:
-    """Return {"content", "usage", "cost_usd", "cached", "seconds", "model"}."""
-    model = model or MODEL
+    """Return {"content", "usage", "cost_usd", "cached", "seconds", "model"}.
+
+    `model` may be a comma-separated list ("a,b"): models are tried in order and the next one is used when
+    a provider is out of budget, has no key, or fails (rate limit, outage). The result's "model" says which
+    one answered, so a benchmark that must not mix hosts simply passes a single model.
+    """
+    models = [m.strip() for m in (model or MODEL).split(",") if m.strip()]
+    if len(models) == 1:
+        return _chat_one(messages, models[0], max_tokens, json_schema, reasoning_effort, use_cache)
+    from .spend_guard import SpendLimitError
+    errors = []
+    for m in models:
+        try:
+            out = _chat_one(messages, m, max_tokens, json_schema, reasoning_effort, use_cache)
+            if errors:
+                out["fallback_from"] = errors
+            return out
+        except (SpendLimitError, RuntimeError) as e:
+            errors.append(f"{m}: {type(e).__name__}: {str(e)[:120]}")
+        except Exception as e:  # noqa: BLE001 - provider errors (rate limit, outage, timeout)
+            if type(e).__module__.split(".")[0] != "openai":
+                raise
+            errors.append(f"{m}: {type(e).__name__}: {str(e)[:120]}")
+    raise RuntimeError("every provider failed: " + " | ".join(errors))
+
+
+def _response_format(schema: dict, style: str) -> dict:
+    if style == "json_object":    # Fireworks' own structured-output form
+        return {"type": "json_object", "schema": schema}
+    return {"type": "json_schema", "json_schema": {"name": "result", "schema": schema, "strict": True}}
+
+
+def _chat_one(messages, model, max_tokens, json_schema, reasoning_effort, use_cache) -> dict:
     request = {"model": model, "messages": messages, "max_tokens": max_tokens}
     if json_schema:
-        request["response_format"] = {
-            "type": "json_schema",
-            "json_schema": {"name": "result", "schema": json_schema, "strict": True},
-        }
+        request["response_format"] = _response_format(json_schema, "json_schema")
     extra = {"reasoning_effort": reasoning_effort} if reasoning_effort else None
 
     key = hashlib.sha256(json.dumps([request, extra], sort_keys=True).encode()).hexdigest()
@@ -76,7 +104,14 @@ def chat(messages, model: str | None = None, max_tokens: int = 8000,
     g = guard(provider_for(model))
     g.check(model, _estimate_tokens(messages), max_tokens)
     t0 = time.time()
-    resp = client(provider_for(model)).chat.completions.create(**request, extra_body=extra)
+    try:
+        resp = client(provider_for(model)).chat.completions.create(**request, extra_body=extra)
+    except Exception as e:  # noqa: BLE001
+        # Fireworks may want its own response_format shape: retry once, before anything was charged.
+        if not (json_schema and provider_for(model) == "fireworks" and "response_format" in str(e).lower()):
+            raise
+        request["response_format"] = _response_format(json_schema, "json_object")
+        resp = client("fireworks").chat.completions.create(**request, extra_body=extra)
     seconds = round(time.time() - t0, 2)
 
     u = resp.usage
