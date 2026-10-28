@@ -17,6 +17,8 @@ import json
 import os
 import queue
 import re
+import shutil
+import subprocess
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -24,6 +26,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import agent, mib, replay
+from .monitor import Monitor, load_onboarding
 from .playback import export_all
 from .config import MODEL, ROOT
 from .snmp import Snmp
@@ -31,6 +34,9 @@ from .verify import prompt_load
 
 WEB = (ROOT / "web").resolve()
 DEMO = ROOT / "demo"
+RESULTS = ROOT / "results"
+ONBOARDED = re.compile(r"onboard_\d{8}_\d{6}")
+MAX_MONITOR_S = 30 * 60      # a live monitor stops by itself after 30 minutes
 MIB_DIR = Path(os.environ.get("OIQ_MIB_DIR", Path.home() / "data" / "mibs_json")).expanduser()
 EFFORT = os.environ.get("OIQ_EFFORT", "high")
 LOCAL = {"localhost", "127.0.0.1", "::1"}
@@ -42,9 +48,10 @@ MAX_BODY = 64 * 1024
 
 
 class Run:
-    def __init__(self, rid):
+    def __init__(self, rid, kind="onboard"):
         self.id, self.events, self.confirm = rid, [], queue.Queue()
         self.cond, self.finished = threading.Condition(), False
+        self.kind, self.stop, self.opts, self.load = kind, threading.Event(), {}, []
 
     def emit(self, ev):
         with self.cond:
@@ -110,6 +117,113 @@ def validate(body: dict) -> dict:
             "record": bool(body.get("record", True))}
 
 
+def onboarded_list():
+    """Saved onboardings (results/onboard_*.json), newest first: name, device, modules, host and port only.
+    The SNMP community stored with a terminal onboarding is never sent to the page."""
+    out = []
+    for p in sorted(RESULTS.glob("onboard_*.json"), reverse=True)[:30]:
+        if not ONBOARDED.fullmatch(p.stem):
+            continue
+        try:
+            d = json.loads(p.read_text())
+        except ValueError:
+            continue
+        a = d.get("args") or {}
+        if not d.get("spec") or not a.get("modules"):
+            continue
+        out.append({"name": p.stem, "device": str(d.get("device") or a.get("device") or "")[:200],
+                    "modules": a["modules"] if isinstance(a["modules"], str) else ",".join(a["modules"]),
+                    "host": a.get("host") or "localhost", "port": a.get("port"),
+                    "summary": {f: v.get("verdict") for f, v in d["spec"].items()}})
+    return out
+
+
+def validate_monitor(body: dict) -> dict:
+    name = str(body.get("onboarded") or "")
+    if not ONBOARDED.fullmatch(name) or not (RESULTS / f"{name}.json").is_file():
+        raise ValueError("choose a saved onboarding")
+    host = _clean_text(body.get("host") or "localhost", 253)
+    port = body.get("port")
+    port = None if port in (None, "", 161) else int(port)
+    if port is not None and not 1 <= port <= 65535:
+        raise ValueError("bad port")
+    community = str(body.get("community") or "public")
+    if len(community) > 64 or any(ord(c) < 32 for c in community):
+        raise ValueError("bad community")
+    interval = float(body.get("interval") or 10)
+    if not 5 <= interval <= 300:
+        raise ValueError("interval must be 5 to 300 seconds")
+    return {"onboarded": name, "host": host, "port": port, "community": community, "interval": interval,
+            "explain": bool(body.get("explain")), "record": bool(body.get("record", True)),
+            "local": host in LOCAL and port is None}
+
+
+def start_cpu_load(seconds: int) -> list:
+    """CPU load on this machine for `seconds`: stress-ng when installed, else one `yes` per core.
+    Every process carries its own timeout, so nothing outlives the request even if the server dies."""
+    n = max(1, os.cpu_count() or 2)
+    if shutil.which("stress-ng"):
+        cmd = [["stress-ng", "--cpu", str(n), "--timeout", f"{seconds}s", "--quiet"]]
+    else:
+        cmd = [["timeout", str(seconds), "yes"]] * n
+    return [subprocess.Popen(c, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) for c in cmd]
+
+
+def stop_load(run):
+    for p in run.load:
+        if p.poll() is None:
+            p.terminate()
+    run.load = []
+
+
+def watch(run: Run, opts: dict):
+    """Live health monitor: one reading every `interval` seconds until stopped (or 30 minutes)."""
+    rec = None
+    try:
+        saved, mods = load_onboarding(RESULTS / f"{opts['onboarded']}.json")
+        device = str(saved.get("device") or saved.get("args", {}).get("device") or "device")[:200]
+        snmp = Snmp(opts["host"], opts["community"], port=opts["port"])
+        mon = Monitor(snmp, saved, mods, STATE["mib_dir"], explain_on=opts["explain"])
+        if opts["record"]:
+            rec = DEMO / f"{slug(device)}-health-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
+        run.emit({"kind": "monitor-start", "device": device, "interval": opts["interval"],
+                  "policy": f"{mon.pol['name']} ({mon.pol['source']})", "local": opts["local"],
+                  "explain": opts["explain"], "record": bool(rec)})
+        began, fails, first = time.time(), 0, True
+        while not run.stop.is_set() and time.time() - began < MAX_MONITOR_S:
+            t0 = time.time()
+            try:
+                res = mon.poll()
+                fails = 0
+            except Exception as e:  # noqa: BLE001 - a missed poll is reported, the monitor carries on
+                fails += 1
+                run.emit({"kind": "poll-error", "message": type(e).__name__ + ": " + str(e)[:200]})
+                if fails >= 5:
+                    raise RuntimeError("the device did not answer 5 polls in a row") from e
+                res = None
+            if res is not None:
+                if rec:
+                    line = {**res, "device": device} if first else res
+                    with open(rec, "a") as fh:
+                        fh.write(json.dumps(line) + "\n")
+                first = False
+                run.emit({"kind": "health", **res})
+            run.stop.wait(max(0.0, opts["interval"] - (time.time() - t0)))
+        saved_as = None
+        if rec and rec.exists():
+            export_all([rec])
+            saved_as = rec.stem
+        run.emit({"kind": "end", "monitor": True, "saved": saved_as,
+                  "reason": "stopped" if run.stop.is_set() else "30-minute limit reached"})
+    except Exception as e:  # noqa: BLE001
+        run.emit({"kind": "error", "message": type(e).__name__ + ": " + str(e)[:300]})
+    finally:
+        stop_load(run)
+        run.finished = True
+        with run.cond:
+            run.cond.notify_all()
+
+
 def slug(text):
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:40] or "device"
 
@@ -144,7 +258,13 @@ def execute(run: Run, opts: dict):
             dev.save(path, args=keep, cands=cands, result={f: v["verdict"] for f, v in out["spec"].items()})
             export_all()
             saved = name
-        run.emit({"kind": "end", "summary": {f: v["verdict"] for f, v in out["spec"].items()},
+        # saved like a terminal onboarding, so the live monitor can pick it up; no community is stored
+        RESULTS.mkdir(exist_ok=True)
+        ob = f"onboard_{time.strftime('%Y%m%d_%H%M%S')}"
+        args = {"device": opts["device"], "modules": ",".join(opts["modules"]), "host": opts["host"],
+                "port": opts["port"], "lab": lab, "families": ",".join(opts["families"])}
+        (RESULTS / f"{ob}.json").write_text(json.dumps({"args": args, **out}, indent=2, default=str))
+        run.emit({"kind": "end", "onboarded": ob, "summary": {f: v["verdict"] for f, v in out["spec"].items()},
                   "cost_usd": out["cost_usd"], "seconds": out["seconds"], "snmp_calls": out["snmp_calls"],
                   "saved": saved})
     except Exception as e:  # noqa: BLE001 - reported to the page without internals
@@ -193,6 +313,8 @@ class Handler(BaseHTTPRequestHandler):
             q = (parse_qs(url.query).get("q") or [""])[0].upper()[:40]
             names = module_names()
             return self._json(200, [n for n in names if q in n.upper()][:40])
+        if url.path == "/api/onboarded":
+            return self._json(200, onboarded_list())
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/events", url.path)
         if m:
             return self._stream(m.group(1))
@@ -265,6 +387,37 @@ class Handler(BaseHTTPRequestHandler):
                 STATE["run"] = run
             threading.Thread(target=execute, args=(run, opts), daemon=True).start()
             return self._json(202, {"id": run.id})
+        if url == "/api/monitor":
+            with STATE["lock"]:
+                if STATE["run"] and not STATE["run"].finished:
+                    return self._json(409, {"error": "a run is already in progress"})
+                try:
+                    opts = validate_monitor(body)
+                except (ValueError, TypeError) as e:
+                    return self._json(400, {"error": str(e)})
+                run = Run(f"{int(time.time() * 1000) & 0xFFFFFFFFFFFF:012x}", kind="monitor")
+                run.opts = opts
+                STATE["run"] = run
+            threading.Thread(target=watch, args=(run, opts), daemon=True).start()
+            return self._json(202, {"id": run.id})
+        m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/(stop|load)", url)
+        if m:
+            run = STATE["run"]
+            if not run or run.id != m.group(1) or run.finished or run.kind != "monitor":
+                return self._json(404, {"error": "no such monitor"})
+            if m.group(2) == "stop":
+                run.stop.set()
+                return self._json(200, {"ok": True})
+            if not run.opts.get("local"):
+                return self._json(400, {"error": "load runs only on this machine's own agent (localhost, default port)"})
+            if any(p.poll() is None for p in run.load):
+                return self._json(409, {"error": "load is already running"})
+            secs = int(body.get("seconds") or 120)
+            if not 10 <= secs <= 300:
+                return self._json(400, {"error": "load seconds must be 10 to 300"})
+            run.load = start_cpu_load(secs)
+            run.emit({"kind": "load", "seconds": secs, "at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())})
+            return self._json(200, {"ok": True, "seconds": secs})
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/confirm", url)
         if m:
             run = STATE["run"]

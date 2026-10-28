@@ -55,6 +55,29 @@
     </form>
   </section>
 
+  <section class="live" id="monitor" hidden>
+    <h2>Monitor live</h2>
+    <p class="hint">Poll a device you have onboarded and score its health as it runs. Only the picks that were proven
+      are polled; nothing is written to the device.</p>
+    <form id="monitor-form" autocomplete="off">
+      <label class="wide">Onboarded device
+        <select name="onboarded" id="onboarded" required></select></label>
+      <label>Host <input name="host" value="localhost" maxlength="253"></label>
+      <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
+      <label>Community <input name="community" type="password" value="public" maxlength="64"></label>
+      <label>Every (seconds) <input name="interval" inputmode="numeric" value="10" maxlength="3"></label>
+      <fieldset class="wide"><legend>Options</legend>
+        <label><input type="checkbox" name="explain" checked> Explain changes in plain English (Muse Spark)</label>
+        <label><input type="checkbox" name="record" checked> Save as a replay</label>
+      </fieldset>
+      <div class="wide actions">
+        <button type="submit" id="mon-start">Start monitoring</button>
+        <button type="button" id="mon-stop" hidden>Stop</button>
+        <button type="button" id="mon-load" hidden>Put CPU load on this machine (120 s)</button>
+        <span id="mon-error" class="bad" role="alert"></span></div>
+    </form>
+  </section>
+
   <div id="prompt" class="prompt" hidden role="alertdialog" aria-live="assertive">
     <p id="prompt-text"></p><p id="prompt-cmd" class="oid"></p>
     <button type="button" id="prompt-ok" hidden>Done</button>

@@ -98,7 +98,7 @@ def export_health(path: Path) -> dict:
     recovered = scores[-1] >= hi - 5 and lo < hi
     return {
         "id": path.stem, "kind": "health",
-        "device": HEALTH_DEVICE.get(path.stem, "Recorded device"),
+        "device": HEALTH_DEVICE.get(path.stem) or (lines[0].get("device") if lines else None) or "Recorded device",
         "highlight": f"health fell {hi} → {lo} under load" + (", then recovered" if recovered else ""),
         "recorded": (samples[0]["at"] or "")[:16].replace("T", " ") + " UTC" if samples else None,
         "policy": lines[0].get("policy") if lines else None,

@@ -14,9 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from collections import deque  # noqa: E402
-
-from onboardiq import explain, health, mib, profile  # noqa: E402
+from onboardiq.monitor import Monitor, load_onboarding  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 
 
@@ -36,30 +34,14 @@ def main():
     ap.add_argument("--record", help="append every reading as one JSON line (for the replay player)")
     ap.add_argument("--policy", help="health policy JSON (default: onboardiq/health_policy.json)")
     args = ap.parse_args()
-    saved = json.loads(Path(args.onboarded).read_text())
-    mods = saved.get("args", {}).get("modules") or ""
-    mods = mods if isinstance(mods, list) else [m for m in mods.split(",") if m]
-    if not mods:
-        raise SystemExit("this onboarding record has no MIB modules; rerun scripts/onboard.py")
-    cands = mib.candidates(Path(args.mib_dir).expanduser(), mods)
+    try:
+        saved, mods = load_onboarding(args.onboarded)
+    except ValueError as e:
+        raise SystemExit(str(e))
     snmp = Snmp(args.host, args.community, port=args.port)
-    pol = health.load_policy(args.policy)
-    base = health.Baseline()
-    history, last_level, last_explained, explained = deque(maxlen=12), None, 0.0, 0
+    mon = Monitor(snmp, saved, mods, args.mib_dir, policy=args.policy, explain_on=args.explain)
     while True:
-        prof = profile.build(snmp, saved["spec"], cands, modules=mods)
-        res = health.score(prof, pol)
-        res["anomalies"] = base.scan(prof)
-        res["at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        history.append((res["at"][11:], res["score"]))
-        # explain on a change worth explaining: the level moved or something unusual appeared (at most one
-        # explanation a minute, at most 20 a run, so a noisy device cannot run up model calls)
-        if args.explain and res["score"] is not None and explained < 20 and time.time() - last_explained >= 60 \
-                and (res["level"] != last_level and last_level is not None or res["anomalies"]):
-            ev = explain.evidence(res, res["anomalies"], prof.get("provenance"), history, res["at"][11:])
-            res["explanation"] = explain.explain(ev)
-            last_explained, explained = time.time(), explained + 1
-        last_level = res["level"]
+        res = mon.poll()
         if args.record:
             with open(args.record, "a") as fh:
                 fh.write(json.dumps(res) + "\n")

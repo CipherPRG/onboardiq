@@ -247,32 +247,35 @@ async function playSession(pb) {
 const HFAM = { ...FAMILY, cpu_load: "CPU load", disk: "Disk" };
 const LEVEL_TONE = { ok: "ok", warning: "warn", critical: "bad" };
 
-function healthChart(samples, iv) {
+function healthChart(iv) {
   const W = 960, H = 200, L = 40, R = 10, T = 12, B = 26;
-  const n = samples.length;
-  const X = (i) => L + (i / Math.max(1, n - 1)) * (W - L - R);
+  const s = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Health score over time" });
   const Y = (v) => T + ((100 - v) / 100) * (H - T - B);
-  const s = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Health score over the recording" });
   for (const v of [0, 40, 75, 100]) {
     s.append(svg("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), class: "grid" }));
     s.append(svg("text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end" }, v));
   }
-  s.append(svg("text", { x: L, y: H - 6 }, "0 s"),
-           svg("text", { x: W - R, y: H - 6, "text-anchor": "end" }, (n - 1) * iv + " s"));
-  const line = svg("path", { class: "line", d: "" });
-  const dots = svg("g"), marks = svg("g");
-  s.append(line, marks, dots);
-  let d = "";
+  const t0 = svg("text", { x: L, y: H - 6 }, "");
+  const t1 = svg("text", { x: W - R, y: H - 6, "text-anchor": "end" }, "");
+  const bands = svg("g"), line = svg("path", { class: "line", d: "" }), marks = svg("g"), dots = svg("g");
+  s.append(t0, t1, bands, line, marks, dots);
   return {
     node: s,
-    add(i) {
-      const v = samples[i].score;
-      if (v === null || v === undefined) return;
-      d += (d ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1);
+    // list: the samples to draw (oldest first); slots: how many polls the x axis spans; offset: polls before list[0]
+    render(list, slots, offset = 0) {
+      const X = (i) => L + (i / Math.max(1, slots - 1)) * (W - L - R);
+      let d = "";
+      dots.replaceChildren(); marks.replaceChildren(); bands.replaceChildren();
+      list.forEach((x, i) => {
+        if (x.load) bands.append(svg("rect", { x: X(i), y: T, width: Math.max(2, X(i + 1) - X(i)), height: H - T - B, class: "band" }));
+        if (x.score === null || x.score === undefined) return;
+        d += (d ? "L" : "M") + X(i).toFixed(1) + "," + Y(x.score).toFixed(1);
+        dots.append(svg("circle", { cx: X(i).toFixed(1), cy: Y(x.score).toFixed(1), r: 3, class: LEVEL_TONE[x.level] || "" }));
+        if (x.explanation) marks.append(svg("line", { x1: X(i), x2: X(i), y1: T, y2: H - B, class: "mark-x" }));
+      });
       line.setAttribute("d", d);
-      const tone = LEVEL_TONE[samples[i].level] || "";
-      dots.append(svg("circle", { cx: X(i).toFixed(1), cy: Y(v).toFixed(1), r: 3, class: tone }));
-      if (samples[i].explanation) marks.append(svg("line", { x1: X(i), x2: X(i), y1: T, y2: H - B, class: "mark-x" }));
+      t0.textContent = offset * iv + " s";
+      t1.textContent = (offset + slots - 1) * iv + " s";
     },
   };
 }
@@ -280,41 +283,48 @@ function healthChart(samples, iv) {
 function healthView(pb) {
   const root = el("div", { class: "health appear" });
   const top = el("div", { class: "h-top" });
-  const big = el("p", { class: "h-score" });
+  const big = el("p", { class: "h-score" }, "–");
   const lvl = el("p", { class: "h-level" });
-  const sum = el("p", { class: "h-sum" });
+  const sum = el("p", { class: "h-sum" }, "Waiting for the first reading…");
+  const meta = el("p", { class: "h-meta" }, `Thresholds: ${pb.policy || "policy file"}. Polled every ${pb.interval} s.`);
   const left = el("div");
   left.append(big, lvl);
   const right = el("div");
-  right.append(sum, el("p", { class: "h-meta" }, `Thresholds: ${pb.policy || "policy file"}. Polled every ${pb.interval} s.`));
+  right.append(sum, meta);
   top.append(left, right);
   const fig = el("figure", { class: "chart" });
   fig.style.margin = "0";
-  const chart = healthChart(pb.samples, pb.interval);
+  const chart = healthChart(pb.interval);
   fig.append(chart.node, el("p", { class: "caption" },
-    "Health score per poll. Vertical lines mark where the model explained what changed."));
+    "Health score per poll. Dashed lines mark where the model explained what changed" +
+    (pb.live ? "; shaded polls had CPU load applied from this page." : ".")));
   const fams = el("div", { class: "h-fams" });
   const anom = el("ul", { class: "h-anom" });
   const expl = el("div", { class: "h-expl" });
-  expl.append(el("p", { class: "h-esrc" }, "The model explains here when the level changes or something unusual appears."));
+  expl.append(el("p", { class: "h-esrc" }, pb.explain === false ? "Explanations are off for this run."
+    : "The model explains here when the level changes or something unusual appears."));
   const not = el("details", { class: "h-not" });
-  not.append(el("summary", {}, `Not scored (${pb.not_scored.length})`));
-  const nl = el("ul");
-  for (const x of pb.not_scored) nl.append(el("li", {}, (HFAM[x.family] || x.family) + (x.row ? " " + x.row : "") + ": " + x.reason));
-  not.append(nl);
   root.append(top, fig, fams, anom, expl, not);
   $("families").append(root);
 
+  function setNotScored(list) {
+    not.replaceChildren(el("summary", {}, `Not scored (${list.length})`));
+    const nl = el("ul");
+    for (const x of list) nl.append(el("li", {}, (HFAM[x.family] || x.family) + (x.row ? " " + x.row : "") + ": " + x.reason));
+    not.append(nl);
+  }
+  setNotScored(pb.not_scored || []);
+
   return {
-    chart,
+    chart, setNotScored, meta,
     show(x) {
       big.textContent = x.score === null ? "–" : x.score;
       big.className = "h-score " + (LEVEL_TONE[x.level] || "");
       lvl.textContent = (x.level || "") + (x.capped_by ? ` (capped: a ${x.capped_by} reading)` : "");
       lvl.className = "h-level " + (LEVEL_TONE[x.level] || "");
-      sum.textContent = `${(x.at || "").slice(11, 19)} UTC · ${x.summary} · ${x.coverage}`;
+      sum.textContent = `${(x.at || "").slice(11, 19)} UTC · ${x.summary || x.note || ""} · ${x.coverage || ""}`;
       fams.replaceChildren();
-      for (const [k, f] of Object.entries(x.families)) {
+      for (const [k, f] of Object.entries(x.families || {})) {
         const tone = f.score >= 75 ? "ok" : (f.score >= 40 ? "warn" : "bad");
         const row = el("div", { class: "h-fam" });
         const bar = el("span", { class: "h-bar" });
@@ -328,16 +338,30 @@ function healthView(pb) {
                      (f.partial ? " · some rows skipped" : "")));
         fams.append(row);
       }
-      anom.replaceChildren(...x.anomalies.map((a) => el("li", {}, "Unusual: " + a)));
+      anom.replaceChildren(...(x.anomalies || []).map((a) => el("li", {}, "Unusual: " + a)));
       if (x.explanation) {
         const e = x.explanation;
         const src = e.source === "template" ? "Template (the model's answer failed the check" +
-          (e.note ? ": " + e.note.split("rejected: ")[1] : "") + ")" : `${e.source}, every number checked against the readings`;
+          (e.note && e.note.includes("rejected: ") ? ": " + e.note.split("rejected: ")[1] : "") + ")"
+          : `${e.source}, every number checked against the readings`;
         expl.replaceChildren(el("p", { class: "h-etext appear" }, e.text),
                              el("p", { class: "h-esrc" }, `${(x.at || "").slice(11, 19)} UTC · ${src}`));
       }
     },
   };
+}
+
+// A live monitor event carries the full score result; reduce it to the replay's sample shape.
+function liveSample(res) {
+  const fams = {};
+  for (const [k, f] of Object.entries(res.families || {})) {
+    const worst = f.rows.find((r) => r.name === f.worst) || f.rows[0] || {};
+    fams[k] = { score: f.score, worst: f.worst, why: worst.why, rows: f.rows.length,
+                flagged: f.rows.filter((r) => r.level !== "ok").length, partial: f.partial };
+  }
+  return { at: res.at, score: res.score, level: res.level, capped_by: res.capped_by, summary: res.summary,
+           note: res.note, coverage: res.coverage, families: fams, anomalies: res.anomalies || [],
+           explanation: res.explanation };
 }
 
 async function playHealth(pb) {
@@ -350,7 +374,7 @@ async function playHealth(pb) {
   try {
     for (let i = 0; i < pb.samples.length; i++) {
       const x = pb.samples[i];
-      v.chart.add(i);
+      v.chart.render(pb.samples.slice(0, i + 1), pb.samples.length);
       v.show(x);
       $("status").textContent = `Replaying poll ${i + 1} of ${pb.samples.length} (${pb.interval} s apart)`;
       await sleep(x.explanation ? 3200 : 700);
@@ -360,6 +384,110 @@ async function playHealth(pb) {
     if (e.message !== "stopped") throw e;
   }
   $("play").textContent = "Play";
+}
+
+// ---------------------------------------------------------------- live health monitor (local server only)
+const mon = { id: null, view: null, samples: [], loadUntil: 0, es: null };
+
+async function loadOnboarded(select) {
+  const list = await (await fetch("/api/onboarded", { cache: "no-store" })).json();
+  const box = $("onboarded");
+  box.replaceChildren(...list.map((o) => {
+    const proven = Object.values(o.summary).filter((v) => String(v).startsWith("proven")).length;
+    const opt = el("option", { value: o.name }, `${o.device || o.modules} · ${proven} of ${Object.keys(o.summary).length} proven · ${o.name.slice(8)}`);
+    opt.dataset.host = o.host || "localhost";
+    opt.dataset.port = o.port || "";
+    return opt;
+  }));
+  if (!list.length) box.append(el("option", { value: "" }, "No onboarded devices yet: onboard one above first"));
+  if (select) box.value = select;
+  box.dispatchEvent(new Event("change"));
+}
+
+function monButtons(running, local) {
+  $("mon-start").disabled = running;
+  $("mon-stop").hidden = !running;
+  $("mon-load").hidden = !(running && local);
+  $("run").disabled = running;
+}
+
+function onMonitorEvent(ev) {
+  if (ev.kind === "monitor-start") {
+    $("families").replaceChildren();
+    $("device").textContent = ev.device + " · live";
+    mon.view = healthView({ policy: ev.policy, interval: ev.interval, live: true, explain: ev.explain });
+    mon.interval = ev.interval;
+    monButtons(true, ev.local);
+    $("status").textContent = "Monitoring live. First reading in a moment…";
+  } else if (ev.kind === "health") {
+    const x = liveSample(ev);
+    x.load = Date.now() < mon.loadUntil;
+    mon.samples.push(x);
+    const win = mon.samples.slice(-90);
+    mon.view.chart.render(win, Math.max(30, win.length), mon.samples.length - win.length);
+    mon.view.show(x);
+    if (mon.samples.length === 1) mon.view.setNotScored(ev.excluded || []);
+    $("status").textContent = `Live: ${mon.samples.length} reading${mon.samples.length > 1 ? "s" : ""}` +
+      (x.load ? " · CPU load running" : "") + (x.explanation ? " · the model explained this change" : "");
+  } else if (ev.kind === "load") {
+    mon.loadUntil = Date.now() + ev.seconds * 1000;
+    $("status").textContent = `CPU load started on this machine for ${ev.seconds} s. Watch the score.`;
+  } else if (ev.kind === "poll-error") {
+    $("status").textContent = "A poll failed: " + ev.message + " (still monitoring)";
+  } else if (ev.kind === "end" || ev.kind === "error") {
+    monButtons(false, false);
+    mon.loadUntil = 0;
+    $("status").textContent = ev.kind === "error" ? "Monitoring stopped: " + ev.message
+      : `Monitoring ${ev.reason} after ${mon.samples.length} readings` + (ev.saved ? ". Saved to the session list as a replay." : ".");
+    if (ev.saved) loadList();
+  }
+}
+
+async function startMonitor(form) {
+  const fd = new FormData(form);
+  $("mon-error").textContent = "";
+  play.token++;   // stop any replay
+  try {
+    monButtons(true, false);
+    const { id } = await post("/api/monitor", {
+      onboarded: fd.get("onboarded"), host: fd.get("host"), port: fd.get("port") ? Number(fd.get("port")) : null,
+      community: fd.get("community"), interval: Number(fd.get("interval")) || 10,
+      explain: fd.get("explain") === "on", record: fd.get("record") === "on",
+    });
+    mon.id = id; mon.samples = []; mon.loadUntil = 0;
+    mon.es = new EventSource(`/api/runs/${id}/events`);
+    mon.es.onmessage = (m) => {
+      const ev = JSON.parse(m.data);
+      onMonitorEvent(ev);
+      if (ev.kind === "end" || ev.kind === "error") mon.es.close();
+    };
+    mon.es.onerror = () => { mon.es.close(); monButtons(false, false); };
+  } catch (e) {
+    $("mon-error").textContent = e.message;
+    monButtons(false, false);
+  }
+}
+
+function wireMonitor() {
+  $("monitor").hidden = false;
+  const f = $("monitor-form");
+  $("onboarded").addEventListener("change", (e) => {
+    const o = e.target.selectedOptions[0];
+    if (!o || !o.value) return;
+    f.elements.host.value = o.dataset.host;
+    f.elements.port.value = o.dataset.port;
+  });
+  f.addEventListener("submit", (e) => { e.preventDefault(); startMonitor(f); });
+  $("mon-stop").addEventListener("click", async () => {
+    $("status").textContent = "Stopping…";
+    try { await post(`/api/runs/${mon.id}/stop`, {}); }
+    catch (e) { $("mon-error").textContent = e.message; }
+  });
+  $("mon-load").addEventListener("click", async () => {
+    try { await post(`/api/runs/${mon.id}/load`, { seconds: 120 }); }
+    catch (e) { $("mon-error").textContent = e.message; }
+  });
+  loadOnboarded();
 }
 
 // ---------------------------------------------------------------- live runs (local server only)
@@ -467,6 +595,7 @@ function onLiveEvent(ev, pb) {
     $("status").textContent = `Finished: ${proven} of ${verdicts.length} metrics proven, ${ev.seconds} s, ` +
       `${ev.snmp_calls} SNMP queries, model cost $${Number(ev.cost_usd).toFixed(3)}` + (ev.saved ? ". Saved to the session list." : ".");
     if (ev.saved) loadList();
+    if (ev.onboarded) loadOnboarded(ev.onboarded);
   }
 }
 
@@ -559,6 +688,7 @@ async function loadList() {
       $("lede").textContent = "Replay recorded sessions, or onboard a device live from this machine. In a replay, " +
         "every reading and model answer comes from the recording; in a live run they come from the device and the model.";
       $("live-form").addEventListener("submit", (e) => { e.preventDefault(); startLive(e.target); });
+      wireMonitor();
       $("prompt-ok").addEventListener("click", async () => {
         $("prompt-ok").hidden = true;
         try { await post(`/api/runs/${liveState.run}/confirm`, {}); } catch (e) { $("status").textContent = e.message; }

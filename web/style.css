@@ -100,3 +100,6 @@ svg .mark-x{stroke:var(--soft);stroke-dasharray:3 3}
 .h-not{margin-top:12px;color:var(--soft);font-size:14px}
 .h-not summary{cursor:pointer}
 @media (max-width:760px){.h-top{grid-template-columns:1fr}.h-fam{grid-template-columns:80px 1fr 32px}.h-why{grid-column:1/-1}}
+form select{font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:3px;padding:7px 9px;width:100%}
+#mon-start{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+#mon-load{border-color:var(--warn);color:var(--warn);font-weight:600}

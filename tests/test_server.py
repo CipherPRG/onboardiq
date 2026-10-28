@@ -91,3 +91,48 @@ def test_module_prefix_resolution(tmp_path):
             server.resolve_module("../x")
     finally:
         server.STATE["mib_dir"] = saved
+
+
+def _h(port):
+    return {"Content-Type": "application/json", "X-OnboardIQ": "1", "Origin": f"http://127.0.0.1:{port}"}
+
+
+def test_live_monitor_streams_readings_and_stops(srv, tmp_path, monkeypatch):
+    import time as _t
+    results = tmp_path / "results"
+    results.mkdir()
+    rec = {"args": {"device": "box", "modules": "TEST-MIB", "host": "localhost", "community": "secret-c"},
+           "device": "box", "spec": {"cpu": {"verdict": "proven-experiment", "pick": {}}}}
+    (results / "onboard_20261028_120000.json").write_text(json.dumps(rec))
+    monkeypatch.setattr(server, "RESULTS", results)
+
+    class FakeMonitor:
+        def __init__(self, *a, **k):
+            self.pol = {"name": "default", "source": "health_policy.json"}
+
+        def poll(self):
+            return {"score": 90, "level": "ok", "families": {}, "excluded": [], "anomalies": [], "at": "x"}
+
+    monkeypatch.setattr(server, "Monitor", FakeMonitor)
+    monkeypatch.setattr(server, "start_cpu_load", lambda s: [])
+    code, body = req(srv, "GET", "/api/onboarded")
+    assert code == 200 and b"onboard_20261028_120000" in body and b"secret-c" not in body   # community never sent
+    code, body = req(srv, "POST", "/api/monitor", {"onboarded": "../etc/passwd"}, _h(srv))
+    assert code == 400
+    code, body = req(srv, "POST", "/api/monitor", {"onboarded": "onboard_20261028_120000", "interval": 1}, _h(srv))
+    assert code == 400 and b"interval" in body
+    code, body = req(srv, "POST", "/api/monitor", {"onboarded": "onboard_20261028_120000", "interval": 5,
+                                                   "record": False, "host": "10.0.0.9"}, _h(srv))
+    assert code == 202
+    rid = json.loads(body)["id"]
+    _t.sleep(0.5)
+    run = server.STATE["run"]
+    assert [e["kind"] for e in run.events][:2] == ["monitor-start", "health"]
+    code, body = req(srv, "POST", f"/api/runs/{rid}/load", {"seconds": 60}, _h(srv))
+    assert code == 400 and b"this machine" in body                     # load only on the local agent
+    assert req(srv, "POST", f"/api/runs/{rid}/stop", {}, _h(srv))[0] == 200
+    for _ in range(50):
+        if run.finished:
+            break
+        _t.sleep(0.1)
+    assert run.finished and run.events[-1]["kind"] == "end"

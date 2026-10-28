@@ -93,3 +93,8 @@ CPU/memory picks (read-only plus a second object, load on this machine, or load 
 asked). Steps and measurements stream to the page as they happen; finished runs are recorded and appear in the
 session list. The server listens on 127.0.0.1 only, checks the Host header, refuses cross-site requests, keeps the
 API key in the process and the SNMP community in memory for the run only, and serves files from `web/` only.
+
+**Monitor live.** Below it, a **Monitor live** panel polls a device you have onboarded (from this page or from
+`scripts/onboard.py`) and draws the health score, the per-family breakdown, anomalies and Muse Spark's checked
+explanation as readings arrive. When the device is this machine's own agent, a button puts CPU load on it for
+120 seconds so you can watch the score fall and recover. A run stops after 30 minutes and can be saved as a replay.
