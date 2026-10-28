@@ -1,5 +1,7 @@
 # OnboardIQ
 
+[![tests](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml/badge.svg)](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml) License: Apache-2.0
+
 An agent that onboards any network or CCTV device into monitoring: it reads the device's MIB and manual, proves every metric on the live device, then scores its health from 0 to 100 using only what was proven and flags readings that leave a row's own normal. When the score moves, Muse Spark explains why in plain English, and every number in that explanation is checked against the readings.
 
 Built for the Meta Global AI Developer Hackathon (Oct 26 - Nov 4, 2026), Indie track, theme "Push the Frontier".
@@ -98,3 +100,9 @@ API key in the process and the SNMP community in memory for the run only, and se
 `scripts/onboard.py`) and draws the health score, the per-family breakdown, anomalies and Muse Spark's checked
 explanation as readings arrive. When the device is this machine's own agent, a button puts CPU load on it for
 120 seconds so you can watch the score fall and recover. A run stops after 30 minutes and can be saved as a replay.
+
+## License
+
+Apache License 2.0 (see `LICENSE`). Third-party data and libraries keep their own licences: LibreNMS test
+recordings and definitions (GPL) are downloaded by `scripts/build_benchmark.py` for evaluation only and are
+never committed; vendor MIB files are never committed or bundled.

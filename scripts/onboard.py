@@ -112,7 +112,8 @@ def main():
         print(f"  {out['seconds']}s, {out['snmp_calls']} SNMP calls, model cost ${out['cost_usd']:.4f}")
     res = ROOT / "results" / f"onboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     res.parent.mkdir(exist_ok=True)
-    res.write_text(json.dumps({"args": vars(args), **out}, indent=2))
+    # the SNMP community is a credential: it is never written to disk
+    res.write_text(json.dumps({"args": {k: v for k, v in vars(args).items() if k != "community"}, **out}, indent=2))
     print(f"  saved {res.relative_to(ROOT)}")
     if args.html:
         Path(args.html).write_text(report.render(out, title=f"OnboardIQ: {out.get('device')}"))
