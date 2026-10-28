@@ -140,6 +140,8 @@ def main():
     ap.add_argument("--split", default=None, help="benchmark only: dev or test")
     ap.add_argument("--limit", type=int, default=None, help="first N devices (sorted) after the split filter")
     args = ap.parse_args()
+    if args.model and "," in args.model:
+        raise SystemExit("--model takes one model: a comma list would let a run switch hosts mid-benchmark")
 
     truth_all = json.loads(Path(args.truth).read_text())
     if args.vendors == "all" or args.split:
