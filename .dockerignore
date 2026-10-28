@@ -1,0 +1,9 @@
+.git
+.venv
+results
+cache
+outbox
+__pycache__
+*.pyc
+data
+.env

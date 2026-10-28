@@ -439,9 +439,13 @@ class Handler(BaseHTTPRequestHandler):
         return self._json(404, {"error": "not found"})
 
 
-def main(port: int = 8765):
+def main(port: int = 8765, bind: str = "127.0.0.1"):
+    """bind is 127.0.0.1 unless the process runs inside the project's container (OIQ_IN_CONTAINER=1), where the
+    published port is mapped to the host's 127.0.0.1 only by docker-compose.yml."""
+    if bind != "127.0.0.1" and not (bind == "0.0.0.0" and os.environ.get("OIQ_IN_CONTAINER") == "1"):
+        raise SystemExit("refusing to listen on anything but 127.0.0.1 (0.0.0.0 only inside the project's container)")
     STATE["port"] = port
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    srv = ThreadingHTTPServer((bind, port), Handler)
     print(f"OnboardIQ live: http://127.0.0.1:{port}  (localhost only; Ctrl+C to stop)")
     print(f"  model {MODEL}, effort {EFFORT}, MIB folder {STATE['mib_dir']}"
           + ("" if STATE["mib_dir"].is_dir() else "  (NOT FOUND)"))
@@ -455,8 +459,9 @@ if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--bind", default="127.0.0.1", help=argparse.SUPPRESS)
     ap.add_argument("--mib-dir", help="folder of converted MIB modules (default: $OIQ_MIB_DIR or ~/data/mibs_json)")
     a = ap.parse_args()
     if a.mib_dir:
         STATE["mib_dir"] = Path(a.mib_dir).expanduser()
-    main(a.port)
+    main(a.port, a.bind)

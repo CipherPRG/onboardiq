@@ -1,0 +1,10 @@
+services:
+  oiq:
+    build: .
+    ports:
+      - "127.0.0.1:8765:8765"     # reachable from this machine only
+    environment:
+      MODEL_API_KEY: ${MODEL_API_KEY:-}      # optional: without it, recorded sessions still replay
+      BASETEN_API_KEY: ${BASETEN_API_KEY:-}
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
