@@ -17,7 +17,7 @@ or rows with no usable reading. "coverage" says how many families the score rest
 Anomalies: Baseline keeps a rolling window per row and flags a reading far from that row's own
 normal (median and MAD). No model is trained: it is a plain statistic, explainable in one line.
 """
-from collections import defaultdict, deque
+from collections import Counter, defaultdict, deque
 from statistics import median
 
 PROVEN = ("proven-experiment", "proven-witness", "proven-static", "standard-mib")
@@ -44,6 +44,20 @@ def _line(x, ok, mid, zero):
     if x >= zero:
         return 0.0
     return ms * (zero - x) / (zero - mx)
+
+
+def _labels(rows):
+    """One unique, readable label per row: its name, else its index, else "overall". Rows that share a name
+    (every core of a CPU is often named after the processor model) get #1, #2, ..."""
+    names = [r.get("name") or r.get("index") or "overall" for r in rows]
+    total, seen, out = Counter(names), Counter(), []
+    for n in names:
+        if total[n] > 1:
+            seen[n] += 1
+            out.append(f"{n} #{seen[n]}")
+        else:
+            out.append(n)
+    return out
 
 
 def _level(score):
@@ -105,16 +119,17 @@ def score(profile):
                              or not m.get("object") else "not proven on this device"})
             continue
         rows = []
-        for r in m.get("rows") or []:
+        src = m.get("rows") or []
+        for r, label in zip(src, _labels(src)):
             s, why = row_score(fam, m.get("kind"), m.get("unit"), r)
             if s is None:
                 if m.get("value_type") == "counter" and why == "no usable reading":
                     why = "time counter: becomes a percentage only from two polls (scripts/monitor.py), not scored yet"
                 elif fam == "memory" and why == "no usable reading":
                     why = "no total to compare the reading with: not scored"
-                excluded.append({"family": fam, "row": r.get("name") or r.get("index"), "reason": why})
+                excluded.append({"family": fam, "row": label, "reason": why})
                 continue
-            rows.append({"name": r.get("name") or r.get("index"), "score": s, "level": _level(s), "why": why})
+            rows.append({"name": label, "score": s, "level": _level(s), "why": why})
         if not rows:
             excluded.append({"family": fam, "reason": "no scorable rows"})
             continue
@@ -147,27 +162,41 @@ class Baseline:
         self.window, self.min_points, self.k, self.floor = window, min_points, k, floor
         self.h = defaultdict(lambda: deque(maxlen=window))
 
-    def observe(self, key, x):
+    def _check(self, key, x):
+        """(median, limit) when x is far from this row's own history, else None. Adds x to the history."""
         h = self.h[key]
-        note = None
+        hit = None
         if len(h) >= self.min_points:
             med = median(h)
             mad = median(abs(v - med) for v in h)
             limit = max(self.k * 1.4826 * mad, self.floor)
             if abs(x - med) > limit:
-                note = f"{key}: {x:g} is far from its usual {med:g} (normal spread {limit:g})"
+                hit = (med, limit)
         h.append(x)
-        return note
+        return hit
+
+    def observe(self, key, x):
+        hit = self._check(key, x)
+        return f"{key}: {x:g} is far from its usual {hit[0]:g} (normal spread {hit[1]:g})" if hit else None
 
     def scan(self, profile):
         out = []
         for fam, m in (profile.get("metrics") or {}).items():
             if m.get("verdict") not in PROVEN:
                 continue
-            for r in m.get("rows") or []:
+            src = m.get("rows") or []
+            hits = []
+            for r, label in zip(src, _labels(src)):
                 v = _row_value(fam, m.get("kind"), r)
-                if v is not None and not (r.get("status") and r.get("value") is None):
-                    n = self.observe(f"{fam}/{r.get('name') or r.get('index')}", v)
-                    if n:
-                        out.append(n)
+                if v is None or (r.get("status") and r.get("value") is None):
+                    continue
+                hit = self._check(f"{fam}/{label}", v)
+                if hit:
+                    hits.append((label, v, hit[0]))
+            if len(hits) > 3:
+                label, v, med = max(hits, key=lambda t: abs(t[1] - t[2]))
+                out.append(f"{fam}: {len(hits)} of {len(src)} rows far from their usual, e.g. {label} "
+                           f"at {v:g} (usual {med:g})")
+            else:
+                out += [f"{fam}/{label}: {v:g} is far from its usual {med:g}" for label, v, med in hits]
         return out

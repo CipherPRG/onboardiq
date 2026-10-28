@@ -158,3 +158,22 @@ def test_read_only_filesystems_do_not_count_as_disks_and_unserved_families_do_no
     r = health.score(prof(disk=d, temperature=unserved))
     assert r["score"] == 100 and r["coverage"] == "1 of 1 served families scored"
     assert {"family": "temperature", "reason": "not served by this device"} in r["excluded"]
+
+
+def test_cores_that_share_a_name_get_their_own_labels_and_baselines():
+    rows = [{"name": "Intel Core", "value": 10.0}, {"name": "Intel Core", "value": 95.0}]
+    r = health.score(prof(cpu_load=m(rows, kind="per-core")))
+    assert [x["name"] for x in r["families"]["cpu_load"]["rows"]] == ["Intel Core #1", "Intel Core #2"]
+    assert r["families"]["cpu_load"]["worst"] == "Intel Core #2"
+    r = health.score(prof(memory=m([{"percent": 40.0}], kind="used+total")))
+    assert r["families"]["memory"]["worst"] == "overall"
+
+
+def test_many_rows_tripping_together_become_one_anomaly_line():
+    b = health.Baseline(min_points=8)
+    calm = prof(cpu_load=m([{"name": "cpu", "value": 1.0}] * 6, kind="per-core"))
+    for _ in range(9):
+        assert b.scan(calm) == []
+    busy = prof(cpu_load=m([{"name": "cpu", "value": 90.0}] * 6, kind="per-core"))
+    out = b.scan(busy)
+    assert len(out) == 1 and "6 of 6 rows far from their usual" in out[0]
