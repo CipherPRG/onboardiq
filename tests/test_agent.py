@@ -56,3 +56,23 @@ def test_events_stream_and_hook_is_restored(monkeypatch):
     assert {"base", "load"} <= phases
     assert all(e["family"] == "memory" for e in events if e["kind"] == "sample")
     assert verify.EVENTS["hook"] is None
+
+
+def test_pick_outside_the_given_mib_is_rejected_without_polling():
+    from onboardiq import agent
+
+    class NoTouch:
+        calls = 0
+
+        def get(self, *a):
+            raise AssertionError("an invented OID must not be polled")
+
+        walk = get
+
+    types = {"1.3.6.1.2.1.25.3.3.1.2": "Integer32"}
+    a = agent._verify(NoTouch(), "cpu", {"oid": "1.3.6.1.4.1.99999.1.2", "object_name": "madeUp"}, False, {}, types)
+    assert a["verdict"] == "rejected" and a["evidence"][0]["check"] == "in-mib"
+    assert agent.trigger(a["evidence"]) == "in-mib"
+    assert agent.in_mib("1.3.6.1.2.1.25.3.3.1.2.196608", set(types))      # an instance of a MIB object
+    assert agent.in_mib(".1.3.6.1.2.1.25.3.3.1.2", set(types))
+    assert not agent.in_mib("1.3.6.1.2.1.25.3.3", set(types))              # a parent is not the object

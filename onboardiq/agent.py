@@ -15,11 +15,38 @@ from .verify import Item, verify_item
 NOT_SERVED = "is not served by this device"
 
 
+def in_mib(oid, known) -> bool:
+    """True when `oid` is an object of the given MIB modules, or an instance of one (object OID + index).
+    `known` is the set of object OIDs read from the modules."""
+    parts = str(oid or "").lstrip(".").removesuffix(".0").split(".")
+    while len(parts) >= 4:
+        if ".".join(parts) in known:
+            return True
+        parts.pop()
+    return False
+
+
 def _verify(snmp, family, pick, lab, verify_kw, types=None):
+    """Verify one pick. The model is told never to invent OIDs; this enforces it in code: a pick that is not
+    an object of the MIB modules it was given is rejected before the device is touched, and a witness from
+    outside the modules is not used."""
     item = Item.from_pick(family, pick)
+    known = set(types or {})
+    if known and not in_mib(item.oid, known):
+        return {"pick": pick, "verdict": "rejected", "suggested_scale": None, "seconds": 0.0, "series": None,
+                "evidence": [{"check": "in-mib", "ok": False,
+                              "detail": f"{pick.get('object_name')} ({item.oid}) is not an object in the MIB modules "
+                                        "given: the model may have invented it, so it was not polled"}]}
+    note = None
+    w = item.witness or {}
+    if known and w.get("oid") and not in_mib(w["oid"], known):
+        note = {"check": "witness", "ok": None,
+                "detail": f"witness {w.get('object_name')} ({w['oid']}) is not in the MIB modules given: not used"}
+        item.witness = None
     item.mib_type = (types or {}).get(item.oid)
     res = verify_item(snmp, item, lab=lab, **verify_kw)
-    return {"pick": pick, "verdict": res.verdict, "evidence": res.evidence,
+    evidence = ([note] if note else []) + res.evidence
+    return {"pick": pick, "verdict": res.verdict, "evidence": evidence,
             "suggested_scale": res.suggested_scale, "seconds": res.seconds, "series": res.series}
 
 
@@ -57,7 +84,7 @@ def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attemp
             on_event({"t": round(time.time() - t0, 2), "family": current["family"],
                       "attempt": current["attempt"], **ev})
 
-    types = {c["oid"]: c.get("type") for c in cands}   # declared SYNTAX per object, from the MIB
+    types = {str(c["oid"]).lstrip("."): c.get("type") for c in cands}   # declared SYNTAX per object, from the MIB
     from . import verify as _v
     saved_hook, _v.EVENTS["hook"] = _v.EVENTS["hook"], sample
 
