@@ -128,7 +128,9 @@ def _parse(content):
     if isinstance(data, dict):
         for k, v in data.items():
             if k in FAMILIES:
-                _normalise(v)
+                # a model that ignores the JSON schema may answer a family with a bare string; that is not a
+                # pick (no oid to test), so it counts as no answer for the family, never a guessed value
+                data[k] = _normalise(v) if isinstance(v, dict) or v is None else None
             elif k == "pick":
                 _normalise(v)
     return data
@@ -197,7 +199,21 @@ def repick(device, cands, family, attempts, model=None, effort="high"):
             "told you.\n\n"
             f"Pollable objects ({len(cands)}; format: OID MODULE::name [kind type extras] description):\n\n"
             + mib.as_prompt_lines(cands))
-    r = llm.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
-                 model=model, max_tokens=12000, json_schema=REPICK_SCHEMA, reasoning_effort=effort)
-    out = _parse(r["content"])
-    return out["pick"], out.get("reasoning", ""), r
+    err = None
+    for attempt in range(2):
+        # the retry skips the cache: a bad reply is cached too and would come straight back
+        r = llm.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
+                     model=model, max_tokens=12000, json_schema=REPICK_SCHEMA, reasoning_effort=effort,
+                     use_cache=attempt == 0)
+        try:
+            out = _parse(r["content"])
+            if isinstance(out.get("pick"), dict):
+                return out["pick"], out.get("reasoning", ""), r
+            err = "reply has no pick object"
+        except ValueError as e:
+            c = r.get("content") or ""
+            err = f"{e}; reply was {len(c)} chars, ends: {c[-60:]!r}"
+    # two unusable replies: report no pick for this family (the agent records "no object chosen")
+    r["parse_failed"] = True
+    return ({"oid": None, "object_name": None, "scale_to_canonical": None},
+            f"model reply unusable twice: {err}", r)

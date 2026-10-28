@@ -5,7 +5,7 @@ set -e
 case "${1:-serve}" in
   verify)
     python -m pytest -q tests
-    python scripts/onboard.py --replay demo/laptop_hostresources.json
+    python scripts/onboard.py --replay demo/laptop_full.json
     ;;
   serve)
     snmpd -Lsd -Lf /dev/null -p /tmp/snmpd.pid -C -c /etc/snmp/snmpd.conf

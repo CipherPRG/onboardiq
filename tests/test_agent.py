@@ -76,3 +76,16 @@ def test_pick_outside_the_given_mib_is_rejected_without_polling():
     assert agent.in_mib("1.3.6.1.2.1.25.3.3.1.2.196608", set(types))      # an instance of a MIB object
     assert agent.in_mib(".1.3.6.1.2.1.25.3.3.1.2", set(types))
     assert not agent.in_mib("1.3.6.1.2.1.25.3.3", set(types))              # a parent is not the object
+
+
+def test_reader_survives_schema_ignoring_replies(monkeypatch):
+    from onboardiq import llm, reader
+    # a bare string for a family is no pick, not a crash
+    assert reader._parse('{"cpu": "hrProcessorLoad", "memory": null}')["cpu"] is None
+    replies = iter(['{"pick": "hrProcessorLoad"}', '{"pick": {"oid": "1.3.6.1.2.1.25.3.3.1.2", "object_name": "hrProcessorLoad", "scale_to_canonical": 1}'])
+    monkeypatch.setattr(llm, "chat", lambda *a, **k: {"content": next(replies)})
+    pick, why, r = reader.repick("dev", [], "cpu", [{"pick": {"object_name": "x"}, "verdict": "rejected", "evidence": []}])
+    assert pick["oid"] is None and r["parse_failed"]                 # both replies unusable: no pick, no crash
+    replies = iter(['{"pick": "x"}', '{"pick": {"oid": "1.3.6.1.2.1.25.3.3.1.2", "object_name": "hrProcessorLoad", "scale_to_canonical": 1}, "reasoning": "r"}'])
+    pick, why, r = reader.repick("dev", [], "cpu", [{"pick": {"object_name": "x"}, "verdict": "rejected", "evidence": []}])
+    assert pick["object_name"] == "hrProcessorLoad"                  # the retry recovers
