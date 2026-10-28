@@ -107,6 +107,10 @@ def _normalise(pick):
                 if pick.get(a) is not None:
                     pick[field] = pick[a]
                     break
+    # a second object ("witness") must be an object with an oid; a bare name or list has nothing to test,
+    # so it counts as no witness (never a guessed oid)
+    if "witness" in pick and not isinstance(pick["witness"], dict):
+        pick["witness"] = None
     name = pick.get("object_name")
     if isinstance(name, str) and "::" in name:
         pick["object_name"] = name.split("::", 1)[1]

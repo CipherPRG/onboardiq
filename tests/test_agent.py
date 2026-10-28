@@ -89,3 +89,12 @@ def test_reader_survives_schema_ignoring_replies(monkeypatch):
     replies = iter(['{"pick": "x"}', '{"pick": {"oid": "1.3.6.1.2.1.25.3.3.1.2", "object_name": "hrProcessorLoad", "scale_to_canonical": 1}, "reasoning": "r"}'])
     pick, why, r = reader.repick("dev", [], "cpu", [{"pick": {"object_name": "x"}, "verdict": "rejected", "evidence": []}])
     assert pick["object_name"] == "hrProcessorLoad"                  # the retry recovers
+
+
+def test_bare_string_witness_is_no_witness():
+    from onboardiq import reader
+    d = reader._parse('{"cpu": {"oid": "1.3.6.1.2.1.25.3.3.1.2", "object_name": "hrProcessorLoad", '
+                      '"scale_to_canonical": 1, "witness": "hrProcessorFrwID"}}')
+    assert d["cpu"]["witness"] is None and d["cpu"]["oid"] == "1.3.6.1.2.1.25.3.3.1.2"
+    d = reader._parse('{"pick": {"oid": "1.3", "object_name": "x", "scale_to_canonical": 1, "witness": ["a"]}}')
+    assert d["pick"]["witness"] is None
