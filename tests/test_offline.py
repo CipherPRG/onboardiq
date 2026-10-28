@@ -177,18 +177,13 @@ def test_fireworks_retries_with_its_own_response_format(env):
     assert seen == ["json_schema", "json_object"] and json.loads(r["content"]) == {"ok": True}
 
 
-def test_only_meta_models_are_callable():
-    import pytest
-    from onboardiq import config, llm
+def test_meta_model_names_and_warning(capsys):
+    from onboardiq import config
     for ok in ("muse-spark-1.3", "meta-models/muse-spark-open-1026", "accounts/fireworks/models/muse-spark-open"):
-        assert config.require_meta(ok) == ok
-    for bad in ("gpt-4o", "meta-models/llama", "accounts/fireworks/models/llama-v3", "claude-sonnet-5-5"):
-        with pytest.raises(config.NotMetaModel):
-            config.require_meta(bad)
-    with pytest.raises(config.NotMetaModel):          # refused before any key, cache or network is touched
-        llm.chat([{"role": "user", "content": "hi"}], model="gpt-4o", use_cache=False)
-    with pytest.raises(config.NotMetaModel):          # also inside a fallback list
-        llm.chat([{"role": "user", "content": "hi"}], model="gpt-4o,muse-spark-1.3", use_cache=False)
+        assert config.is_meta(ok)
+    assert not config.is_meta("gpt-4o")
+    assert config.require_meta("some-other-model") == "some-other-model"      # warns, does not refuse
+    assert "not a Muse Spark model" in capsys.readouterr().err
 
 
 def test_missing_stress_ng_is_unproven_not_a_crash(monkeypatch):

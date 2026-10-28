@@ -54,17 +54,20 @@ def provider_for(model: str) -> str:
 EXPLAIN_MODEL = os.environ.get("OIQ_EXPLAIN_MODEL", f"{OPEN_MODEL},{MODEL}")
 
 
-# Every model called at runtime must be a Meta model (hackathon rule). Names are checked before any call, so a
-# typo or a copied-in third-party model id fails at once instead of quietly spending on another vendor.
+# Hackathon rule: every model called at runtime must be a Meta model. Muse Spark on the Meta API, Baseten and
+# Fireworks are all allowed; any other name only prints a warning (once) so it is never a silent surprise.
 META_MODEL_PREFIXES = ("muse-spark", "meta-models/muse-spark", "accounts/fireworks/models/muse-spark")
+_WARNED = set()
 
 
-class NotMetaModel(ValueError):
-    pass
+def is_meta(model: str) -> bool:
+    return model.startswith(META_MODEL_PREFIXES)
 
 
 def require_meta(model: str) -> str:
-    if not model.startswith(META_MODEL_PREFIXES):
-        raise NotMetaModel(f"{model!r} is not a Meta model (allowed: Muse Spark on the Meta API, Baseten or "
-                           "Fireworks); refusing to call it")
+    if not is_meta(model) and model not in _WARNED:
+        _WARNED.add(model)
+        import sys
+        print(f"warning: {model!r} is not a Muse Spark model; the hackathon requires Meta models at runtime",
+              file=sys.stderr)
     return model

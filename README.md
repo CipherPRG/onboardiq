@@ -125,7 +125,7 @@ template card from the same facts is shown and labelled. "What to check" is chos
 family, never written by the model.
 
 ## Models
-Every model called at runtime is a Meta model: Muse Spark 1.3 (Meta Model API) reads MIBs, and Muse Spark Open (served on Baseten, or Fireworks) writes the explanations. `onboardiq/config.py` refuses any other model name before a call is made, even if an environment variable is changed.
+Every model called at runtime is a Meta model: Muse Spark 1.3 (Meta Model API) reads MIBs, and Muse Spark Open (served on Baseten, or Fireworks) writes the explanations. `onboardiq/config.py` prints a warning if any other model name is configured.
 
 ## Second opinion from the open model
 
