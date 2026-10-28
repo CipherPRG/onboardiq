@@ -147,7 +147,8 @@ def _is_string(c):
 
 
 def names_for(snmp, mib: Mib, oid):
-    """({index: name}, source) from the row's own name column, else the standard table its index points at."""
+    """({index: name}, source, name column OID) from the row's own name column, else the standard table
+    its index points at."""
     col = mib.sibling(oid, NAME_WORDS, want=lambda c: _is_string(c) and not c.get("enums"))
     sources = [(_norm(col["oid"]), f"{col['module']}::{col['name']}")] if col else []
     idx = (mib.get(oid).get("index") or [None])[0]
@@ -157,8 +158,8 @@ def names_for(snmp, mib: Mib, oid):
     for src_oid, label in sources:
         got = {i: v.value.strip() for i, v in _column(snmp, src_oid).items() if v.value.strip()}
         if got:
-            return got, label
-    return {}, None
+            return got, label, src_oid
+    return {}, None, None
 
 
 def _enum_label(enums, raw):
@@ -180,7 +181,7 @@ def read_rows(snmp, mib: Mib, family, pick, scale, unit, value_type):
     oid = _norm(pick.get("oid"))
     me = mib.get(oid)
     vals = _column(snmp, oid)
-    names, name_src = names_for(snmp, mib, oid)
+    names, name_src, names_oid = names_for(snmp, mib, oid)
 
     status_col = None
     if me.get("enums") and value_type == "status":
@@ -275,6 +276,11 @@ def read_rows(snmp, mib: Mib, family, pick, scale, unit, value_type):
         "skipped": skipped,
         "partial": bool(skipped) and bool(rows),
         "names_from": name_src,
+        "names_oid": names_oid,
+        "scalar": len(vals) == 1 and "" in vals,
+        "status_enum": ({str(code): {"label": lbl, "meaning": meaning(lbl)} for lbl, code in
+                         (status_col or {}).get("enums", {}).items()} if status_col and status_col.get("enums")
+                        else None),
         "status_from": (f"{status_col['module']}::{status_col['name']}" if status_col else None),
         "kind_filter_from": (f"{kind_col['module']}::{kind_col['name']}" if kinds else None),
         "valid_range": {"mib": mib_ranges, "physical": list(phys) if phys else None},
@@ -343,6 +349,7 @@ def _memory(snmp, mib, pick, base):
         base["note"] = "no matching used/free/total object found in the same row or group"
         return base
     roles = {me_role, p_role}
+    base["role"] = me_role
     base["kind"] = "used+free" if roles == {"used", "free"} else "used+total"
     if roles == {"free", "total"}:
         base["kind"] = "used+total"
