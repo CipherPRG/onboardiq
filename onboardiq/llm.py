@@ -7,6 +7,7 @@ import json
 import os
 import time
 
+from . import config
 from .config import CACHE_DIR, MODEL, PROVIDERS, provider_for
 from .spend_guard import SpendGuard
 
@@ -88,6 +89,7 @@ def _response_format(schema: dict, style: str) -> dict:
 
 
 def _chat_one(messages, model, max_tokens, json_schema, reasoning_effort, use_cache) -> dict:
+    config.require_meta(model)
     request = {"model": model, "messages": messages, "max_tokens": max_tokens}
     if json_schema:
         request["response_format"] = _response_format(json_schema, "json_schema")

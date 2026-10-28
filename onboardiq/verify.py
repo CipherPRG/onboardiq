@@ -280,7 +280,11 @@ def default_load(kind: str, seconds: int, size_bytes: int = 0):
                "--timeout", f"{seconds}s", "--quiet"]
     else:
         raise ValueError(kind)
-    return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except FileNotFoundError:
+        raise NotInducible("stress-ng is not installed on this machine, so no load could be applied "
+                           "(sudo apt install stress-ng); this pick stays unproven") from None
 
 
 class NotInducible(Exception):

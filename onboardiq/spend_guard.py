@@ -9,13 +9,17 @@ SpendGuard.record() after. Limits come from the environment:
   OIQ_BASETEN_DAILY_USD=3 dollars per UTC day on Baseten (separate credit, separate ledger)
   OIQ_MAX_CALLS_PER_RUN=40  paid calls per process and provider
 """
-import fcntl
 import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import CACHE_DIR
+
+try:
+    import fcntl
+except ImportError:      # Windows: no file lock; one process at a time is assumed
+    fcntl = None
 
 # Baseten "meta-models/muse-spark-open-1026" is deliberately NOT listed: its
 # price is unconfirmed, so it is charged at UNKNOWN_PRICE until verified.
@@ -87,7 +91,8 @@ class SpendGuard:
     def _locked(self):
         self.state_file.touch(exist_ok=True)
         f = open(self.state_file, "r+")
-        fcntl.flock(f, fcntl.LOCK_EX)
+        if fcntl:
+            fcntl.flock(f, fcntl.LOCK_EX)
         return f
 
     def spent_today(self) -> dict:

@@ -2,7 +2,9 @@
 
 [![tests](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml/badge.svg)](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml) License: Apache-2.0
 
-An agent that onboards any network or CCTV device into monitoring: it reads the device's MIB and manual, proves every metric on the live device, then scores its health from 0 to 100 using only what was proven and flags readings that leave a row's own normal. When the score moves, Muse Spark explains why in plain English, and every number in that explanation is checked against the readings.
+An agent that onboards an SNMP device into monitoring without a hand-made template: Muse Spark reads the device's MIB text and picks the object for each health family (CPU, memory, disk, temperature, fan); the agent then tests every pick on the device (existence, type and range, a rise under load, an independent second reading) and monitors only what passed. The 0-100 health score uses only proven readings, and readings that leave a row's own normal are flagged. When the score moves, Muse Spark Open explains why in plain English, and code checks that every number in the explanation appears in the readings.
+
+**What has and has not been shown.** Live on two devices: a Linux machine (net-snmp) and a MikroTik RouterOS 7 virtual router; neither serves temperature or fan sensors. Accuracy numbers come from recorded walks of real devices (LibreNMS test recordings), not live hardware. A family with nothing provable is reported as unproven or not supported and left out of the score.
 
 Built for the Meta Global AI Developer Hackathon (Oct 26 - Nov 4, 2026), Indie track, theme "Push the Frontier".
 
@@ -18,8 +20,16 @@ cp .env.example .env          # paste MODEL_API_KEY into .env
 .venv/bin/python scripts/smoke.py        # first API call, prints cost
 ```
 
-MIB files are not stored in this repo. Convert them to JSON with pysmi's `mibdump`
-(see BUILD_LOG.md) into `~/data/mibs_json`.
+MIB files are not stored in this repo (vendor MIBs have their own licences). To onboard a device, put its MIB files in a folder
+and convert them to JSON with the bundled intake script (uses pysmi's `mibdump`, installed by `requirements.txt`):
+
+```bash
+.venv/bin/python scripts/intake.py ~/vendor_mibs --out ~/data/mibs_json
+.venv/bin/python scripts/intake.py ~/vendor_mibs --out ~/data/mibs_json --only HOST-RESOURCES-MIB,UCD-SNMP-MIB
+```
+
+The open IETF/net-snmp MIBs (HOST-RESOURCES-MIB, UCD-SNMP-MIB, LM-SENSORS-MIB) usually ship with net-snmp (look in `/usr/share/snmp/mibs` after `apt install snmp`).
+To only watch a recorded session, no MIBs, key or device are needed (see "Judge mode" below).
 
 ## Day-1 accuracy test
 
@@ -80,7 +90,7 @@ taken, the verdict, and the model's re-read when a pick fails. No server, no API
 
 ```bash
 python scripts/export_playback.py          # demo/*.json -> web/sessions/*.json
-python -m http.server 8765 --directory web --bind 127.0.0.1   # open http://127.0.0.1:8765
+python -m http.server 8765 --directory web --bind 127.0.0.1   # replay only: open http://127.0.0.1:8765
 ```
 The page runs no third-party scripts (Content-Security-Policy `script-src 'self'`) and inserts every string
 from a session as text, never as HTML.
@@ -88,7 +98,7 @@ from a session as text, never as HTML.
 ## Live mode (local server)
 
 ```bash
-python -m onboardiq.server        # then open http://127.0.0.1:8765
+python -m onboardiq.server --port 8766   # live mode: open http://127.0.0.1:8766 (stop the replay server first, or use another port)
 ```
 The same page as the replays gains a **Run live** panel: choose the MIB modules, the device and how to prove
 CPU/memory picks (read-only plus a second object, load on this machine, or load you start on the device when
@@ -110,9 +120,12 @@ only (`OIQ_SMTP_HOST`, `OIQ_SMTP_PORT`, `OIQ_SMTP_USER`, `OIQ_SMTP_PASS`, `OIQ_A
 password you create yourself). Without SMTP, each alert is written to `outbox/` as an HTML file you can open.
 
 The explanation card (headline, what happened, why, what to check) is written by Muse Spark Open from the measured
-facts only. Code checks every number against those facts and rejects a card that is cut off or not plain prose; then a
+facts only. Code checks that every number in the card occurs in those facts (it does not judge whether the wording is apt) and rejects a card that is cut off or not plain prose; then a
 template card from the same facts is shown and labelled. "What to check" is chosen by code from a fixed list per
 family, never written by the model.
+
+## Models
+Every model called at runtime is a Meta model: Muse Spark 1.3 (Meta Model API) reads MIBs, and Muse Spark Open (served on Baseten, or Fireworks) writes the explanations. `onboardiq/config.py` refuses any other model name before a call is made, even if an environment variable is changed.
 
 ## Second opinion from the open model
 

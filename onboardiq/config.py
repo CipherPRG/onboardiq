@@ -52,3 +52,19 @@ def provider_for(model: str) -> str:
 # Plain-English explanations of health changes: the open-weights model first (Baseten; Fireworks can be put
 # first with OIQ_EXPLAIN_MODEL), then Muse Spark 1.3 if the open model is out of budget or unavailable.
 EXPLAIN_MODEL = os.environ.get("OIQ_EXPLAIN_MODEL", f"{OPEN_MODEL},{MODEL}")
+
+
+# Every model called at runtime must be a Meta model (hackathon rule). Names are checked before any call, so a
+# typo or a copied-in third-party model id fails at once instead of quietly spending on another vendor.
+META_MODEL_PREFIXES = ("muse-spark", "meta-models/muse-spark", "accounts/fireworks/models/muse-spark")
+
+
+class NotMetaModel(ValueError):
+    pass
+
+
+def require_meta(model: str) -> str:
+    if not model.startswith(META_MODEL_PREFIXES):
+        raise NotMetaModel(f"{model!r} is not a Meta model (allowed: Muse Spark on the Meta API, Baseten or "
+                           "Fireworks); refusing to call it")
+    return model

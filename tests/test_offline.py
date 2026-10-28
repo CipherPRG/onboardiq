@@ -175,3 +175,29 @@ def test_fireworks_retries_with_its_own_response_format(env):
     r = llm.chat([{"role": "user", "content": "hi"}], max_tokens=50, use_cache=False,
                  json_schema={"type": "object"}, model="accounts/fireworks/models/muse-spark-open")
     assert seen == ["json_schema", "json_object"] and json.loads(r["content"]) == {"ok": True}
+
+
+def test_only_meta_models_are_callable():
+    import pytest
+    from onboardiq import config, llm
+    for ok in ("muse-spark-1.3", "meta-models/muse-spark-open-1026", "accounts/fireworks/models/muse-spark-open"):
+        assert config.require_meta(ok) == ok
+    for bad in ("gpt-4o", "meta-models/llama", "accounts/fireworks/models/llama-v3", "claude-sonnet-5-5"):
+        with pytest.raises(config.NotMetaModel):
+            config.require_meta(bad)
+    with pytest.raises(config.NotMetaModel):          # refused before any key, cache or network is touched
+        llm.chat([{"role": "user", "content": "hi"}], model="gpt-4o", use_cache=False)
+    with pytest.raises(config.NotMetaModel):          # also inside a fallback list
+        llm.chat([{"role": "user", "content": "hi"}], model="gpt-4o,muse-spark-1.3", use_cache=False)
+
+
+def test_missing_stress_ng_is_unproven_not_a_crash(monkeypatch):
+    import pytest
+    from onboardiq import verify
+
+    def boom(*a, **k):
+        raise FileNotFoundError("stress-ng")
+    monkeypatch.setattr(verify.subprocess, "Popen", boom)
+    with pytest.raises(verify.NotInducible) as e:
+        verify.default_load("cpu", 5)
+    assert "stress-ng" in str(e.value)
