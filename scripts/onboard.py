@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from onboardiq import agent, mib, replay, report  # noqa: E402
+from onboardiq import agent, health, mib, replay, report  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 from onboardiq.config import MODEL  # noqa: E402
 
@@ -98,6 +98,11 @@ def main():
             print(f"  {fam:12} kind {m.get('kind')}, {len(rows)} row(s)"
                   + (f", {len(m['skipped'])} skipped (partial)" if m.get("partial") else "")
                   + (f": {', '.join(named)}" if named else "") + (f"  [{m['note']}]" if m.get("note") else ""))
+        h = health.score(prof)
+        if h["score"] is not None:
+            print(f"\n=== Health now: {h['score']}/100 ({h['level']})  {h['summary']}  [{h['coverage']}]")
+            for e in h["excluded"][:4]:
+                print(f"  not scored: {e['family']}{' ' + str(e['row']) if e.get('row') else ''}: {e['reason']}")
     elif prof.get("error"):
         print(f"\n  device profile failed: {prof['error']}")
     if "replay" in out:

@@ -282,6 +282,7 @@ def read_rows(snmp, mib: Mib, family, pick, scale, unit, value_type):
                          (status_col or {}).get("enums", {}).items()} if status_col and status_col.get("enums")
                         else None),
         "status_from": (f"{status_col['module']}::{status_col['name']}" if status_col else None),
+        "status_oid": (_norm(status_col["oid"]) if status_col and status_col is not me else None),
         "kind_filter_from": (f"{kind_col['module']}::{kind_col['name']}" if kinds else None),
         "valid_range": {"mib": mib_ranges, "physical": list(phys) if phys else None},
         **({"unfiltered": True, "note": "hrStorageType not read: rows are not filtered to RAM and may include disks"}
@@ -452,6 +453,38 @@ NOT_VERSION = ("serial", "mac", "date", "time", "hardware", "hwrev", "hwversion"
                "newversion", "latest", "mib", "protocol", "snmp", "tftp", "http", "url", "path", "file")
 
 
+HR_FIXED_DISK = "1.3.6.1.2.1.25.2.1.4"
+
+
+def disk(snmp):
+    """Fixed disks from the standard hrStorageTable (RFC 2790), read from the device. No model involved:
+    the objects are fixed by the standard. Rows with used > size or no allocation unit are skipped."""
+    types = _column(snmp, HR_STORAGE_TYPE)
+    if not types:
+        return None
+    names, units = _column(snmp, HR_STORAGE + ".3"), _column(snmp, HR_STORAGE + ".4")
+    size, used = _column(snmp, HR_STORAGE + ".5"), _column(snmp, HR_STORAGE + ".6")
+    rows, skipped = [], []
+    for idx, t in sorted(types.items(), key=lambda kv: [int(x) if x.isdigit() else x for x in kv[0].split(".")]):
+        if t.value.lstrip(".") != HR_FIXED_DISK:
+            continue
+        name = names[idx].value.strip() if idx in names else None
+        au, sz, us = (number(d[idx]) if idx in d else None for d in (units, size, used))
+        row = {"index": idx, "name": name}
+        if not au or not sz or us is None:
+            skipped.append({**row, "reason": "size, used or allocation unit not served"})
+        elif us > sz:
+            skipped.append({**row, "reason": f"used {us:g} is larger than size {sz:g}"})
+        else:
+            rows.append({**row, "used_bytes": us * au, "total_bytes": sz * au, "percent": round(100 * us / sz, 1)})
+    if not rows and not skipped:
+        return None
+    return {"verdict": "standard-mib", "object": "HOST-RESOURCES-MIB::hrStorageUsed/hrStorageSize", "unit": "percent",
+            "kind": "disks" if rows else None, "rows": rows, "skipped": skipped,
+            "partial": bool(skipped) and bool(rows), "names_from": "hrStorageDescr",
+            "note": "fixed disks from the standard hrStorageTable; used <= size checked"}
+
+
 def _version_objects(mib):
     """The device MIB's own scalar strings named like a firmware/software version, best names first."""
     if not mib:
@@ -567,6 +600,9 @@ def build(snmp, spec, cands, modules=None, lab=False, load=None):
                 base["note"] = "no valid rows: every row was skipped (see skipped)" if base["skipped"] else \
                     "no rows read"
             out["metrics"][fam] = base
+        d = disk(snmp)
+        if d:
+            out["metrics"]["disk"] = d
         return out
     finally:
         verify.PHASE["name"] = saved
