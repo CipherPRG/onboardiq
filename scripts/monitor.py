@@ -14,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from onboardiq.alerts import Alerter  # noqa: E402
 from onboardiq.monitor import Monitor, load_onboarding  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 
@@ -31,6 +32,8 @@ def main():
     ap.add_argument("--explain", action="store_true",
                     help="when the level changes or something unusual appears, explain it in plain English "
                          "(Muse Spark Open via OIQ_EXPLAIN_MODEL; checked against the evidence)")
+    ap.add_argument("--alert", action="store_true",
+                    help="email when the level changes (SMTP from OIQ_SMTP_* / OIQ_ALERT_TO), else write to outbox/")
     ap.add_argument("--record", help="append every reading as one JSON line (for the replay player)")
     ap.add_argument("--policy", help="health policy JSON (default: onboardiq/health_policy.json)")
     args = ap.parse_args()
@@ -39,7 +42,9 @@ def main():
     except ValueError as e:
         raise SystemExit(str(e))
     snmp = Snmp(args.host, args.community, port=args.port)
-    mon = Monitor(snmp, saved, mods, args.mib_dir, policy=args.policy, explain_on=args.explain)
+    device = str(saved.get("device") or saved.get("args", {}).get("device") or "device")
+    mon = Monitor(snmp, saved, mods, args.mib_dir, policy=args.policy, explain_on=args.explain,
+                  alerter=Alerter(device) if args.alert else None)
     while True:
         res = mon.poll()
         if args.record:
@@ -61,7 +66,14 @@ def main():
                 print(f"   anomaly: {a}", flush=True)
             if res.get("explanation"):
                 x = res["explanation"]
-                print(f"   explanation [{x['source']}]: {x['text']}", flush=True)
+                print(f"   explanation [{x['source']}] {x.get('headline', '')}", flush=True)
+                print(f"     {x['text']}", flush=True)
+                if x.get("check"):
+                    print(f"     check: {x['check']}", flush=True)
+            if res.get("alert"):
+                a = res["alert"]
+                print(f"   alert sent via {a['via']}: {a['subject']}" + (f" ({a['file']})" if a.get("file") else ""),
+                      flush=True)
         if args.once:
             break
         time.sleep(args.interval)

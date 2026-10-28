@@ -101,6 +101,24 @@ API key in the process and the SNMP community in memory for the run only, and se
 explanation as readings arrive. When the device is this machine's own agent, a button puts CPU load on it for
 120 seconds so you can watch the score fall and recover. A run stops after 30 minutes and can be saved as a replay.
 
+## Alerts and the explanation card
+
+When a device's level changes, `scripts/monitor.py --alert` (and the **Monitor live** panel) send one email, and one
+more when it recovers: score, per-family table, the explanation card and what to check next. A cooldown stops a
+flapping device filling an inbox; a move to a worse level is always sent. SMTP settings come from the environment
+only (`OIQ_SMTP_HOST`, `OIQ_SMTP_PORT`, `OIQ_SMTP_USER`, `OIQ_SMTP_PASS`, `OIQ_ALERT_TO`; for Gmail use an app
+password you create yourself). Without SMTP, each alert is written to `outbox/` as an HTML file you can open.
+
+The explanation card (headline, what happened, why, what to check) is written by Muse Spark Open from the measured
+facts only. Code checks every number against those facts and rejects a card that is cut off or not plain prose; then a
+template card from the same facts is shown and labelled. "What to check" is chosen by code from a fixed list per
+family, never written by the model.
+
+## Second opinion from the open model
+
+`python scripts/model_audit.py` asks Muse Spark Open (Baseten) to review this repository against the hackathon rubric
+and writes `results/model_audit.md`. It is a second opinion to check against the code, not a verdict.
+
 ## License
 
 Apache License 2.0 (see `LICENSE`). Third-party data and libraries keep their own licences: LibreNMS test

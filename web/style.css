@@ -103,3 +103,17 @@ svg .mark-x{stroke:var(--soft);stroke-dasharray:3 3}
 form select{font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:3px;padding:7px 9px;width:100%}
 #mon-start{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
 #mon-load{border-color:var(--warn);color:var(--warn);font-weight:600}
+.h-card{border-left:4px solid var(--rule);padding-left:14px}
+.h-card.ok{border-color:var(--ok)}.h-card.warn{border-color:var(--warn)}.h-card.bad{border-color:var(--bad)}
+.h-head{margin:0 0 6px;font-size:20px;font-weight:600}
+.h-line{margin:0 0 6px;max-width:76ch}
+.h-check{margin:10px 0 6px;padding:8px 12px;background:var(--band);border-radius:3px;max-width:76ch}
+.h-alerts{margin-top:10px}.h-alert{margin:4px 0;padding:8px 12px;border:1px solid var(--rule);border-left:3px solid var(--warn);border-radius:3px;background:var(--sheet);font-size:14px}
+.h-alert a{color:var(--ink);font-weight:600}
+.h-card{padding:2px 0}
+.h-head{margin:0 0 6px;font-size:20px;font-weight:600}
+.h-head.bad{color:var(--bad)}.h-head.warn{color:var(--warn)}.h-head.ok{color:var(--ok)}
+.h-line{margin:0 0 4px;max-width:76ch}
+.h-check{margin:10px 0 0;padding:8px 12px;background:var(--band);border-left:3px solid var(--ink);max-width:76ch;font-size:15px}
+.h-alert{margin:8px 0 0;font-size:14px;color:var(--soft)}
+.h-alert a{color:var(--ink)}

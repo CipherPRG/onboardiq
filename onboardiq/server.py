@@ -26,6 +26,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import agent, mib, replay
+from .alerts import Alerter, OUTBOX
 from .monitor import Monitor, load_onboarding
 from .playback import export_all
 from .config import MODEL, ROOT
@@ -155,6 +156,7 @@ def validate_monitor(body: dict) -> dict:
         raise ValueError("interval must be 5 to 300 seconds")
     return {"onboarded": name, "host": host, "port": port, "community": community, "interval": interval,
             "explain": bool(body.get("explain")), "record": bool(body.get("record", True)),
+            "alert": bool(body.get("alert", True)),
             "local": host in LOCAL and port is None}
 
 
@@ -183,7 +185,8 @@ def watch(run: Run, opts: dict):
         saved, mods = load_onboarding(RESULTS / f"{opts['onboarded']}.json")
         device = str(saved.get("device") or saved.get("args", {}).get("device") or "device")[:200]
         snmp = Snmp(opts["host"], opts["community"], port=opts["port"])
-        mon = Monitor(snmp, saved, mods, STATE["mib_dir"], explain_on=opts["explain"])
+        mon = Monitor(snmp, saved, mods, STATE["mib_dir"], explain_on=opts["explain"],
+                      alerter=Alerter(device, outbox=STATE.get("outbox")) if opts.get("alert") else None)
         if opts["record"]:
             rec = DEMO / f"{slug(device)}-health-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
         run.emit({"kind": "monitor-start", "device": device, "interval": opts["interval"],
@@ -313,6 +316,14 @@ class Handler(BaseHTTPRequestHandler):
             q = (parse_qs(url.query).get("q") or [""])[0].upper()[:40]
             names = module_names()
             return self._json(200, [n for n in names if q in n.upper()][:40])
+        m = re.fullmatch(r"/api/outbox/(alert-\d{8}-\d{6}\.html)", url.path)
+        if m:
+            f = (STATE.get("outbox") or OUTBOX) / m.group(1)
+            if not f.is_file():
+                return self._send(404, b'{"error":"not found"}')
+            # the email is escaped HTML; the CSP also forbids scripts and any outside loads
+            return self._send(200, f.read_bytes(), "text/html; charset=utf-8",
+                              {"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox"})
         if url.path == "/api/onboarded":
             return self._json(200, onboarded_list())
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/events", url.path)

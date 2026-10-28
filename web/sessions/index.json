@@ -1,5 +1,13 @@
 [
  {
+  "id": "linux-laptop-health-20261029-014353",
+  "device": "Linux laptop",
+  "highlight": "health fell 100 \u2192 40 under load, then recovered",
+  "summary": {},
+  "recorded": "2026-10-28 20:13 UTC",
+  "kind": "health"
+ },
+ {
   "id": "laptop_stress",
   "device": "Linux laptop (net-snmp agent), CPU stress test",
   "highlight": "health fell 100 \u2192 40 under load, then recovered",

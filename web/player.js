@@ -341,11 +341,34 @@ function healthView(pb) {
       anom.replaceChildren(...(x.anomalies || []).map((a) => el("li", {}, "Unusual: " + a)));
       if (x.explanation) {
         const e = x.explanation;
-        const src = e.source === "template" ? "Template (the model's answer failed the check" +
-          (e.note && e.note.includes("rejected: ") ? ": " + e.note.split("rejected: ")[1] : "") + ")"
-          : `${e.source}, every number checked against the readings`;
-        expl.replaceChildren(el("p", { class: "h-etext appear" }, e.text),
-                             el("p", { class: "h-esrc" }, `${(x.at || "").slice(11, 19)} UTC · ${src}`));
+        const src = e.source === "template" ? "Written from the measured readings (template)" +
+          (e.note && e.note.includes("rejected: ") ? ": the model's answer failed the check (" + e.note.split("rejected: ")[1] + ")" : "")
+          : `Written by ${e.source}. Every number is checked against the readings.`;
+        const foot = el("p", { class: "h-esrc" }, `${(x.at || "").slice(11, 19)} UTC · ${src}`);
+        if (e.headline) {
+          const tone = LEVEL_TONE[x.level] || "";
+          const card = el("div", { class: "h-card appear" });
+          card.append(el("p", { class: "h-head " + tone }, e.headline),
+                      el("p", { class: "h-line" }, e.what_happened), el("p", { class: "h-line" }, e.why));
+          if (e.check) {
+            const c = el("p", { class: "h-check" });
+            c.append(el("strong", {}, "What to check: "), document.createTextNode(e.check));
+            card.append(c);
+          }
+          expl.replaceChildren(card, foot);
+        } else {
+          expl.replaceChildren(el("p", { class: "h-etext appear" }, e.text), foot);
+        }
+      }
+      if (x.alert) {
+        const a = x.alert;
+        const line = el("p", { class: "h-alert" });
+        line.append(document.createTextNode(a.via === "smtp" ? "Alert emailed: " : "Alert written to the outbox: "));
+        if (a.file) {
+          const link = el("a", { href: "/api/outbox/" + a.file, target: "_blank", rel: "noopener" }, a.subject);
+          line.append(link);
+        } else line.append(document.createTextNode(a.subject));
+        expl.append(line);
       }
     },
   };
@@ -359,9 +382,9 @@ function liveSample(res) {
     fams[k] = { score: f.score, worst: f.worst, why: worst.why, rows: f.rows.length,
                 flagged: f.rows.filter((r) => r.level !== "ok").length, partial: f.partial };
   }
-  return { at: res.at, score: res.score, level: res.level, capped_by: res.capped_by, summary: res.summary,
+  return { at: res.at, alert: res.alert, score: res.score, level: res.level, capped_by: res.capped_by, summary: res.summary,
            note: res.note, coverage: res.coverage, families: fams, anomalies: res.anomalies || [],
-           explanation: res.explanation };
+           explanation: res.explanation, alert: res.alert };
 }
 
 async function playHealth(pb) {
@@ -411,6 +434,17 @@ function monButtons(running, local) {
   $("run").disabled = running;
 }
 
+function showAlert(a) {
+  const box = $("alerts") || (() => { const n = el("div", { id: "alerts", class: "h-alerts" }); $("families").append(n); return n; })();
+  const line = el("p", { class: "h-alert appear" });
+  line.append(el("strong", {}, a.via === "smtp" ? "Email sent: " : "Alert saved to the outbox: "), document.createTextNode(a.subject + " "));
+  if (a.file && /^alert-\d{8}-\d{6}\.html$/.test(a.file)) {
+    const link = el("a", { href: "/api/outbox/" + a.file, target: "_blank", rel: "noopener" }, "open the email");
+    line.append(link);
+  }
+  box.prepend(line);
+}
+
 function onMonitorEvent(ev) {
   if (ev.kind === "monitor-start") {
     $("families").replaceChildren();
@@ -429,6 +463,7 @@ function onMonitorEvent(ev) {
     if (mon.samples.length === 1) mon.view.setNotScored(ev.excluded || []);
     $("status").textContent = `Live: ${mon.samples.length} reading${mon.samples.length > 1 ? "s" : ""}` +
       (x.load ? " · CPU load running" : "") + (x.explanation ? " · the model explained this change" : "");
+    if (x.alert) showAlert(x.alert);
   } else if (ev.kind === "load") {
     mon.loadUntil = Date.now() + ev.seconds * 1000;
     $("status").textContent = `CPU load started on this machine for ${ev.seconds} s. Watch the score.`;
@@ -452,7 +487,7 @@ async function startMonitor(form) {
     const { id } = await post("/api/monitor", {
       onboarded: fd.get("onboarded"), host: fd.get("host"), port: fd.get("port") ? Number(fd.get("port")) : null,
       community: fd.get("community"), interval: Number(fd.get("interval")) || 10,
-      explain: fd.get("explain") === "on", record: fd.get("record") === "on",
+      explain: fd.get("explain") === "on", record: fd.get("record") === "on", alert: fd.get("alert") === "on", alert: fd.get("alert") === "on",
     });
     mon.id = id; mon.samples = []; mon.loadUntil = 0;
     mon.es = new EventSource(`/api/runs/${id}/events`);

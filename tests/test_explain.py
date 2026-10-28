@@ -1,4 +1,6 @@
 """Explainer: grounded evidence, number check, template fallback. No network."""
+import json
+
 from onboardiq import explain, health
 
 
@@ -26,22 +28,66 @@ def test_evidence_carries_scores_reasons_anomalies_and_history():
     assert ev["recent_scores"][-1] == {"time": "15:38:32", "score": 40}
 
 
-def test_grounded_answer_is_accepted(monkeypatch):
-    fake(monkeypatch, "CPU load jumped to 99, far above its usual 1, which pulled the health score down to 5 out of 100.")
+GOOD = json.dumps({"headline": "CPU load critical on core #1",
+                   "what_happened": "Health fell to 5 out of 100 from 100.",
+                   "why": "Core #1 is at 99%, far above its usual 1, against full marks up to 70%."})
+
+
+def test_grounded_card_is_accepted(monkeypatch):
+    fake(monkeypatch, GOOD)
     out = explain.explain(hot())
-    assert out["source"] == "open-model" and out["checked"] and "99" in out["text"]
+    assert out["source"] == "open-model" and out["checked"] and out["headline"].startswith("CPU load")
+    assert "99%" in out["why"] and out["text"].startswith("Health fell")
+    assert out["check"] == explain.CHECKS["cpu"]          # what to check comes from code, not the model
+
+
+def test_fenced_json_and_extra_text_are_tolerated(monkeypatch):
+    fake(monkeypatch, "Here you go:\n```json\n" + GOOD + "\n```")
+    assert explain.explain(hot())["source"] == "open-model"
+
+
+def test_card_with_a_cut_off_field_or_long_headline_is_rejected(monkeypatch):
+    bad = json.loads(GOOD)
+    bad["why"] = "Core #1 is at 99%, far above its usual 1, against"
+    fake(monkeypatch, json.dumps(bad))
+    out = explain.explain(hot())
+    assert out["source"] == "template" and "cut off" in out["note"]
+    bad = json.loads(GOOD)
+    bad["headline"] = "CPU load is critical on core number one right now and the score fell a lot " * 2
+    fake(monkeypatch, json.dumps(bad))
+    assert explain.explain(hot())["source"] == "template"
+
+
+def test_plain_text_reply_falls_back_to_the_template_card(monkeypatch):
+    fake(monkeypatch, "CPU load jumped to 99 which pulled the score down to 5 out of 100.")
+    out = explain.explain(hot())
+    assert out["source"] == "template" and "JSON" in out["note"]
+    assert out["headline"] and out["what_happened"] and out["why"] and out["check"]
+
+
+def test_healthy_card_says_no_action_needed():
+    p = {"metrics": {"cpu_load": {"verdict": "standard-mib", "object": "X", "kind": "per-core", "unit": "percent",
+                                  "rows": [{"name": "core", "value": 3.0}]}}}
+    ev = explain.evidence(health.score(p))
+    c = explain.template_card(ev)
+    assert c["headline"].startswith("Healthy") and explain.next_step(ev) == explain.HEALTHY_CHECK
 
 
 def test_invented_number_is_rejected_and_replaced_by_the_template(monkeypatch):
-    fake(monkeypatch, "CPU hit 99 because of a firmware bug that began 37 minutes ago.")
+    bad = json.loads(GOOD)
+    bad["why"] = "Core #1 is at 99% because of a firmware bug that began 37 minutes ago."
+    fake(monkeypatch, json.dumps(bad))
     out = explain.explain(hot())
     assert out["source"] == "template" and "rejected" in out["note"] and "37" not in out["text"]
     assert "5 out of 100" in out["text"]
 
 
 def test_markdown_or_long_answers_are_rejected(monkeypatch):
-    fake(monkeypatch, "- CPU is at 99\n- score is 40")
-    assert explain.explain(hot())["source"] == "template"
+    bad = json.loads(GOOD)
+    bad["why"] = "- Core #1 is at 99%\n- usual 1."
+    fake(monkeypatch, json.dumps(bad))
+    out = explain.explain(hot())
+    assert out["source"] == "template" and "plain prose" in out["note"]
 
 
 def test_no_model_means_template_not_a_crash(monkeypatch):
@@ -52,7 +98,7 @@ def test_no_model_means_template_not_a_crash(monkeypatch):
 
 def test_template_says_nothing_proven_when_there_is_no_score():
     ev = explain.evidence(health.score({"metrics": {}}))
-    assert "no health score" in explain.template(ev)
+    assert "No health score" in explain.template(ev)
 
 
 def test_cut_off_answer_is_rejected():

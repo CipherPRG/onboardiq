@@ -136,3 +136,21 @@ def test_live_monitor_streams_readings_and_stops(srv, tmp_path, monkeypatch):
             break
         _t.sleep(0.1)
     assert run.finished and run.events[-1]["kind"] == "end"
+
+
+def test_outbox_serves_only_alert_files_with_a_locked_down_csp(srv, tmp_path):
+    out = tmp_path / "outbox"
+    out.mkdir()
+    (out / "alert-20261029-174035.html").write_text("<p>hi</p>")
+    (out / "secret.txt").write_text("nope")
+    server.STATE["outbox"] = out
+    try:
+        c = http.client.HTTPConnection("127.0.0.1", srv, timeout=5)
+        c.request("GET", "/api/outbox/alert-20261029-174035.html", headers={"Host": f"127.0.0.1:{srv}"})
+        r = c.getresponse()
+        assert r.status == 200 and b"hi" in r.read() and "sandbox" in r.getheader("Content-Security-Policy")
+        assert req(srv, "GET", "/api/outbox/secret.txt")[0] == 404
+        assert req(srv, "GET", "/api/outbox/..%2f..%2fetc%2fpasswd")[0] == 404
+        assert req(srv, "GET", "/api/outbox/alert-20261029-999999.html")[0] == 404
+    finally:
+        server.STATE.pop("outbox", None)

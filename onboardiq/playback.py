@@ -88,10 +88,11 @@ def export_health(path: Path) -> dict:
             level = "critical"
         s = {"at": x.get("at"), "score": x.get("score"), "level": level, "capped_by": x.get("capped_by"),
              "summary": x.get("summary"), "coverage": x.get("coverage"), "families": fams,
-             "anomalies": x.get("anomalies") or []}
+             "anomalies": x.get("anomalies") or [], **({"alert": x["alert"]} if x.get("alert") else {})}
         if x.get("explanation"):
             e = x["explanation"]
-            s["explanation"] = {"text": e.get("text"), "source": e.get("source"), "note": e.get("note")}
+            s["explanation"] = {k: e.get(k) for k in ("headline", "what_happened", "why", "check", "text", "source", "note")
+                                if e.get(k) is not None}
         samples.append(s)
     scores = [s["score"] for s in samples if s["score"] is not None]
     hi, lo = max(scores), min(scores)

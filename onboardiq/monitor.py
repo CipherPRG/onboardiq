@@ -23,16 +23,16 @@ def load_onboarding(path):
 
 class Monitor:
     """One poll() = one reading: rebuild the verified profile from the device, score it, scan for anomalies,
-    and (when asked) explain a change worth explaining: the level moved or something unusual appeared.
+    and (when asked) explain a change worth explaining: the level moved, or something unusual appeared while the device is not healthy.
     At most one explanation a minute and `max_explain` a run, so a noisy device cannot run up model calls."""
 
-    def __init__(self, snmp, saved, mods, mib_dir, policy=None, explain_on=False, max_explain=20):
+    def __init__(self, snmp, saved, mods, mib_dir, policy=None, explain_on=False, max_explain=20, alerter=None):
         self.snmp, self.spec, self.mods = snmp, saved["spec"], mods
         self.cands = mib.candidates(Path(mib_dir).expanduser(), mods)
         self.pol = health.load_policy(policy) if not isinstance(policy, dict) else policy
         self.base = health.Baseline()
         self.history = deque(maxlen=12)
-        self.explain_on, self.max_explain = explain_on, max_explain
+        self.explain_on, self.max_explain, self.alerter = explain_on, max_explain, alerter
         self.last_level, self.last_explained, self.explained = None, 0.0, 0
 
     def poll(self, explain_now=None):
@@ -43,9 +43,14 @@ class Monitor:
         self.history.append((res["at"][11:], res["score"]))
         moved = res["level"] != self.last_level and self.last_level is not None
         if self.explain_on and res["score"] is not None and self.explained < self.max_explain \
-                and time.time() - self.last_explained >= 60 and (moved or res["anomalies"]):
+                and time.time() - self.last_explained >= 60 \
+                and (moved or (res["anomalies"] and res["level"] != "ok")):
             ev = explain.evidence(res, res["anomalies"], prof.get("provenance"), self.history, res["at"][11:])
             res["explanation"] = (explain_now or explain.explain)(ev)
             self.last_explained, self.explained = time.time(), self.explained + 1
         self.last_level = res["level"]
+        if self.alerter:
+            sent = self.alerter.consider(res)    # an email (or outbox file) when the level changed
+            if sent:
+                res["alert"] = sent
         return res

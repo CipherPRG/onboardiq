@@ -68,6 +68,8 @@
       <label>Every (seconds) <input name="interval" inputmode="numeric" value="10" maxlength="3"></label>
       <fieldset class="wide"><legend>Options</legend>
         <label><input type="checkbox" name="explain" checked> Explain changes in plain English (Muse Spark)</label>
+        <label><input type="checkbox" name="alert" checked> Email an alert when the level changes (outbox if no SMTP)</label>
+        <label><input type="checkbox" name="alert" checked> Alert email when the level changes (SMTP if set up, otherwise the outbox)</label>
         <label><input type="checkbox" name="record" checked> Save as a replay</label>
       </fieldset>
       <div class="wide actions">

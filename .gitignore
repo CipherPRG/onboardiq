@@ -10,3 +10,4 @@ results/
 .env.*
 !.env.example
 demo/*/
+outbox/
