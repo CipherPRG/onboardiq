@@ -28,6 +28,7 @@ def main():
     ap.add_argument("--interval", type=float, default=60)
     ap.add_argument("--once", action="store_true")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--policy", help="health policy JSON (default: onboardiq/health_policy.json)")
     args = ap.parse_args()
     saved = json.loads(Path(args.onboarded).read_text())
     mods = saved.get("args", {}).get("modules") or ""
@@ -36,10 +37,11 @@ def main():
         raise SystemExit("this onboarding record has no MIB modules; rerun scripts/onboard.py")
     cands = mib.candidates(Path(args.mib_dir).expanduser(), mods)
     snmp = Snmp(args.host, args.community, port=args.port)
+    pol = health.load_policy(args.policy)
     base = health.Baseline()
     while True:
         prof = profile.build(snmp, saved["spec"], cands, modules=mods)
-        res = health.score(prof)
+        res = health.score(prof, pol)
         res["anomalies"] = base.scan(prof)
         res["at"] = time.strftime("%Y-%m-%d %H:%M:%S")
         if args.json:

@@ -4,12 +4,9 @@ Only what the agent proved goes into the score. Every row gets its own 0-100 sco
 stated rule; the family score is its worst row; the device score is the mean of the family
 scores, capped when any row is warning or critical, so one dead fan cannot be averaged away.
 
-    row score       rule (thresholds are printed in the result, with where they came from)
-    cpu             <=70% full marks, 90% -> 50, 100% -> 0
-    memory / disk   <=80% full marks, 95% -> 40, 100% -> 0
-    temperature     <=60 C full marks, 85 C -> 30, >=95 C -> 0     (default: no device thresholds read)
-    fan (rpm)       0 rpm -> 0, otherwise 100                      (default)
-    status enums    ok 100, warning 60, critical 0 (from the MIB's own labels); unknown is not scored
+    row score       rule from the policy file (health_policy.json): per-family limits, fan rule, status
+                    scores, level cut-offs and caps. Nothing is fixed in the code; the result names the policy.
+                    Status labels come from the MIB's own enum (ok / warning / critical / unknown).
 
 Not scored, and listed as such: families whose pick was not proven, not served by the device,
 or rows with no usable reading. "coverage" says how many families the score rests on.
@@ -17,21 +14,30 @@ or rows with no usable reading. "coverage" says how many families the score rest
 Anomalies: Baseline keeps a rolling window per row and flags a reading far from that row's own
 normal (median and MAD). No model is trained: it is a plain statistic, explainable in one line.
 """
+import json
+import os
 from collections import Counter, defaultdict, deque
+from pathlib import Path
 from statistics import median
 
 PROVEN = ("proven-experiment", "proven-witness", "proven-static", "standard-mib")
+POLICY_FILE = Path(__file__).with_name("health_policy.json")
 
-# (full-marks limit, partial point (value, score), zero point), for "higher is worse" values
-RULES = {
-    "cpu": {"unit": "%", "ok": 70, "mid": (90, 50), "zero": 100},
-    "memory": {"unit": "%", "ok": 80, "mid": (95, 40), "zero": 100},
-    "disk": {"unit": "%", "ok": 80, "mid": (95, 40), "zero": 100},
-    "cpu_load": {"unit": "%", "ok": 70, "mid": (90, 50), "zero": 100},
-    "temperature": {"unit": "C", "ok": 60, "mid": (85, 30), "zero": 95},
-}
-STATUS_SCORE = {"ok": 100, "warning": 60, "critical": 0}
-CAP_WARNING, CAP_CRITICAL = 70, 40
+
+def load_policy(path=None):
+    """The limits, status scores and caps the score uses, from a JSON file (default: health_policy.json
+    next to this module; override with a path or the OIQ_HEALTH_POLICY environment variable)."""
+    src = Path(path or os.environ.get("OIQ_HEALTH_POLICY") or POLICY_FILE)
+    pol = json.loads(src.read_text())
+    for fam, r in pol["rules"].items():
+        if not r["ok"] < r["mid"][0] < r["zero"]:
+            raise ValueError(f"policy {src.name}: '{fam}' needs ok < mid < zero")
+    pol["source"] = src.name
+    return pol
+
+
+DEFAULT = load_policy()
+CAP_WARNING, CAP_CRITICAL = DEFAULT["caps"]["warning"], DEFAULT["caps"]["critical"]
 
 
 def _line(x, ok, mid, zero):
@@ -60,8 +66,9 @@ def _labels(rows):
     return out
 
 
-def _level(score):
-    return "ok" if score >= 75 else ("warning" if score >= 40 else "critical")
+def _level(score, pol=None):
+    lv = (pol or DEFAULT)["levels"]
+    return "ok" if score >= lv["ok_from"] else ("warning" if score >= lv["warning_from"] else "critical")
 
 
 def _row_value(family, kind, row):
@@ -75,24 +82,27 @@ def _row_value(family, kind, row):
     return row.get("value")
 
 
-def row_score(family, kind, unit, row):
+def row_score(family, kind, unit, row, pol=None):
     """(score|None, rule text). None = not scored (the reason is in the text). A row with both a value
     and a status gets the lower of the two scores."""
+    pol = pol or DEFAULT
     parts = []
     st = row.get("status")
     if st:
         m = st.get("meaning")
-        if m in STATUS_SCORE:
-            parts.append((STATUS_SCORE[m], f"status {st.get('label')} is {m} (from the MIB's labels)"))
+        if m in pol["status_scores"]:
+            parts.append((pol["status_scores"][m], f"status {st.get('label')} is {m} (from the MIB's labels)"))
         elif row.get("value") is None:
             return None, f"status {st.get('label')} has no clear meaning in the MIB (unknown): not scored"
     v = _row_value(family, kind, row) if unit != "status" else None
     if v is not None:
         if family == "fan":
             if unit == "rpm":
-                parts.append((0.0, "0 rpm: stopped") if v <= 0 else (100.0, f"{v:g} rpm: spinning"))
-        elif family in RULES:
-            r = RULES[family]
+                fan = pol["fan"]
+                parts.append((fan["stopped_score"], f"{v:g} rpm: stopped") if v <= fan["stopped_at_or_below_rpm"]
+                             else (fan["spinning_score"], f"{v:g} rpm: spinning"))
+        elif family in pol["rules"]:
+            r = pol["rules"][family]
             parts.append((round(_line(v, r["ok"], r["mid"], r["zero"]), 1),
                           f"{v:g}{r['unit']} (full marks up to {r['ok']}{r['unit']}, 0 at {r['zero']}{r['unit']})"))
     if not parts:
@@ -100,8 +110,9 @@ def row_score(family, kind, unit, row):
     return min(parts, key=lambda p: p[0])
 
 
-def score(profile):
-    """Health score from a device profile (profile.build output)."""
+def score(profile, policy=None):
+    """Health score from a device profile (profile.build output) under a policy (default: health_policy.json)."""
+    pol = policy or DEFAULT
     fams, excluded, worst_level = {}, [], "ok"
     metrics = profile.get("metrics") or {}
     superseded = set()
@@ -121,7 +132,7 @@ def score(profile):
         rows = []
         src = m.get("rows") or []
         for r, label in zip(src, _labels(src)):
-            s, why = row_score(fam, m.get("kind"), m.get("unit"), r)
+            s, why = row_score(fam, m.get("kind"), m.get("unit"), r, pol)
             if s is None:
                 if m.get("value_type") == "counter" and why == "no usable reading":
                     why = "time counter: becomes a percentage only from two polls (scripts/monitor.py), not scored yet"
@@ -129,13 +140,13 @@ def score(profile):
                     why = "no total to compare the reading with: not scored"
                 excluded.append({"family": fam, "row": label, "reason": why})
                 continue
-            rows.append({"name": label, "score": s, "level": _level(s), "why": why})
+            rows.append({"name": label, "score": s, "level": _level(s, pol), "why": why})
         if not rows:
             excluded.append({"family": fam, "reason": "no scorable rows"})
             continue
         worst = min(rows, key=lambda x: x["score"])
         fams[fam] = {"score": worst["score"], "worst": worst["name"], "rows": rows,
-                     "partial": bool(m.get("partial")), "thresholds": "default" if fam in RULES or fam == "fan" else "mib"}
+                     "partial": bool(m.get("partial")), "thresholds": f"policy {pol['source']}"}
         if any(x["level"] == "critical" for x in rows):
             worst_level = "critical"
         elif any(x["level"] == "warning" for x in rows) and worst_level != "critical":
@@ -144,13 +155,13 @@ def score(profile):
         return {"score": None, "level": None, "families": {}, "excluded": excluded, "coverage": "0 families",
                 "note": "nothing proven to score"}
     total = sum(f["score"] for f in fams.values()) / len(fams)
-    cap = {"critical": CAP_CRITICAL, "warning": CAP_WARNING}.get(worst_level)
+    cap = {"critical": pol["caps"]["critical"], "warning": pol["caps"]["warning"]}.get(worst_level)
     final = min(total, cap) if cap is not None else total
     drivers = sorted(((f["score"], k, f["worst"]) for k, f in fams.items()))[:2]
     summary = "; ".join(f"{k} {w} {s:g}/100" for s, k, w in drivers if s < 100) or "all proven readings are healthy"
     served = len([1 for k, m in metrics.items() if m.get("verdict") != "not-supported" and m.get("object")
                   and k not in superseded])
-    return {"score": round(final), "level": _level(final), "capped_by": worst_level if cap is not None and total > cap else None,
+    return {"score": round(final), "level": _level(final, pol), "policy": f"{pol['name']} ({pol['source']})", "capped_by": worst_level if cap is not None and total > cap else None,
             "summary": summary, "families": fams, "excluded": excluded,
             "coverage": f"{len(fams)} of {served} served families scored"}
 

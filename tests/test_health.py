@@ -177,3 +177,23 @@ def test_many_rows_tripping_together_become_one_anomaly_line():
     busy = prof(cpu_load=m([{"name": "cpu", "value": 90.0}] * 6, kind="per-core"))
     out = b.scan(busy)
     assert len(out) == 1 and "6 of 6 rows far from their usual" in out[0]
+
+
+def test_policy_is_data_not_code(tmp_path):
+    import json as _j
+    pol = health.load_policy()
+    assert pol["rules"]["cpu"]["ok"] == 70 and health.CAP_CRITICAL == pol["caps"]["critical"]
+    strict = _j.loads(_j.dumps(pol))
+    strict["rules"]["cpu"].update(ok=30, mid=[50, 40], zero=60)
+    strict["name"] = "strict"
+    f = tmp_path / "strict.json"
+    f.write_text(_j.dumps(strict))
+    p = prof(cpu=m([{"name": "c", "value": 55.0}], object="X::cpu"))
+    assert health.score(p)["score"] == 100                       # default: 55% is fine
+    r = health.score(p, health.load_policy(f))                    # same reading, stricter policy
+    assert r["score"] < 40 and r["policy"] == "strict (strict.json)"
+    strict["rules"]["cpu"].update(ok=90)
+    f.write_text(_j.dumps(strict))
+    import pytest
+    with pytest.raises(ValueError):
+        health.load_policy(f)

@@ -1,0 +1,15 @@
+{
+  "name": "default",
+  "note": "Starting limits used when a device does not serve its own. Edit or replace with --policy / OIQ_HEALTH_POLICY. A row scores 100 up to 'ok', falls to the 'mid' score at the 'mid' value, and reaches 0 at 'zero'.",
+  "rules": {
+    "cpu": {"unit": "%", "ok": 70, "mid": [90, 50], "zero": 100},
+    "cpu_load": {"unit": "%", "ok": 70, "mid": [90, 50], "zero": 100},
+    "memory": {"unit": "%", "ok": 80, "mid": [95, 40], "zero": 100},
+    "disk": {"unit": "%", "ok": 80, "mid": [95, 40], "zero": 100},
+    "temperature": {"unit": "C", "ok": 60, "mid": [85, 30], "zero": 95}
+  },
+  "fan": {"stopped_at_or_below_rpm": 0, "stopped_score": 0, "spinning_score": 100},
+  "status_scores": {"ok": 100, "warning": 60, "critical": 0},
+  "levels": {"ok_from": 75, "warning_from": 40},
+  "caps": {"warning": 70, "critical": 40}
+}
