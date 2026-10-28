@@ -153,6 +153,8 @@ def test_failover_when_a_provider_is_over_its_cap_and_all_failing_raises(env):
     r = llm.chat([{"role": "user", "content": "hi" * 2000}], max_tokens=50, use_cache=False,
                  model="muse-spark-1.3,accounts/fireworks/models/muse-spark-open")
     assert r["model"].startswith("accounts/fireworks/") and "daily cap" in r["fallback_from"][0]
+    # both hosts must be fake: with a real BASETEN_API_KEY in .env this test used to call Baseten for real
+    llm._clients["baseten"] = _fake_client(lambda **kw: (_ for _ in ()).throw(RuntimeError("down")))
     llm._clients["fireworks"] = _fake_client(lambda **kw: (_ for _ in ()).throw(RuntimeError("down")))
     with pytest.raises(RuntimeError, match="every provider failed"):
         llm.chat([{"role": "user", "content": "x"}], max_tokens=50, use_cache=False,
