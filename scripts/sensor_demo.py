@@ -45,13 +45,26 @@ def main():
              "temperature": True, "fan": True}
         rec = Path(a.recording).expanduser()
     elif a.list or not a.os:
-        print("os                     modules (all in your MIB folder?)")
+        print("os                     temp-rows fan-rows  modules")
         for os_name, d in sorted(bench.items()):
             if not (d.get("temperature") and d.get("fan") and recording(sim, os_name)):
                 continue
             mods = d["modules"] if isinstance(d["modules"], list) else d["modules"].split(",")
-            have = all((mibs / f"{m}.json").exists() for m in mods)
-            print(f"{os_name:22} {','.join(mods)}  {'READY' if have else 'missing MIB'}")
+            if not all((mibs / f"{m}.json").exists() for m in mods):
+                continue
+            byname = {f"{c['module']}::{c['name']}": c["oid"].lstrip(".").removesuffix(".0") for c in mib.candidates(mibs, mods)}
+            rows = RecordedSnmp(recording(sim, os_name)).rows
+
+            def served(fam):
+                n = 0
+                for name in d.get(fam) or {}:
+                    oid = byname.get(name)
+                    if oid:
+                        pre = tuple(int(x) for x in oid.split("."))
+                        n += sum(1 for k in rows if k[:len(pre)] == pre)
+                return n
+            t, f = served("temperature"), served("fan")
+            print(f"{os_name:22} {t:9} {f:8}  {','.join(mods)}{'   <-- both served' if t and f else ''}")
         return
     else:
         d = bench[a.os]
