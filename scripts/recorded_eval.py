@@ -78,7 +78,7 @@ def main():
         todo = todo[:args.limit]
     print(f"{len(todo)} {args.split} devices with a recording", flush=True)
 
-    rows, cost = [], 0.0
+    rows, cost, errors = [], 0.0, []
     # Rows are appended per device so a crash or a killed terminal keeps everything measured so far
     # (model answers are cached, so a rerun of finished devices costs nothing).
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -95,6 +95,10 @@ def main():
                                 effort=args.effort, verify_kw=dict(FAST), log=lambda m: None, profile=False)
         except Exception as e:  # noqa: BLE001
             print(f"[{i}/{len(todo)}] {os_name}: ERROR {type(e).__name__}: {str(e)[:120]}", flush=True)
+            errors.append(os_name)
+            if isinstance(e, ModuleNotFoundError):
+                raise SystemExit(f"\nstopped: missing package '{e.name}'. Run inside the project's virtual "
+                                 "environment (pip install -r requirements.txt), not the system Python.")
             if type(e).__name__ == "SpendLimitError":
                 print("  spend limit reached: stopping; rerun later (answers so far are cached, so free)")
                 break
@@ -134,7 +138,11 @@ def main():
     final_ok = sum(r["final"] == "right" for r in rows)
     passed = [r for r in rows if r["verdict"] in ("proven-static", "proven-witness", "proven-experiment")]
     unproven = [r for r in rows if r["verdict"] == "unproven"]
-    print(f"\n=== {n} questions on {len(todo)} recorded real devices ({args.split} split)")
+    scored = len({r["os"] for r in rows})
+    print(f"\n=== {n} questions on {scored} of {len(todo)} recorded real devices ({args.split} split)")
+    if errors:
+        print(f"  INCOMPLETE: {len(errors)} device(s) errored and are NOT counted: {', '.join(errors[:12])}"
+              + (" ..." if len(errors) > 12 else "") + "\n  do not quote these numbers as a final result")
     print(f"  first pick right   {first_ok}/{n} = {first_ok / n:.0%}")
     print(f"  final pick right   {final_ok}/{n} = {final_ok / n:.0%}")
     fixed = [r for r in rows if r["first"] != "right" and r["final"] == "right"]
