@@ -25,7 +25,8 @@ def test_mistake_is_caught_and_corrected(monkeypatch):
     assert m["pick"]["object_name"] == "memAvailReal"
     assert "change +0" in seen["evidence"]                      # the Reader was told why
     assert [t["kind"] for t in out["trace"]] == ["read", "verify-start", "verify", "repick", "verify-start",
-                                                  "verify", "final", "done"]
+                                                  "verify", "final", "profile", "done"]
+    assert m["triggers"] == ["experiment"]                       # what made it re-read, for the eval split
 
 
 def test_absent_everywhere_is_not_supported(monkeypatch):
@@ -35,6 +36,9 @@ def test_absent_everywhere_is_not_supported(monkeypatch):
                         initial={"temperature": pick("1.9.9.10", "lmTemp", 0.001, "celsius")},
                         max_attempts=2, verify_kw={"observe_s": 0.01, "witness_interval": 0.001, "observe_interval": 0.001}, log=lambda *a: None)
     assert out["spec"]["temperature"]["verdict"] == "not-supported"
+    # absence says nothing about which object the MIB means: the Reader's first answer is reported
+    assert out["spec"]["temperature"]["pick"]["object_name"] == "lmTemp"
+    assert out["spec"]["temperature"]["triggers"] == ["absent"]
 
 
 

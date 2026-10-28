@@ -133,7 +133,8 @@ def execute(run: Run, opts: dict):
         run.emit({"kind": "start", "device": opts["device"], "objects": len(cands),
                   "modules": ",".join(opts["modules"]), "model": MODEL, "live": True})
         out = agent.onboard(opts["device"], cands, dev, lab=lab, families=opts["families"],
-                            effort=EFFORT, log=lambda m: None, on_event=run.emit, verify_kw=verify_kw)
+                            effort=EFFORT, log=lambda m: None, on_event=run.emit, verify_kw=verify_kw,
+                            modules=opts["modules"])
         saved = None
         if opts["record"]:
             name = f"{slug(opts['device'])}-{time.strftime('%Y%m%d-%H%M%S')}"

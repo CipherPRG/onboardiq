@@ -8,6 +8,7 @@ Every step is recorded in a trace (for the dashboard, the video and the build lo
 """
 import time
 
+from . import profile as profile_mod
 from . import reader
 from .verify import Item, verify_item
 
@@ -22,12 +23,23 @@ def _verify(snmp, family, pick, lab, verify_kw, types=None):
             "suggested_scale": res.suggested_scale, "seconds": res.seconds, "series": res.series}
 
 
+def trigger(evidence):
+    """What made the verifier reject a pick: absent | type | range | experiment | witness | ..."""
+    bad = [e for e in evidence if e["ok"] is False]
+    if not bad:
+        return None
+    return "absent" if NOT_SERVED in bad[-1]["detail"] else bad[-1]["check"]
+
+
 def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attempts=3, model=None,
-            effort="high", initial=None, verify_kw=None, log=print, on_event=None):
-    """Returns {"spec": {family: final}, "trace": [...], "cost_usd": float}.
+            effort="high", initial=None, verify_kw=None, log=print, on_event=None, profile=True,
+            modules=None):
+    """Returns {"spec": {family: final}, "trace": [...], "cost_usd": float, "profile": {...}}.
 
     initial: an existing spec to start from (e.g. a cached Reader answer); otherwise the Reader runs.
     Final verdict per family: proven-experiment | proven-static | unproven | not-supported | rejected.
+    profile: also build the verified device profile (kinds, row names, status meanings, validity
+    filter, provenance; see profile.py).
     """
     verify_kw = verify_kw or {}
     trace, cost, t0 = [], 0.0, time.time()
@@ -82,24 +94,42 @@ def onboard(device, cands, snmp, lab=False, families=reader.FAMILIES, max_attemp
                     break
                 if n == max_attempts:
                     break
+                why_trigger = trigger(a["evidence"])
                 pick, why, r = reader.repick(device, cands, fam, attempts, model=model, effort=effort)
                 cost += 0 if r.get("cached") else r["cost_usd"]
-                log(f"    re-read: {why[:200]}")
+                log(f"    re-read ({why_trigger}): {why[:200]}")
                 note("repick", fam, attempt=n + 1, object=pick.get("object_name"), reasoning=why,
-                     cost_usd=r["cost_usd"])
+                     cost_usd=r["cost_usd"], trigger=why_trigger)
             last = attempts[-1] if attempts else None
+            keep = last
             if last is None:
                 verdict = "unproven"
             elif last["verdict"] == "rejected" and all(
                     any(NOT_SERVED in e["detail"] for e in a["evidence"]) for a in attempts):
-                verdict = "not-supported"   # every candidate is absent on this device: not a reading error
+                # Every candidate is absent on this device: not a reading error. Absence says nothing
+                # about which object the MIB means, so report the Reader's first, best-reasoned answer
+                # rather than the last re-read (which was only a search for something served).
+                verdict = "not-supported"
+                keep = attempts[0]
             else:
                 verdict = last["verdict"]
             final[fam] = {"verdict": verdict, "attempts": len(attempts),
-                          "pick": last["pick"] if last else pick, "evidence": last["evidence"] if last else []}
+                          "pick": keep["pick"] if keep else pick, "evidence": keep["evidence"] if keep else [],
+                          "triggers": [trigger(a["evidence"]) for a in attempts[:-1]]}
             note("final", fam, verdict=verdict, attempts=len(attempts))
+        prof = None
+        if profile:
+            try:
+                prof = profile_mod.build(snmp, final, cands, modules=modules, lab=lab,
+                                         load=verify_kw.get("load"))
+                note("profile", summary={f: {"kind": m.get("kind"), "rows": len(m.get("rows") or []),
+                                             "partial": m.get("partial")} for f, m in prof["metrics"].items()})
+            except Exception as e:  # noqa: BLE001 - the profile must never lose a finished onboarding
+                prof = {"error": f"{type(e).__name__}: {e}"}
+                log(f"  profile failed: {prof['error']}")
     finally:
         _v.EVENTS["hook"] = saved_hook
     note("done", summary={f: v["verdict"] for f, v in final.items()})
     return {"device": device, "spec": final, "trace": trace, "cost_usd": round(cost, 4),
-            "seconds": round(time.time() - t0, 1), "snmp_calls": getattr(snmp, "calls", None)}
+            "seconds": round(time.time() - t0, 1), "snmp_calls": getattr(snmp, "calls", None),
+            "profile": prof}

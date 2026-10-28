@@ -74,7 +74,7 @@ def main():
             lab = True    # experiments run, but the load is applied on the device by a person
         out = agent.onboard(args.device, cands, dev, lab=lab, families=args.families.split(","),
                             max_attempts=args.max_attempts, model=args.model, effort=args.effort,
-                            verify_kw=verify_kw, log=log)
+                            verify_kw=verify_kw, log=log, modules=args.modules.split(","))
         if args.record:
             keep = ("device", "modules", "lab", "families", "effort", "model", "max_attempts")
             args.lab = lab
@@ -87,6 +87,19 @@ def main():
         p = f["pick"]
         print(f"  {fam:12} {LABEL[f['verdict']]:30} {p.get('object_name')} x{p.get('scale_to_canonical')}"
               f"  ({f['attempts']} attempt{'s' if f['attempts'] != 1 else ''})")
+    prof = out.get("profile") or {}
+    if prof.get("metrics"):
+        pv = prof["provenance"]
+        print(f"\n=== Device profile  (sysObjectID {pv.get('sysObjectID')}, firmware {pv.get('firmware')}"
+              f"{' via ' + pv['firmware_from'] if pv.get('firmware_from') else ''})")
+        for fam, m in prof["metrics"].items():
+            rows = m.get("rows") or []
+            named = [r["name"] for r in rows if r.get("name")][:3]
+            print(f"  {fam:12} kind {m.get('kind')}, {len(rows)} row(s)"
+                  + (f", {len(m['skipped'])} skipped (partial)" if m.get("partial") else "")
+                  + (f": {', '.join(named)}" if named else "") + (f"  [{m['note']}]" if m.get("note") else ""))
+    elif prof.get("error"):
+        print(f"\n  device profile failed: {prof['error']}")
     if "replay" in out:
         print(f"  replayed {out['replay']['virtual_seconds']}s of live session time, {out['snmp_calls']} SNMP "
               "responses from the recording, model answers from the recording (no API key used)")

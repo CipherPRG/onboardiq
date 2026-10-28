@@ -12,11 +12,52 @@ def load_module(mib_dir: Path, module: str) -> dict:
     return json.loads(path.read_text())
 
 
+def _tcs(mods: dict) -> dict:
+    """{TC name: its definition} across the loaded modules (first definition wins)."""
+    out = {}
+    for data in mods.values():
+        for name, obj in data.items():
+            if isinstance(obj, dict) and obj.get("class") == "textualconvention":
+                out.setdefault(name, obj)
+    return out
+
+
+def resolve_syntax(syntax: dict, tcs: dict) -> dict:
+    """Follow textual conventions to the declared range, enum labels and display hint.
+
+    Returns {"range": [{min, max}] | None, "enums": {label: int} | None, "display_hint": str | None}.
+    Only what the MIB text declares; nothing is inferred.
+    """
+    rng = enums = hint = None
+    seen = set()
+    cur = syntax or {}
+    while cur:
+        cons = cur.get("constraints") or {}
+        rng = rng or cons.get("range")
+        enums = enums or cons.get("enumeration")
+        tc = tcs.get(cur.get("type"))
+        if not tc or cur.get("type") in seen:
+            break
+        seen.add(cur.get("type"))
+        hint = hint or tc.get("displayhint")
+        cur = tc.get("type") if isinstance(tc.get("type"), dict) else None
+    return {"range": rng, "enums": enums, "display_hint": hint}
+
+
 def candidates(mib_dir: Path, modules: list[str], desc_chars: int = 300) -> list[dict]:
-    """Every pollable object (scalar or table column) in the given modules."""
+    """Every pollable object (scalar or table column) in the given modules.
+
+    "range" is the object's own constraint (it appears in the Reader's prompt, so it stays as it was);
+    "mib_range", "enums" and "display_hint" also follow textual conventions and feed the device profile.
+    "entry" and "index" describe the table row a column belongs to (for row names and joins).
+    """
+    mods = {m: load_module(mib_dir, m) for m in modules}
+    tcs = _tcs(mods)
     out = []
-    for module in modules:
-        for name, obj in load_module(mib_dir, module).items():
+    for module, data in mods.items():
+        rows = {o.get("oid"): o for o in data.values()
+                if isinstance(o, dict) and o.get("nodetype") == "row"}
+        for name, obj in data.items():
             if not isinstance(obj, dict) or obj.get("class") != "objecttype":
                 continue
             if obj.get("nodetype") not in ("scalar", "column"):
@@ -25,6 +66,13 @@ def candidates(mib_dir: Path, modules: list[str], desc_chars: int = 300) -> list
                 continue
             syntax = obj.get("syntax") or {}
             rng = (syntax.get("constraints") or {}).get("range")
+            res = resolve_syntax(syntax, tcs)
+            entry = obj["oid"].rsplit(".", 1)[0] if obj["nodetype"] == "column" else None
+            row = rows.get(entry) or {}
+            index = [i.get("object") for i in row.get("indices") or [] if isinstance(i, dict)]
+            aug = row.get("augmention") or {}
+            if not index and isinstance(aug, dict) and aug.get("object"):
+                index = [f"augments:{aug['object']}"]
             out.append({
                 "module": module,
                 "name": name,
@@ -35,6 +83,11 @@ def candidates(mib_dir: Path, modules: list[str], desc_chars: int = 300) -> list
                 "range": rng,
                 "status": obj.get("status"),
                 "description": " ".join((obj.get("description") or "").split())[:desc_chars],
+                "mib_range": res["range"],
+                "enums": res["enums"],
+                "display_hint": res["display_hint"],
+                "entry": entry,
+                "index": index or None,
             })
     return out
 

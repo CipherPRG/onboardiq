@@ -79,6 +79,11 @@ def main():
     print(f"{len(todo)} {args.split} devices with a recording", flush=True)
 
     rows, cost = [], 0.0
+    # Rows are appended per device so a crash or a killed terminal keeps everything measured so far
+    # (model answers are cached, so a rerun of finished devices costs nothing).
+    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    partial = ROOT / "results" / f"recorded_eval_{stamp}.partial.jsonl"
+    partial.parent.mkdir(exist_ok=True)
     for i, (os_name, d) in enumerate(todo, 1):
         mods = d["modules"] if isinstance(d["modules"], list) else d["modules"].split(",")
         cands = mib.candidates(Path(args.mib_dir).expanduser(), mods)
@@ -87,7 +92,7 @@ def main():
         rec = recording(sim, os_name)
         try:
             out = agent.onboard(d["device"], cands, RecordedSnmp(rec), lab=False, families=fams,
-                                effort=args.effort, verify_kw=dict(FAST), log=lambda m: None)
+                                effort=args.effort, verify_kw=dict(FAST), log=lambda m: None, profile=False)
         except Exception as e:  # noqa: BLE001
             print(f"[{i}/{len(todo)}] {os_name}: ERROR {type(e).__name__}: {str(e)[:120]}", flush=True)
             if type(e).__name__ == "SpendLimitError":
@@ -115,7 +120,11 @@ def main():
                          "first_pick": _brief(first.get(f), names),
                          "final_pick": _brief(fin["pick"], names),
                          "evidence": [e["detail"] for e in fin["evidence"]][-4:]})
-        s = " ".join(f"{r['family']}:{r['first']}->{r['final']}({r['verdict']})" for r in rows[-len(fams):])
+        with partial.open("a") as fh:
+            for r in rows[-len(fams):]:
+                fh.write(json.dumps(r) + "\n")
+        s = " ".join(f"{r['family']}:{r['first']}->{r['final']}({r['verdict']}"
+                     + (f", re-read on {r['trigger']}" if r["trigger"] else "") + ")" for r in rows[-len(fams):])
         print(f"[{i}/{len(todo)}] {os_name}: {s}  ${cost:.2f}", flush=True)
 
     n = len(rows)
@@ -142,7 +151,10 @@ def main():
     print(f"  model cost ${cost:.2f}")
     print("  limits: snapshots only (no load tests); LibreNMS recordings favour the key's objects for "
           "'not served' — see 'by trigger'")
-    res = ROOT / "results" / f"recorded_eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    claim = [r for r in fixed if r["trigger"] in ("type", "range")]
+    print(f"  claimable fixes (type/range trigger only) {len(claim)}; absent-triggered "
+          f"{sum(r['trigger'] == 'absent' for r in fixed)} are not claimed")
+    res = ROOT / "results" / f"recorded_eval_{stamp}.json"
     res.parent.mkdir(exist_ok=True)
     res.write_text(json.dumps({"args": vars(args), "rows": rows, "cost_usd": round(cost, 4)}, indent=1))
     print(f"  saved {res.relative_to(ROOT)}")

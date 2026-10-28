@@ -94,6 +94,10 @@ class Replayer:
         self.calls += 1
         key = (op, tuple(args), verify.PHASE["name"])
         recs = self.index.get(key)
+        if not recs and verify.PHASE["name"] == "profile":
+            # Recordings made before the profile existed: the profile is a snapshot, so the same
+            # query's recorded static answer is the device's real reply.
+            recs = self.index.get((op, tuple(args), "static"))
         if not recs:
             return []                              # never asked live in this step: absent
         i = self.next.get(key, 0)
