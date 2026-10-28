@@ -31,6 +31,9 @@ def main():
     ap.add_argument("--device", help="what the device is, with --recording, e.g. 'Cisco Catalyst IOS-XE switch'")
     ap.add_argument("--record")
     ap.add_argument("--model", default=None)
+    ap.add_argument("--max-attempts", type=int, default=3)
+    ap.add_argument("--check-key", action="store_true",
+                    help="with --os: print, for the answer key's temperature/fan objects, whether the recording serves them")
     a = ap.parse_args()
     sim = Path(a.librenms).expanduser() / "tests" / "snmpsim"
     mibs = Path(a.mib_dir).expanduser()
@@ -57,7 +60,18 @@ def main():
     cands = mib.candidates(mibs, mods)
     dev = replay.Recorder(RecordedSnmp(rec))
     fams = [f for f in ("cpu", "memory", "temperature", "fan") if d.get(f)]
-    out = agent.onboard(d["device"], cands, dev, lab=False, families=fams, model=a.model,
+    if a.check_key:
+        byname = {f"{c['module']}::{c['name']}": c["oid"].lstrip(".").removesuffix(".0") for c in cands}
+        for fam in fams:
+            for name, scale in (d.get(fam) or {}).items():
+                oid = byname.get(name)
+                n = 0
+                if oid:
+                    pre = tuple(int(x) for x in oid.split("."))
+                    n = sum(1 for k in dev.snmp.rows if k[:len(pre)] == pre)
+                print(f"  {fam:12} {name:55} scale {scale}  oid {oid}  rows served: {n}")
+        return
+    out = agent.onboard(d["device"], cands, dev, lab=False, families=fams, model=a.model, max_attempts=a.max_attempts,
                         verify_kw=dict(FAST), log=print, modules=mods)
     print("\n=== What was proven")
     for fam, f in out["spec"].items():
