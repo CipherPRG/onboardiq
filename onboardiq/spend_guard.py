@@ -27,6 +27,9 @@ PRICES = {
     "muse-spark-1.1": (1.25, 4.25, 0.15),
     "muse-spark-1.3-contributor": (0.10, 0.20, 0.002),
     "muse-spark-1.2-contributor": (0.10, 0.20, 0.002),
+    # Fireworks Muse Spark Open: $1.25 in / $4.25 out per 1M as listed in the account (no cached-token
+    # discount assumed, so the estimate errs high). Confirm in the dashboard.
+    "accounts/fireworks/models/muse-spark-open": (1.25, 4.25, 1.25),
 }
 UNKNOWN_PRICE = (5.0, 15.0, 5.0)
 HARD_CEILING_USD = 25.0
