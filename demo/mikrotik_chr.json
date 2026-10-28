@@ -1,0 +1,5519 @@
+{
+ "args": {
+  "device": "MikroTik RouterOS 7 router (CHR)",
+  "modules": "MIKROTIK-MIB,HOST-RESOURCES-MIB",
+  "lab": false,
+  "families": "cpu,memory,temperature,fan",
+  "effort": "high",
+  "model": null,
+  "max_attempts": 3
+ },
+ "cands": [
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrAlarmSocketStatus",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.19",
+   "kind": "scalar",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrAltitude",
+   "oid": "1.3.6.1.4.1.14988.1.1.12.4",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrBoardName",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.9",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrBuildTime",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.6",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapCapsManAddresses",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.4",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapCapsManCertificateCommonNames",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.6",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapCapsManNames",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.5",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapCertificate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.3",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapCurrentCapsManAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.12",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapCurrentCapsManIdentity",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.13",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapEnabled",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.1",
+   "kind": "scalar",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapInterfaces",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapLockToCapsMan",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.7",
+   "kind": "scalar",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapLockedCapsManCommonName",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.11",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapRequestedCertificate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.10",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapSlavesDatapath",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.9",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCapSlavesStatic",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.2.8",
+   "kind": "scalar",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCtIP4Entries",
+   "oid": "1.3.6.1.4.1.14988.1.1.22.2",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCtIP6Entries",
+   "oid": "1.3.6.1.4.1.14988.1.1.22.3",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrCtTotalEntries",
+   "oid": "1.3.6.1.4.1.14988.1.1.22.1",
+   "kind": "scalar",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDHCPLeaseCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.6.1",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDate",
+   "oid": "1.3.6.1.4.1.14988.1.1.12.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDisplayName",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.8",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDnConnected",
+   "oid": "1.3.6.1.4.1.14988.1.1.10.1.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDnStatRxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.10.1.1.3",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDnStatRxStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.10.1.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDnStatTxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.10.1.1.2",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrDnStatTxStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.10.1.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrFirmwareUpgradeVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.7",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrFirmwareVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.4",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrGaugeName",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.100.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrGaugeUnit",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.100.1.4",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrGaugeValue",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.100.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlActiveFan",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.9",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlBackupPowerSupplyState",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.16",
+   "kind": "scalar",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlBoardTemperature",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.7",
+   "kind": "scalar",
+   "type": "Temperature",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlCoreVoltage",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.1",
+   "kind": "scalar",
+   "type": "Voltage",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlCpuTemperature",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.6",
+   "kind": "scalar",
+   "type": "Temperature",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlCurrent",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.13",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlFanSpeed1",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.17",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlFanSpeed2",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.18",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlFiveVoltage",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.3",
+   "kind": "scalar",
+   "type": "Voltage",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlPower",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.12",
+   "kind": "scalar",
+   "type": "Power",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlPowerSupplyState",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.15",
+   "kind": "scalar",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlProcessorFrequency",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.14",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlProcessorTemperature",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.11",
+   "kind": "scalar",
+   "type": "Temperature",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlSensorTemperature",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.5",
+   "kind": "scalar",
+   "type": "Temperature",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlTemperature",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.10",
+   "kind": "scalar",
+   "type": "Temperature",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlThreeDotThreeVoltage",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.2",
+   "kind": "scalar",
+   "type": "Voltage",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlTwelveVoltage",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.4",
+   "kind": "scalar",
+   "type": "Voltage",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHlVoltage",
+   "oid": "1.3.6.1.4.1.14988.1.1.3.8",
+   "kind": "scalar",
+   "type": "Voltage",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserAdvertStatus",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.18",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserBlockedByAdvert",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.20",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserBytesIn",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.12",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserBytesOut",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.13",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserConnectTime",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.2",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserDomain",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserIP",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.5",
+   "kind": "column",
+   "type": "IpAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserIdleStartTime",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.9",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserIdleTimeout",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.10",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserLimitBytesIn",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.16",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserLimitBytesOut",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.17",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserMAC",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.6",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserName",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserPacketsIn",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.14",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserPacketsOut",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.15",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserPingTimeout",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.11",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserRadius",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.19",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserServerID",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.2",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotActiveUserValidTillTime",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.1.1.8",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrHotspotHostCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.5.3",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSACount",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.1",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSADynamicAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.19",
+   "kind": "column",
+   "type": "InetAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSADynamicAddressType",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.18",
+   "kind": "column",
+   "type": "InetAddressType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAIdentity",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.10",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAInitiatorCookie",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.2",
+   "kind": "column",
+   "type": "IsakmpCookie",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSALocalAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.13",
+   "kind": "column",
+   "type": "InetAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSALocalAddressType",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.12",
+   "kind": "column",
+   "type": "InetAddressType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSALocalPort",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.14",
+   "kind": "column",
+   "type": "InetPortNumber",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSANatt",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.5",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAPeerAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.16",
+   "kind": "column",
+   "type": "InetAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAPeerAddressType",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.15",
+   "kind": "column",
+   "type": "InetAddressType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAPeerPort",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.17",
+   "kind": "column",
+   "type": "InetPortNumber",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAPh2Count",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.11",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAResponder",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.4",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAResponderCookie",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.3",
+   "kind": "column",
+   "type": "IsakmpCookie",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSARxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.21",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSARxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.23",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSASeen",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.9",
+   "kind": "column",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAState",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.7",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSATxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.20",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSATxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.22",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAUptime",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.8",
+   "kind": "column",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrIkeSAVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.20.2.1.6",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsDriverRxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.11",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsDriverRxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.12",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsDriverTxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.13",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsDriverTxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.14",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsLinkDowns",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.90",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsName",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRx1024To1518",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.39",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRx128To255",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.36",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRx1519ToMax",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.40",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRx256To511",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.37",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRx512To1023",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.38",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRx64",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.34",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRx65To127",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.35",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxAlignError",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.46",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxBroadcast",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.42",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.31",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxCarrierError",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.53",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxCodeError",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.52",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxControl",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.49",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxDrop",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.55",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxFCSError",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.45",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxFragment",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.47",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxJabber",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.54",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxLengthError",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.51",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxMulticast",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.44",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxOverflow",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.48",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.32",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxPause",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.43",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxTooLong",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.41",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxTooShort",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.33",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsRxUnknownOp",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.50",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTx1024To1518",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.69",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTx128To255",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.66",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTx1519ToMax",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.70",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTx256To511",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.67",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTx512To1023",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.68",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTx64",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.64",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTx65To127",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.65",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxBroadcast",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.72",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.61",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxCollision",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.76",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxControl",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.88",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxDeferred",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.81",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxDrop",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.85",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxExcessiveCollision",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.77",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxExcessiveDeferred",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.80",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxFCSError",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.87",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxFragment",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.89",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxJabber",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.86",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxLateCollision",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.82",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxMulticast",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.74",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxMultipleCollision",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.78",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.62",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxPause",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.73",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxPauseHonored",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.84",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx1024To1518",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.20",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx1024ToMax",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.91",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx128To255",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.17",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx1519ToMax",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.21",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx256To511",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.18",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx512To1023",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.19",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx64",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.15",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxRx65To127",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.16",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxSingleCollision",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.79",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxTooLong",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.71",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxTooShort",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.63",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxTotalCollision",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.83",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrInterfaceStatsTxUnderrun",
+   "oid": "1.3.6.1.4.1.14988.1.1.14.1.1.75",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggBand",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggBandwidth",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggEARFCN",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggNR",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.12",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggPhyCellId",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggRSRP",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.8",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggRSRQ",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.9",
+   "kind": "column",
+   "type": "IDiv10",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggRSSI",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggSINR",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.10",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggSNR",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.11",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTECarrierAggUplink",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.2.1.1.13",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemAccessTechnology",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.6",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemCQI",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.21",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemCellId",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.5",
+   "kind": "column",
+   "type": "HexInt",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemEnbId",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.8",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemFirmware",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.20",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemIMEI",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.11",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemIMSI",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.12",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemLac",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.10",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemModel",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.19",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemNrRSRP",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.22",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemNrRSRQ",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.23",
+   "kind": "column",
+   "type": "IDiv10",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemNrSINR",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.24",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemPinStatus",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.18",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemPrimaryBand",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.15",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemRAT",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.14",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemRegStatus",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.17",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemSectorId",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.9",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemSessionUptime",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.16",
+   "kind": "column",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemSignalRSRP",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemSignalRSRQ",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "deprecated",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemSignalRSRQD10",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.25",
+   "kind": "column",
+   "type": "IDiv10",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemSignalRSSI",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.2",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemSignalSINR",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLTEModemUICC",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.1.1.13",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLatitude",
+   "oid": "1.3.6.1.4.1.14988.1.1.12.3",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLicLevel",
+   "oid": "1.3.6.1.4.1.14988.1.1.4.3",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLicSoftwareId",
+   "oid": "1.3.6.1.4.1.14988.1.1.4.1",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLicUpgrUntil",
+   "oid": "1.3.6.1.4.1.14988.1.1.4.2",
+   "kind": "scalar",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLicUpgradableTo",
+   "oid": "1.3.6.1.4.1.14988.1.1.4.5",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLicVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.4.4",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLongtitude",
+   "oid": "1.3.6.1.4.1.14988.1.1.12.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLteFirmwareCheckTrigger",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.3.5",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLteFirmwareInstallTrigger",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.3.6",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLteFirmwareInstalledVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.3.1",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLteFirmwareLastChecked",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.3.4",
+   "kind": "scalar",
+   "type": "Unsigned32",
+   "units": "seconds since 1970 (epoch)",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLteFirmwareLatestVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.3.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrLteFirmwareStatus",
+   "oid": "1.3.6.1.4.1.14988.1.1.16.3.3",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNeighborIdentity",
+   "oid": "1.3.6.1.4.1.14988.1.1.11.1.1.6",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNeighborInterfaceID",
+   "oid": "1.3.6.1.4.1.14988.1.1.11.1.1.8",
+   "kind": "column",
+   "type": "ObjectIndex",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNeighborIpAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.11.1.1.2",
+   "kind": "column",
+   "type": "IpAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNeighborMacAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.11.1.1.3",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNeighborPlatform",
+   "oid": "1.3.6.1.4.1.14988.1.1.11.1.1.5",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNeighborSoftwareID",
+   "oid": "1.3.6.1.4.1.14988.1.1.11.1.1.7",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNeighborVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.11.1.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrNote",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.5",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalConnectorType",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.16",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalLinkLengthCopperOM4",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.17",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": "m",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalModulePresent",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.13",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalName",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalRxLoss",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.3",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalRxPower",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.10",
+   "kind": "column",
+   "type": "IDiv1000",
+   "units": "dBm",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalSupplyVoltage",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.7",
+   "kind": "column",
+   "type": "GDiv1000",
+   "units": "V",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalSupportedRates",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.18",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalTemperature",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.6",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": "C",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalTxBiasCurrent",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.8",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": "mA",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalTxFault",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.4",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalTxPower",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.9",
+   "kind": "column",
+   "type": "IDiv1000",
+   "units": "dBm",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalType",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.15",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalVendorName",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.11",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalVendorPartNumber",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.14",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalVendorSerial",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.12",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrOpticalWavelength",
+   "oid": "1.3.6.1.4.1.14988.1.1.19.1.1.5",
+   "kind": "column",
+   "type": "GDiv100",
+   "units": "nm",
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPOECurrent",
+   "oid": "1.3.6.1.4.1.14988.1.1.15.1.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPOEName",
+   "oid": "1.3.6.1.4.1.14988.1.1.15.1.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPOEPower",
+   "oid": "1.3.6.1.4.1.14988.1.1.15.1.1.6",
+   "kind": "column",
+   "type": "Power",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPOEStatus",
+   "oid": "1.3.6.1.4.1.14988.1.1.15.1.1.3",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPOEVoltage",
+   "oid": "1.3.6.1.4.1.14988.1.1.15.1.1.4",
+   "kind": "column",
+   "type": "Voltage",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPartitionActive",
+   "oid": "1.3.6.1.4.1.14988.1.1.17.1.1.5",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPartitionName",
+   "oid": "1.3.6.1.4.1.14988.1.1.17.1.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPartitionRunning",
+   "oid": "1.3.6.1.4.1.14988.1.1.17.1.1.6",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPartitionSize",
+   "oid": "1.3.6.1.4.1.14988.1.1.17.1.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrPartitionVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.17.1.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleBytesIn",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.8",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleBytesOut",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.9",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleDroppedIn",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.14",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleDroppedOut",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.15",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleDstAddr",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.5",
+   "kind": "column",
+   "type": "IpAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleDstMask",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.6",
+   "kind": "column",
+   "type": "IpAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleIface",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.7",
+   "kind": "column",
+   "type": "ObjectIndex",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleName",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimplePCQQueuesIn",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.12",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimplePCQQueuesOut",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.13",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimplePacketsIn",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.10",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimplePacketsOut",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.11",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleSrcAddr",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.3",
+   "kind": "column",
+   "type": "IpAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueSimpleSrcMask",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.1.1.4",
+   "kind": "column",
+   "type": "IpAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreeBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.5",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreeDropped",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.9",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreeFlow",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreeHCBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.7",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreeName",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreePCQQueues",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.8",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreePackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.6",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrQueueTreeParentIndex",
+   "oid": "1.3.6.1.4.1.14988.1.1.2.2.1.4",
+   "kind": "column",
+   "type": "ObjectIndex",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapBaseMac",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.7",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapBoardName",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapCommonName",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.8",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapIdentity",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapSerial",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.5",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapState",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.9",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrRemoteCapVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.3.1.6",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrSattelites",
+   "oid": "1.3.6.1.4.1.14988.1.1.12.6",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrScriptName",
+   "oid": "1.3.6.1.4.1.14988.1.1.8.1.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrScriptRunCmd",
+   "oid": "1.3.6.1.4.1.14988.1.1.8.1.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrScriptRunOutput",
+   "oid": "1.3.6.1.4.1.14988.1.1.18.1.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrSerialNumber",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.3",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrSpeed",
+   "oid": "1.3.6.1.4.1.14988.1.1.12.5",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrSystemReboot",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrUSBPowerReset",
+   "oid": "1.3.6.1.4.1.14988.1.1.7.2",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrValid",
+   "oid": "1.3.6.1.4.1.14988.1.1.12.7",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanCACertificate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.3",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanCertificate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.4",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanEnabled",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.1",
+   "kind": "scalar",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanGeneratedCaCertificate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.8",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanGeneratedCertificate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.9",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanInterfaces",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.2",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanPackagePath",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.6",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanRequirePeerCertificate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.5",
+   "kind": "scalar",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiCapsmanUpgradePolicy",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.1.7",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiInterfacesCurrentChannel",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.5.1.5",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiInterfacesFreq",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.5.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiInterfacesName",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.5.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiInterfacesSsid",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.5.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationAuthType",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.7",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationAuthorized",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.18",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationBand",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.8",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationLastActivity",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationMacAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.1",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationRxBitsPerSecond",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.16",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationRxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.14",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationRxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.12",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationRxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.10",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationSignal",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationSsid",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationTxBitsPerSecond",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.15",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationTxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.13",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationTxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.11",
+   "kind": "column",
+   "type": "Counter64",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationTxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.9",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationUptime",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.4",
+   "kind": "column",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWifiRegistrationVlanId",
+   "oid": "1.3.6.1.4.1.14988.1.1.21.4.1.17",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemAccessTechnology",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.8",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemFrameErrorRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.9",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemIMEI",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.6",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemIMSI",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.7",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemManufacturer",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.3",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemModel",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.4",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemPinStatus",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.13",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemRSRP",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.10",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemRSRQ",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.11",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemRevision",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.5",
+   "kind": "scalar",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemSINR",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.12",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemSignalECIO",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.2",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWirelessModemSignalStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.13.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GConnected",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.4",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GFreq",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GMcs",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GMode",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.2",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GPhyRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.13",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GRemote",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.5",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GRssi",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.12",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GSignal",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.8",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GSsid",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaConnected",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.2",
+   "kind": "column",
+   "type": "BoolValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaDistance",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.10",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaMcs",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaPhyRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.8",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaRemote",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.3",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaRssi",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.9",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaSignal",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GStaTxSector",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.9.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GTxSector",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.9",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWl60GTxSectorInfo",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.8.1.11",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApAuthClientCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.11",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApBand",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.8",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApBssid",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.5",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApClientCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.6",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApFreq",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApNoiseFloor",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.9",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApOverallTxCCQ",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.10",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApRxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.3",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApSsid",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlApTxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.3.1.2",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMAuthClientCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.7.1.3",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMChannel",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.7.1.5",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMREntryCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.10",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRegClientCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.7.1.2",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRemoteAddress",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.11.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRemoteName",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.11.1.2",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRemoteRadios",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.11.1.5",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRemoteState",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.11.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabAddr",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.1",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabEapIdent",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.13",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabEntryCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.6",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabRxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.5",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabRxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.7",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabRxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.9",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabRxStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.11",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabSsid",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.12",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabTxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.4",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabTxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.6",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabTxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.8",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabTxStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.10",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMRtabUptime",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.5.1.3",
+   "kind": "column",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlCMState",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.7.1.4",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabEntryCount",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.4",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRadioName",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.20",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRouterOSVersion",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.10",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.5",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.7",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.9",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRxStrengthCh0",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.14",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRxStrengthCh1",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.16",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabRxStrengthCh2",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.18",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabSignalToNoise",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.12",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.3",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabTxBytes",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.4",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabTxPackets",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.6",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabTxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.8",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabTxStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.19",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabTxStrengthCh0",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.13",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabTxStrengthCh1",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.15",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabTxStrengthCh2",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.17",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlRtabUptime",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.2.1.11",
+   "kind": "column",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatBand",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.8",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatBssid",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.6",
+   "kind": "column",
+   "type": "MacAddress",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatFreq",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatRxCCQ",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.10",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatRxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.3",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatSsid",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.5",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatStrength",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatTxCCQ",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.9",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "MIKROTIK-MIB",
+   "name": "mtxrWlStatTxRate",
+   "oid": "1.3.6.1.4.1.14988.1.1.1.1.1.2",
+   "kind": "column",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": ""
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceDescr",
+   "oid": "1.3.6.1.2.1.25.3.2.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this device, including the device's manufacturer and revision, and optionally, its serial number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceErrors",
+   "oid": "1.3.6.1.2.1.25.3.2.1.6",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of errors detected on this device. It should be noted that as this object has a SYNTAX of Counter32, that it does not have a defined initial value. However, it is recommended that this object be initialized to zero, even though management stations must not depend on such an initialization"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceID",
+   "oid": "1.3.6.1.2.1.25.3.2.1.4",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID for this device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceIndex",
+   "oid": "1.3.6.1.2.1.25.3.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each device contained by the host. The value for each device must remain constant at least from one re-initialization of the agent to the next re-initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceStatus",
+   "oid": "1.3.6.1.2.1.25.3.2.1.5",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The current operational state of the device described by this row of the table. A value unknown(1) indicates that the current state of the device is unknown. running(2) indicates that the device is up and running and that no unusual error conditions are known. The warning(3) state indicates that age"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDeviceType",
+   "oid": "1.3.6.1.2.1.25.3.2.1.2",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication of the type of device. If this value is `hrDeviceProcessor { hrDeviceTypes 3 }' then an entry exists in the hrProcessorTable which corresponds to this device. If this value is `hrDeviceNetwork { hrDeviceTypes 4 }', then an entry exists in the hrNetworkTable which corresponds to this de"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageAccess",
+   "oid": "1.3.6.1.2.1.25.3.6.1.1",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication if this long-term storage device is readable and writable or only readable. This should reflect the media type, any write-protect mechanism, and any device configuration that affects the entire device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageCapacity",
+   "oid": "1.3.6.1.2.1.25.3.6.1.4",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The total size for this long-term storage device. If the media is removable and is currently removed, this value should be zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageMedia",
+   "oid": "1.3.6.1.2.1.25.3.6.1.2",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication of the type of media used in this long- term storage device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrDiskStorageRemoveble",
+   "oid": "1.3.6.1.2.1.25.3.6.1.3",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "Denotes whether or not the disk media may be removed from the drive."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSAccess",
+   "oid": "1.3.6.1.2.1.25.3.8.1.5",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "An indication if this file system is logically configured by the operating system to be readable and writable or only readable. This does not represent any local access-control policy, except one that is applied to the file system as a whole."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSBootable",
+   "oid": "1.3.6.1.2.1.25.3.8.1.6",
+   "kind": "column",
+   "type": "TruthValue",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A flag indicating whether this file system is bootable."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSIndex",
+   "oid": "1.3.6.1.2.1.25.3.8.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each file system local to this host. The value for each file system must remain constant at least from one re-initialization of the agent to the next re-initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSLastFullBackupDate",
+   "oid": "1.3.6.1.2.1.25.3.8.1.8",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last date at which this complete file system was copied to another storage device for backup. This information is useful for ensuring that backups are being performed regularly. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 00:00"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSLastPartialBackupDate",
+   "oid": "1.3.6.1.2.1.25.3.8.1.9",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last date at which a portion of this file system was copied to another storage device for backup. This information is useful for ensuring that backups are being performed regularly. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 0"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSMountPoint",
+   "oid": "1.3.6.1.2.1.25.3.8.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The path name of the root of this file system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSRemoteMountPoint",
+   "oid": "1.3.6.1.2.1.25.3.8.1.3",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the name and/or address of the server that this file system is mounted from. This may also include parameters such as the mount point on the remote file system. If this is not a remote file system, this string should have a length of zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSStorageIndex",
+   "oid": "1.3.6.1.2.1.25.3.8.1.7",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The index of the hrStorageEntry that represents information about this file system. If there is no such information available, then this value shall be zero. The relevant storage entry will be useful in tracking the percent usage of this file system and diagnosing errors that may occur when it runs "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrFSType",
+   "oid": "1.3.6.1.2.1.25.3.8.1.4",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of this object identifies the type of this file system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrMemorySize",
+   "oid": "1.3.6.1.2.1.25.2.2",
+   "kind": "scalar",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The amount of physical read-write main memory, typically RAM, contained by the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrNetworkIfIndex",
+   "oid": "1.3.6.1.2.1.25.3.4.1.1",
+   "kind": "column",
+   "type": "InterfaceIndexOrZero",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of ifIndex which corresponds to this network device. If this device is not represented in the ifTable, then this value shall be zero."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionFSIndex",
+   "oid": "1.3.6.1.2.1.25.3.7.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The index of the file system mounted on this partition. If no file system is mounted on this partition, then this value shall be zero. Note that multiple partitions may point to one file system, denoting that that file system resides on those partitions. Multiple file systems may not reside on one p"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionID",
+   "oid": "1.3.6.1.2.1.25.3.7.1.3",
+   "kind": "column",
+   "type": "OCTET STRING",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A descriptor which uniquely represents this partition to the responsible operating system. On some systems, this might take on a binary representation."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionIndex",
+   "oid": "1.3.6.1.2.1.25.3.7.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each partition on this long-term storage device. The value for each long-term storage device must remain constant at least from one re- initialization of the agent to the next re- initialization."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionLabel",
+   "oid": "1.3.6.1.2.1.25.3.7.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this partition."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPartitionSize",
+   "oid": "1.3.6.1.2.1.25.3.7.1.4",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The size of this partition."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPrinterDetectedErrorState",
+   "oid": "1.3.6.1.2.1.25.3.5.1.2",
+   "kind": "column",
+   "type": "OCTET STRING",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "This object represents any error conditions detected by the printer. The error conditions are encoded as bits in an octet string, with the following definitions: Condition Bit # lowPaper 0 noPaper 1 lowToner 2 noToner 3 doorOpen 4 jammed 5 offline 6 serviceRequested 7 inputTrayMissing 8 outputTrayMi"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrPrinterStatus",
+   "oid": "1.3.6.1.2.1.25.3.5.1.1",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The current status of this printer device."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrProcessorFrwID",
+   "oid": "1.3.6.1.2.1.25.3.3.1.1",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of the firmware associated with the processor."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrProcessorLoad",
+   "oid": "1.3.6.1.2.1.25.3.3.1.2",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 100,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The average, over the last minute, of the percentage of time that this processor was not idle. Implementations may approximate this one minute smoothing period if necessary."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledDate",
+   "oid": "1.3.6.1.2.1.25.6.3.1.5",
+   "kind": "column",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The last-modification date of this application as it would appear in a directory listing. If this information is not known, then this variable shall have the value corresponding to January 1, year 0000, 00:00:00.0, which is encoded as (hex)'00 00 01 01 00 00 00 00'."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledID",
+   "oid": "1.3.6.1.2.1.25.6.3.1.3",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of this installed piece of software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledIndex",
+   "oid": "1.3.6.1.2.1.25.6.3.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each piece of software installed on the host. This value shall be in the range from 1 to the number of pieces of software installed on the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledLastChange",
+   "oid": "1.3.6.1.2.1.25.6.1",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of sysUpTime when an entry in the hrSWInstalledTable was last added, renamed, or deleted. Because this table is likely to contain many entries, polling of this object allows a management station to determine when re-downloading of the table might be useful."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledLastUpdateTime",
+   "oid": "1.3.6.1.2.1.25.6.2",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The value of sysUpTime when the hrSWInstalledTable was last completely updated. Because caching of this data will be a popular implementation strategy, retrieval of this object allows a management station to obtain a guarantee that no data in this table is older than the indicated time."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledName",
+   "oid": "1.3.6.1.2.1.25.6.3.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this installed piece of software, including the manufacturer, revision, the name by which it is commonly known, and optionally, its serial number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWInstalledType",
+   "oid": "1.3.6.1.2.1.25.6.3.1.4",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of this software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWOSIndex",
+   "oid": "1.3.6.1.2.1.25.4.1",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The value of the hrSWRunIndex for the hrSWRunEntry that represents the primary operating system running on this host. This object is useful for quickly and uniquely identifying that primary operating system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunID",
+   "oid": "1.3.6.1.2.1.25.4.2.1.3",
+   "kind": "column",
+   "type": "ProductID",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The product ID of this running piece of software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunIndex",
+   "oid": "1.3.6.1.2.1.25.4.2.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each piece of software running on the host. Wherever possible, this should be the system's native, unique identification number."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunName",
+   "oid": "1.3.6.1.2.1.25.4.2.1.2",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A textual description of this running piece of software, including the manufacturer, revision, and the name by which it is commonly known. If this software was installed locally, this should be the same string as used in the corresponding hrSWInstalledName."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunParameters",
+   "oid": "1.3.6.1.2.1.25.4.2.1.5",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the parameters supplied to this software when it was initially loaded."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPath",
+   "oid": "1.3.6.1.2.1.25.4.2.1.4",
+   "kind": "column",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the location on long-term storage (e.g. a disk drive) from which this software was loaded."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPerfCPU",
+   "oid": "1.3.6.1.2.1.25.5.1.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The number of centi-seconds of the total system's CPU resources consumed by this process. Note that on a multi-processor system, this value may increment by more than one centi-second in one centi-second of real (wall clock) time."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunPerfMem",
+   "oid": "1.3.6.1.2.1.25.5.1.1.2",
+   "kind": "column",
+   "type": "KBytes",
+   "units": "KBytes",
+   "range": null,
+   "status": "current",
+   "description": "The total amount of real system memory allocated to this process."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunStatus",
+   "oid": "1.3.6.1.2.1.25.4.2.1.7",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The status of this running piece of software. Setting this value to invalid(4) shall cause this software to stop running and to be unloaded. Sets to other values are not valid."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSWRunType",
+   "oid": "1.3.6.1.2.1.25.4.2.1.6",
+   "kind": "column",
+   "type": "INTEGER",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of this software."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageAllocationFailures",
+   "oid": "1.3.6.1.2.1.25.2.3.1.7",
+   "kind": "column",
+   "type": "Counter32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of requests for storage represented by this entry that could not be honored due to not enough storage. It should be noted that as this object has a SYNTAX of Counter32, that it does not have a defined initial value. However, it is recommended that this object be initialized to zero, even "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageAllocationUnits",
+   "oid": "1.3.6.1.2.1.25.2.3.1.4",
+   "kind": "column",
+   "type": "Integer32",
+   "units": "Bytes",
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The size, in bytes, of the data objects allocated from this pool. If this entry is monitoring sectors, blocks, buffers, or packets, for example, this number will commonly be greater than one. Otherwise this number will typically be one."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageDescr",
+   "oid": "1.3.6.1.2.1.25.2.3.1.3",
+   "kind": "column",
+   "type": "DisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "A description of the type and instance of the storage described by this entry."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageIndex",
+   "oid": "1.3.6.1.2.1.25.2.3.1.1",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "A unique value for each logical storage area contained by the host."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageSize",
+   "oid": "1.3.6.1.2.1.25.2.3.1.5",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The size of the storage represented by this entry, in units of hrStorageAllocationUnits. This object is writable to allow remote configuration of the size of the storage area in those cases where such an operation makes sense and is possible on the underlying system. For example, the amount of main "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageType",
+   "oid": "1.3.6.1.2.1.25.2.3.1.2",
+   "kind": "column",
+   "type": "AutonomousType",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The type of storage represented by this entry."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrStorageUsed",
+   "oid": "1.3.6.1.2.1.25.2.3.1.6",
+   "kind": "column",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemDate",
+   "oid": "1.3.6.1.2.1.25.1.2",
+   "kind": "scalar",
+   "type": "DateAndTime",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The host's notion of the local date and time of day."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemInitialLoadDevice",
+   "oid": "1.3.6.1.2.1.25.1.3",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 1
+    }
+   ],
+   "status": "current",
+   "description": "The index of the hrDeviceEntry for the device from which this host is configured to load its initial operating system configuration (i.e., which operating system code and/or boot parameters). Note that writing to this object just changes the configuration that will be used the next time the operatin"
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemInitialLoadParameters",
+   "oid": "1.3.6.1.2.1.25.1.4",
+   "kind": "scalar",
+   "type": "InternationalDisplayString",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "This object contains the parameters (e.g. a pathname and parameter) supplied to the load device when requesting the initial operating system configuration from that device. Note that writing to this object just changes the configuration that will be used the next time the operating system is loaded "
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemMaxProcesses",
+   "oid": "1.3.6.1.2.1.25.1.7",
+   "kind": "scalar",
+   "type": "Integer32",
+   "units": null,
+   "range": [
+    {
+     "max": 2147483647,
+     "min": 0
+    }
+   ],
+   "status": "current",
+   "description": "The maximum number of process contexts this system can support. If there is no fixed maximum, the value should be zero. On systems that have a fixed maximum, this object can help diagnose failures that occur when this maximum is reached."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemNumUsers",
+   "oid": "1.3.6.1.2.1.25.1.5",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of user sessions for which this host is storing state information. A session is a collection of processes requiring a single act of user authentication and possibly subject to collective job control."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemProcesses",
+   "oid": "1.3.6.1.2.1.25.1.6",
+   "kind": "scalar",
+   "type": "Gauge32",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The number of process contexts currently loaded or running on this system."
+  },
+  {
+   "module": "HOST-RESOURCES-MIB",
+   "name": "hrSystemUptime",
+   "oid": "1.3.6.1.2.1.25.1.1",
+   "kind": "scalar",
+   "type": "TimeTicks",
+   "units": null,
+   "range": null,
+   "status": "current",
+   "description": "The amount of time since this host was last initialized. Note that this is different from sysUpTime in the SNMPv2-MIB [RFC1907] because sysUpTime is the uptime of the network management portion of the system."
+  }
+ ],
+ "result": {
+  "cpu": "unproven",
+  "memory": "unproven",
+  "temperature": "unproven",
+  "fan": "unproven"
+ },
+ "snmp": [
+  {
+   "t": 27.811,
+   "dt": 0.01,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.1",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.2",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 27.821,
+   "dt": 0.003,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.1",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.2",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 32.825,
+   "dt": 0.005,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.1",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.2",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 37.83,
+   "dt": 0.006,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.1",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.2",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 42.837,
+   "dt": 0.007,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.1",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.2",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 47.844,
+   "dt": 0.005,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.3.3.1.2"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.1",
+     "INTEGER",
+     "0"
+    ],
+    [
+     "1.3.6.1.2.1.25.3.3.1.2.2",
+     "INTEGER",
+     "0"
+    ]
+   ]
+  },
+  {
+   "t": 47.849,
+   "dt": 0.005,
+   "phase": "static",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65536",
+     "INTEGER",
+     "211136"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.131072",
+     "INTEGER",
+     "20636"
+    ]
+   ]
+  },
+  {
+   "t": 47.853,
+   "dt": 0.004,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65536",
+     "INTEGER",
+     "211136"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.131072",
+     "INTEGER",
+     "20636"
+    ]
+   ]
+  },
+  {
+   "t": 52.857,
+   "dt": 0.006,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65536",
+     "INTEGER",
+     "211168"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.131072",
+     "INTEGER",
+     "20636"
+    ]
+   ]
+  },
+  {
+   "t": 57.864,
+   "dt": 0.007,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65536",
+     "INTEGER",
+     "211168"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.131072",
+     "INTEGER",
+     "20636"
+    ]
+   ]
+  },
+  {
+   "t": 62.871,
+   "dt": 0.009,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65536",
+     "INTEGER",
+     "211168"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.131072",
+     "INTEGER",
+     "20636"
+    ]
+   ]
+  },
+  {
+   "t": 67.88,
+   "dt": 0.005,
+   "phase": "observe",
+   "op": "walk",
+   "args": [
+    "1.3.6.1.2.1.25.2.3.1.6"
+   ],
+   "vars": [
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.65536",
+     "INTEGER",
+     "211168"
+    ],
+    [
+     "1.3.6.1.2.1.25.2.3.1.6.131072",
+     "INTEGER",
+     "20636"
+    ]
+   ]
+  }
+ ],
+ "llm_cache": {
+  "a0": {
+   "content": "{\"cpu\": {\"canonical_unit\": \"percent\", \"confidence\": 0.95, \"evidence\": \"The average, over the last minute, of the percentage of time that this processor was not idle. Implementations may approximate this one minute smoothing period if necessary.\", \"object_name\": \"HOST-RESOURCES-MIB::hrProcessorLoad\", \"oid\": \"1.3.6.1.2.1.25.3.3.1.2\", \"raw_unit\": \"percent\", \"row_filter\": \"hrProcessorTable has one row per core; average across all rows (on single-core CHR use sole row)\", \"scale_to_canonical\": 1, \"under_load\": \"rise\", \"value_type\": \"gauge\"}, \"fan\": {\"canonical_unit\": \"none\", \"confidence\": 0.95, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"none\", \"value_type\": \"none\"}, \"memory\": {\"canonical_unit\": \"bytes\", \"confidence\": 0.9, \"evidence\": \"The amount of the storage represented by this entry that is allocated, in units of hrStorageAllocationUnits.\", \"object_name\": \"HOST-RESOURCES-MIB::hrStorageUsed\", \"oid\": \"1.3.6.1.2.1.25.2.3.1.6\", \"raw_unit\": \"allocationUnits\", \"row_filter\": \"Select row where hrStorageType = hrStorageRam (1.3.6.1.2.1.25.2.1.2), typically hrStorageDescr contains RAM/Real Memory; multiply by that row's hrStorageAllocationUnits (typically 1024) to get bytes\", \"scale_to_canonical\": 1024, \"under_load\": \"rise\", \"value_type\": \"gauge\"}, \"rejected\": [{\"oid\": \"1.3.6.1.2.1.25.2.2\", \"reason\": \"hrMemorySize is total physical RAM only; does not rise when 1 GiB allocated. Rejected in favor of hrStorageUsed for used bytes.\"}, {\"oid\": \"1.3.6.1.2.1.25.2.3.1.5\", \"reason\": \"hrStorageSize is total size for the row; does not rise under memory load.\"}, {\"oid\": \"1.3.6.1.2.1.25.5.1.1.1\", \"reason\": \"hrSWRunPerfCPU is per-process centi-seconds consumed, not device-wide utilisation.\"}, {\"oid\": \"1.3.6.1.2.1.25.5.1.1.2\", \"reason\": \"hrSWRunPerfMem is per-process memory, not device-wide total.\"}, {\"oid\": \"1.3.6.1.4.1.14988.1.1.3.6\", \"reason\": \"mtxrHlCpuTemperature (temperature near cpu) is physical sensor; not present on CHR virtual platform, would be noSuchInstance.\"}, {\"oid\": \"1.3.6.1.4.1.14988.1.1.3.7\", \"reason\": \"mtxrHlBoardTemperature same as above: no board sensor on CHR.\"}, {\"oid\": \"1.3.6.1.4.1.14988.1.1.3.11\", \"reason\": \"mtxrHlProcessorTemperature same as above: no sensor on CHR.\"}, {\"oid\": \"1.3.6.1.4.1.14988.1.1.3.17\", \"reason\": \"mtxrHlFanSpeed1 (rpm) requires physical fan; no fans on CHR.\"}, {\"oid\": \"1.3.6.1.4.1.14988.1.1.3.18\", \"reason\": \"mtxrHlFanSpeed2 (rpm) requires physical fan; no fans on CHR.\"}, {\"oid\": \"1.3.6.1.4.1.14988.1.1.3.9\", \"reason\": \"mtxrHlActiveFan is fan name string, not speed/status, and no fans on CHR.\"}, {\"oid\": \"1.3.6.1.4.1.14988.1.1.19.1.1.6\", \"reason\": \"mtxrOpticalTemperature requires SFP transceiver (units=C); not present on CHR.\"}], \"temperature\": {\"canonical_unit\": \"none\", \"confidence\": 0.95, \"evidence\": null, \"object_name\": null, \"oid\": null, \"raw_unit\": null, \"row_filter\": null, \"scale_to_canonical\": null, \"under_load\": \"none\", \"value_type\": \"none\"}}",
+   "usage": {
+    "input": 25025,
+    "output": 7992,
+    "cached": 0
+   },
+   "cost_usd": 0.065247,
+   "seconds": 27.81,
+   "model": "muse-spark-1.3",
+   "cached": false
+  }
+ },
+ "llm_order": [
+  "a0"
+ ],
+ "mem_total_kb": 7942964
+}
