@@ -27,6 +27,7 @@ RULES = {
     "cpu": {"unit": "%", "ok": 70, "mid": (90, 50), "zero": 100},
     "memory": {"unit": "%", "ok": 80, "mid": (95, 40), "zero": 100},
     "disk": {"unit": "%", "ok": 80, "mid": (95, 40), "zero": 100},
+    "cpu_load": {"unit": "%", "ok": 70, "mid": (90, 50), "zero": 100},
     "temperature": {"unit": "C", "ok": 60, "mid": (85, 30), "zero": 95},
 }
 STATUS_SCORE = {"ok": 100, "warning": 60, "critical": 0}
@@ -88,7 +89,17 @@ def row_score(family, kind, unit, row):
 def score(profile):
     """Health score from a device profile (profile.build output)."""
     fams, excluded, worst_level = {}, [], "ok"
-    for fam, m in (profile.get("metrics") or {}).items():
+    metrics = profile.get("metrics") or {}
+    superseded = set()
+    if "cpu_load" in metrics and metrics.get("cpu", {}).get("value_type") == "counter" or \
+            "cpu_load" in metrics and metrics.get("cpu", {}).get("kind") == "overall" and \
+            all(r.get("value") is None for r in metrics["cpu"].get("rows") or [{}]):
+        superseded.add("cpu")
+        excluded.append({"family": "cpu", "reason": "raw time counter has no percentage from one poll: "
+                                                      "scored through hrProcessorLoad (cpu_load) instead"})
+    for fam, m in metrics.items():
+        if fam in superseded:
+            continue
         if m.get("verdict") not in PROVEN:
             excluded.append({"family": fam, "reason": "not proven on this device" if m.get("verdict") != "not-supported"
                              else "not served by this device"})
@@ -122,7 +133,7 @@ def score(profile):
     final = min(total, cap) if cap is not None else total
     drivers = sorted(((f["score"], k, f["worst"]) for k, f in fams.items()))[:2]
     summary = "; ".join(f"{k} {w} {s:g}/100" for s, k, w in drivers if s < 100) or "all proven readings are healthy"
-    served = len([1 for m in (profile.get("metrics") or {}).values() if m.get("verdict") != "not-supported"])
+    served = len([1 for k, m in metrics.items() if m.get("verdict") != "not-supported" and k not in superseded])
     return {"score": round(final), "level": _level(final), "capped_by": worst_level if cap is not None and total > cap else None,
             "summary": summary, "families": fams, "excluded": excluded,
             "coverage": f"{len(fams)} of {served} served families scored"}

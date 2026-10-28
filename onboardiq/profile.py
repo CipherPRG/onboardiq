@@ -156,7 +156,8 @@ def names_for(snmp, mib: Mib, oid):
     sources += [(o, {ENT_NAME: "entPhysicalName", ENT_DESCR: "entPhysicalDescr",
                      HR_DEVICE_DESCR: "hrDeviceDescr"}[o]) for o in std]
     for src_oid, label in sources:
-        got = {i: v.value.strip() for i, v in _column(snmp, src_oid).items() if v.value.strip()}
+        # Only table rows have names: a scalar's "name" sibling (ssErrorName, memErrorName) is an error label.
+        got = {i: v.value.strip() for i, v in _column(snmp, src_oid).items() if i and v.value.strip()}
         if got:
             return got, label, src_oid
     return {}, None, None
@@ -453,7 +454,36 @@ NOT_VERSION = ("serial", "mac", "date", "time", "hardware", "hwrev", "hwversion"
                "newversion", "latest", "mib", "protocol", "snmp", "tftp", "http", "url", "path", "file")
 
 
+HR_LOAD = "1.3.6.1.2.1.25.3.3.1.2"
 HR_FIXED_DISK = "1.3.6.1.2.1.25.2.1.4"
+
+
+def cpu_load(snmp):
+    """hrProcessorLoad (RFC 2790): per-core percentage averaged over the last minute, declared 0..100.
+    Used for the health score when the verified CPU pick is a raw time counter, which has no percentage
+    without a second poll. Standard object, read from the device; values outside 0..100 are skipped."""
+    vals = _column(snmp, HR_LOAD)
+    if not vals:
+        return None
+    names = {i: v.value.strip() for i, v in _column(snmp, HR_DEVICE_DESCR).items() if i and v.value.strip()}
+    rows, skipped = [], []
+    for idx, v in sorted(vals.items(), key=lambda kv: [int(x) if x.isdigit() else x for x in kv[0].split(".")]):
+        x = number(v)
+        row = {"index": idx, "name": names.get(idx)}
+        if x is None or not 0 <= x <= 100:
+            skipped.append({**row, "reason": "outside the MIB's declared range 0..100"})
+        else:
+            rows.append({**row, "value": x})
+    if not rows:
+        return None
+    out = {"verdict": "standard-mib", "object": "HOST-RESOURCES-MIB::hrProcessorLoad", "unit": "percent",
+           "kind": "per-core" if len(rows) > 1 else "overall", "rows": rows, "skipped": skipped,
+           "partial": bool(skipped), "names_from": "hrDeviceDescr",
+           "note": "standard per-core load over the last minute"}
+    if len(rows) > 1:
+        out["overall"] = {"value": round(sum(r["value"] for r in rows) / len(rows), 2),
+                          "how": f"mean of {len(rows)} cores"}
+    return out
 
 
 def disk(snmp):
@@ -600,6 +630,12 @@ def build(snmp, spec, cands, modules=None, lab=False, load=None):
                 base["note"] = "no valid rows: every row was skipped (see skipped)" if base["skipped"] else \
                     "no rows read"
             out["metrics"][fam] = base
+        cpu = out["metrics"].get("cpu") or {}
+        if cpu.get("value_type") == "counter" or cpu.get("kind") == "overall" and cpu.get("rows") and \
+                all(r.get("value") is None for r in cpu["rows"]):
+            cl = cpu_load(snmp)
+            if cl:
+                out["metrics"]["cpu_load"] = cl
         d = disk(snmp)
         if d:
             out["metrics"]["disk"] = d

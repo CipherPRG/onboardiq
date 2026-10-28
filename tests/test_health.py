@@ -86,3 +86,52 @@ def test_disk_rows_from_hr_storage_checked_and_scored():
     assert d["partial"] is True and "larger than size" in d["skipped"][0]["reason"]
     r = health.score(prof(disk=d))
     assert r["families"]["disk"]["score"] == 40.0
+
+
+def test_scalar_groups_get_no_row_name_from_an_error_label():
+    UCD = "1.3.6.1.4.1.2021.11"
+    cands = [profile_c("UCD-SNMP-MIB", "ssCpuRawUser", UCD + ".50", kind="scalar", typ="Counter32"),
+             profile_c("UCD-SNMP-MIB", "ssErrorName", UCD + ".2", kind="scalar", typ="DisplayString")]
+
+    class Dev:
+        def walk(self, oid):
+            return {UCD + ".50": [Var(UCD + ".50.0", "Counter32", "1000")],
+                    UCD + ".2": [Var(UCD + ".2.0", "STRING", "systemStats")]}.get(oid, [])
+
+        def get(self, *oids):
+            return []
+
+    spec = {"cpu": {"verdict": "proven-experiment", "evidence": [],
+                    "pick": {"oid": UCD + ".50", "object_name": "ssCpuRawUser", "canonical_unit": "percent",
+                             "scale_to_canonical": None, "value_type": "counter"}}}
+    p = profile.build(Dev(), spec, cands)
+    assert p["metrics"]["cpu"]["rows"][0]["name"] is None
+
+
+def profile_c(module, name, oid, kind="column", typ="Integer32"):
+    return {"module": module, "name": name, "oid": oid, "kind": kind, "type": typ, "units": None, "range": None,
+            "status": "current", "description": "", "mib_range": None, "enums": None, "display_hint": None,
+            "entry": None, "index": None}
+
+
+def test_counter_cpu_is_scored_through_hr_processor_load():
+    UCD, HRL, HRD = "1.3.6.1.4.1.2021.11.50", "1.3.6.1.2.1.25.3.3.1.2", "1.3.6.1.2.1.25.3.2.1.3"
+
+    class Dev:
+        def walk(self, oid):
+            return {UCD: [Var(UCD + ".0", "Counter32", "1000")],
+                    HRL: [Var(HRL + ".196608", "INTEGER", "95"), Var(HRL + ".196609", "INTEGER", "90")],
+                    HRD: [Var(HRD + ".196608", "STRING", "cpu0"), Var(HRD + ".196609", "STRING", "cpu1")]}.get(oid, [])
+
+        def get(self, *oids):
+            return []
+
+    spec = {"cpu": {"verdict": "proven-experiment", "evidence": [],
+                    "pick": {"oid": UCD, "object_name": "ssCpuRawUser", "canonical_unit": "percent",
+                             "scale_to_canonical": None, "value_type": "counter"}}}
+    p = profile.build(Dev(), spec, [profile_c("UCD-SNMP-MIB", "ssCpuRawUser", UCD, kind="scalar", typ="Counter32")])
+    assert p["metrics"]["cpu_load"]["kind"] == "per-core"
+    r = health.score(p)
+    assert set(r["families"]) == {"cpu_load"} and r["families"]["cpu_load"]["worst"] == "cpu0"
+    assert r["score"] < 75 and any("hrProcessorLoad" in e["reason"] for e in r["excluded"])
+    assert r["coverage"] == "1 of 1 served families scored"
