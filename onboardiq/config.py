@@ -48,3 +48,7 @@ def provider_for(model: str) -> str:
     if model.startswith("accounts/fireworks/"):
         return "fireworks"
     return "baseten" if model.startswith("meta-models/") else "meta"
+
+# Plain-English explanations of health changes: the open-weights model first (Baseten; Fireworks can be put
+# first with OIQ_EXPLAIN_MODEL), then Muse Spark 1.3 if the open model is out of budget or unavailable.
+EXPLAIN_MODEL = os.environ.get("OIQ_EXPLAIN_MODEL", f"{OPEN_MODEL},{MODEL}")
