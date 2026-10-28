@@ -78,6 +78,8 @@ def check(text, ev):
         return False, "empty"
     if len(text) > 900 or "\n\n" in text.strip() or re.search(r"^\s*([-*#]|\d+\.)\s", text, re.M):
         return False, "not short plain prose"
+    if text.strip()[-1] not in ".!?\"')":
+        return False, "cut off mid-sentence"
     allowed = _nums(json.dumps(ev)) | {100.0}
     extra = sorted(n for n in _nums(text) if n not in allowed)
     if extra:
@@ -90,7 +92,7 @@ def explain(ev, model=None):
     try:
         r = llm.chat([{"role": "system", "content": SYSTEM},
                       {"role": "user", "content": "Facts:\n" + json.dumps(ev, indent=1)}],
-                     model=model or config.EXPLAIN_MODEL, max_tokens=500, reasoning_effort="low")
+                     model=model or config.EXPLAIN_MODEL, max_tokens=1200, reasoning_effort="low")
     except Exception as e:  # noqa: BLE001 - no key, out of budget, outage: the monitor must keep running
         return {"text": template(ev), "source": "template", "checked": True,
                 "note": f"model unavailable ({type(e).__name__})"}

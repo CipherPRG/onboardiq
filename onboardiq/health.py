@@ -161,7 +161,10 @@ def score(profile, policy=None):
     summary = "; ".join(f"{k} {w} {s:g}/100" for s, k, w in drivers if s < 100) or "all proven readings are healthy"
     served = len([1 for k, m in metrics.items() if m.get("verdict") != "not-supported" and m.get("object")
                   and k not in superseded])
-    return {"score": round(final), "level": _level(final, pol), "policy": f"{pol['name']} ({pol['source']})", "capped_by": worst_level if cap is not None and total > cap else None,
+    level = _level(final, pol)
+    if worst_level == "critical" or (worst_level == "warning" and level == "ok"):
+        level = worst_level  # a critical row must never read as a lesser level because the cap equals a cut-off
+    return {"score": round(final), "level": level, "policy": f"{pol['name']} ({pol['source']})", "capped_by": worst_level if cap is not None and total > cap else None,
             "summary": summary, "families": fams, "excluded": excluded,
             "coverage": f"{len(fams)} of {served} served families scored"}
 

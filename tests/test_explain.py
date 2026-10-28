@@ -53,3 +53,8 @@ def test_no_model_means_template_not_a_crash(monkeypatch):
 def test_template_says_nothing_proven_when_there_is_no_score():
     ev = explain.evidence(health.score({"metrics": {}}))
     assert "no health score" in explain.template(ev)
+
+
+def test_cut_off_answer_is_rejected():
+    ok, why = explain.check("Your device health is 40 out of 100 and the cpu load family scored 0 with", {"score": 40})
+    assert not ok and "cut off" in why
