@@ -134,7 +134,7 @@ def _parse(content):
     return data
 
 
-def _read_once(device, cands, with_mib, model, effort, anonymised=False, agent=False):
+def _read_once(device, cands, with_mib, model, effort, anonymised=False, agent=False, use_cache=True):
     """agent=True: the product path, which also asks for each pick's predicted direction under load."""
     from onboardiq import llm
 
@@ -150,7 +150,7 @@ def _read_once(device, cands, with_mib, model, effort, anonymised=False, agent=F
                 "standard SNMP objects for each health metric family. Use null if unsure.")
     r = llm.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
                  model=model, max_tokens=16000, json_schema=SCHEMA_AGENT if agent else SCHEMA,
-                 reasoning_effort=effort)
+                 reasoning_effort=effort, use_cache=use_cache)
     return r
 
 
@@ -158,12 +158,14 @@ def read(device, cands, with_mib, model, effort, anonymised=False, agent=False):
     """One model call, retried once if the reply is not valid JSON. After two bad replies the
     product path (agent=True) raises; benchmark mode records a miss for every family."""
     err = None
-    for _ in range(2):
-        r = _read_once(device, cands, with_mib, model, effort, anonymised, agent)
+    for attempt in range(2):
+        # The retry must skip the cache: a bad reply is cached too, and would come straight back.
+        r = _read_once(device, cands, with_mib, model, effort, anonymised, agent, use_cache=attempt == 0)
         try:
             return _parse(r["content"]), r
         except ValueError as e:
-            err = e
+            c = r.get("content") or ""
+            err = f"{e}; reply was {len(c)} chars, ends: {c[-80:]!r}"
     if agent:
         raise ValueError(f"model reply was not valid JSON twice: {err}")
     r["parse_failed"] = True
