@@ -1,6 +1,7 @@
 services:
   oiq:
     build: .
+    init: true                   # clean Ctrl+C: the server is not PID 1
     ports:
       - "127.0.0.1:8765:8765"     # reachable from this machine only
     environment:

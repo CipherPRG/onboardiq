@@ -58,7 +58,18 @@ OIQ_MAX_CALLS_PER_RUN=60 python scripts/accuracy_test.py --truth data/benchmark_
 The answer key comes from LibreNMS device definitions (GPL) and is generated locally, not committed.
 Tune on `--split dev`; report on `--split test`.
 
-## Judge mode: replay a real session (no device, no API key)
+## Judge mode: one command, no key, no accounts
+
+```bash
+docker compose up --build            # then open http://localhost:8765 (reachable from this machine only)
+docker compose run --rm oiq verify   # offline tests + a keyless replay, then exit
+```
+The container runs the web page, a real net-snmp agent on 127.0.0.1 inside it (the device that gets onboarded and
+monitored), the offline tests and the replays. Only the open IETF/net-snmp MIBs are bundled (HOST-RESOURCES, UCD-SNMP,
+LM-SENSORS); vendor MIBs never are. To run a live onboarding inside the container, put your own key in a `.env` file
+next to `docker-compose.yml` (`MODEL_API_KEY=...`); without one, recorded sessions replay with their recorded model answers.
+
+### Without Docker: replay a real session (no device, no API key)
 
 ```bash
 pip install -r requirements.txt
