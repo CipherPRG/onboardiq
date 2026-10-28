@@ -116,8 +116,15 @@ def _normalise(pick):
 def _parse(content):
     content = content.strip()
     if content.startswith("```"):
-        content = content.strip("`").split("\n", 1)[1].rsplit("```", 1)[0]
-    data = json.loads(content)
+        parts = content.strip("`").split("\n", 1)
+        content = parts[-1].rsplit("```", 1)[0]
+    try:
+        data = json.loads(content)
+    except ValueError:
+        i = content.find("{")
+        if i < 0:
+            raise
+        data, _ = json.JSONDecoder().raw_decode(content[i:])
     if isinstance(data, dict):
         for k, v in data.items():
             if k in FAMILIES:
@@ -127,7 +134,7 @@ def _parse(content):
     return data
 
 
-def read(device, cands, with_mib, model, effort, anonymised=False, agent=False):
+def _read_once(device, cands, with_mib, model, effort, anonymised=False, agent=False):
     """agent=True: the product path, which also asks for each pick's predicted direction under load."""
     from onboardiq import llm
 
@@ -144,7 +151,23 @@ def read(device, cands, with_mib, model, effort, anonymised=False, agent=False):
     r = llm.chat([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
                  model=model, max_tokens=16000, json_schema=SCHEMA_AGENT if agent else SCHEMA,
                  reasoning_effort=effort)
-    return _parse(r["content"]), r
+    return r
+
+
+def read(device, cands, with_mib, model, effort, anonymised=False, agent=False):
+    """One model call, retried once if the reply is not valid JSON. After two bad replies the
+    product path (agent=True) raises; benchmark mode records a miss for every family."""
+    err = None
+    for _ in range(2):
+        r = _read_once(device, cands, with_mib, model, effort, anonymised, agent)
+        try:
+            return _parse(r["content"]), r
+        except ValueError as e:
+            err = e
+    if agent:
+        raise ValueError(f"model reply was not valid JSON twice: {err}")
+    r["parse_failed"] = True
+    return {f: None for f in FAMILIES}, r
 
 
 
