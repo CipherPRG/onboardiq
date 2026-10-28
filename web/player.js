@@ -243,6 +243,125 @@ async function playSession(pb) {
   $("play").textContent = "Play";
 }
 
+// ---------------------------------------------------------------- health replay (scripts/monitor.py --record)
+const HFAM = { ...FAMILY, cpu_load: "CPU load", disk: "Disk" };
+const LEVEL_TONE = { ok: "ok", warning: "warn", critical: "bad" };
+
+function healthChart(samples, iv) {
+  const W = 960, H = 200, L = 40, R = 10, T = 12, B = 26;
+  const n = samples.length;
+  const X = (i) => L + (i / Math.max(1, n - 1)) * (W - L - R);
+  const Y = (v) => T + ((100 - v) / 100) * (H - T - B);
+  const s = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Health score over the recording" });
+  for (const v of [0, 40, 75, 100]) {
+    s.append(svg("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), class: "grid" }));
+    s.append(svg("text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end" }, v));
+  }
+  s.append(svg("text", { x: L, y: H - 6 }, "0 s"),
+           svg("text", { x: W - R, y: H - 6, "text-anchor": "end" }, (n - 1) * iv + " s"));
+  const line = svg("path", { class: "line", d: "" });
+  const dots = svg("g"), marks = svg("g");
+  s.append(line, marks, dots);
+  let d = "";
+  return {
+    node: s,
+    add(i) {
+      const v = samples[i].score;
+      if (v === null || v === undefined) return;
+      d += (d ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1);
+      line.setAttribute("d", d);
+      const tone = LEVEL_TONE[samples[i].level] || "";
+      dots.append(svg("circle", { cx: X(i).toFixed(1), cy: Y(v).toFixed(1), r: 3, class: tone }));
+      if (samples[i].explanation) marks.append(svg("line", { x1: X(i), x2: X(i), y1: T, y2: H - B, class: "mark-x" }));
+    },
+  };
+}
+
+function healthView(pb) {
+  const root = el("div", { class: "health appear" });
+  const top = el("div", { class: "h-top" });
+  const big = el("p", { class: "h-score" });
+  const lvl = el("p", { class: "h-level" });
+  const sum = el("p", { class: "h-sum" });
+  const left = el("div");
+  left.append(big, lvl);
+  const right = el("div");
+  right.append(sum, el("p", { class: "h-meta" }, `Thresholds: ${pb.policy || "policy file"}. Polled every ${pb.interval} s.`));
+  top.append(left, right);
+  const fig = el("figure", { class: "chart" });
+  fig.style.margin = "0";
+  const chart = healthChart(pb.samples, pb.interval);
+  fig.append(chart.node, el("p", { class: "caption" },
+    "Health score per poll. Vertical lines mark where the model explained what changed."));
+  const fams = el("div", { class: "h-fams" });
+  const anom = el("ul", { class: "h-anom" });
+  const expl = el("div", { class: "h-expl" });
+  expl.append(el("p", { class: "h-esrc" }, "The model explains here when the level changes or something unusual appears."));
+  const not = el("details", { class: "h-not" });
+  not.append(el("summary", {}, `Not scored (${pb.not_scored.length})`));
+  const nl = el("ul");
+  for (const x of pb.not_scored) nl.append(el("li", {}, (HFAM[x.family] || x.family) + (x.row ? " " + x.row : "") + ": " + x.reason));
+  not.append(nl);
+  root.append(top, fig, fams, anom, expl, not);
+  $("families").append(root);
+
+  return {
+    chart,
+    show(x) {
+      big.textContent = x.score === null ? "–" : x.score;
+      big.className = "h-score " + (LEVEL_TONE[x.level] || "");
+      lvl.textContent = (x.level || "") + (x.capped_by ? ` (capped: a ${x.capped_by} reading)` : "");
+      lvl.className = "h-level " + (LEVEL_TONE[x.level] || "");
+      sum.textContent = `${(x.at || "").slice(11, 19)} UTC · ${x.summary} · ${x.coverage}`;
+      fams.replaceChildren();
+      for (const [k, f] of Object.entries(x.families)) {
+        const tone = f.score >= 75 ? "ok" : (f.score >= 40 ? "warn" : "bad");
+        const row = el("div", { class: "h-fam" });
+        const bar = el("span", { class: "h-bar" });
+        const fill = el("span", { class: "h-fill " + tone });
+        fill.style.width = Math.max(2, f.score) + "%";
+        bar.append(fill);
+        row.append(el("span", { class: "h-name" }, HFAM[k] || k), bar,
+                   el("span", { class: "h-num " + tone }, Math.round(f.score)),
+                   el("span", { class: "h-why" }, (f.rows > 1 ? `worst of ${f.rows}: ${f.worst} · ` : "") + f.why +
+                     (f.flagged ? ` · ${f.flagged} row${f.flagged > 1 ? "s" : ""} flagged` : "") +
+                     (f.partial ? " · some rows skipped" : "")));
+        fams.append(row);
+      }
+      anom.replaceChildren(...x.anomalies.map((a) => el("li", {}, "Unusual: " + a)));
+      if (x.explanation) {
+        const e = x.explanation;
+        const src = e.source === "template" ? "Template (the model's answer failed the check" +
+          (e.note ? ": " + e.note.split("rejected: ")[1] : "") + ")" : `${e.source}, every number checked against the readings`;
+        expl.replaceChildren(el("p", { class: "h-etext appear" }, e.text),
+                             el("p", { class: "h-esrc" }, `${(x.at || "").slice(11, 19)} UTC · ${src}`));
+      }
+    },
+  };
+}
+
+async function playHealth(pb) {
+  play.token++;
+  play.paused = false;
+  $("play").textContent = "Pause";
+  $("families").replaceChildren();
+  $("device").textContent = pb.device;
+  const v = healthView(pb);
+  try {
+    for (let i = 0; i < pb.samples.length; i++) {
+      const x = pb.samples[i];
+      v.chart.add(i);
+      v.show(x);
+      $("status").textContent = `Replaying poll ${i + 1} of ${pb.samples.length} (${pb.interval} s apart)`;
+      await sleep(x.explanation ? 3200 : 700);
+    }
+    $("status").textContent = "Replay finished: " + pb.highlight + ".";
+  } catch (e) {
+    if (e.message !== "stopped") throw e;
+  }
+  $("play").textContent = "Play";
+}
+
 // ---------------------------------------------------------------- live runs (local server only)
 // A live chart redrawn as each measurement arrives; replaced by the verified chart at the verdict.
 function liveChart(ev) {
@@ -400,24 +519,25 @@ async function load(id, button) {
   current = await r.json();
   $("play").disabled = false;
   $("restart").disabled = false;
-  playSession(current);
+  start(current);
 }
 
 $("play").addEventListener("click", () => {
   if (!current) return;
-  if ($("play").textContent === "Play") { playSession(current); return; }
+  if ($("play").textContent === "Play") { start(current); return; }
   play.paused = !play.paused;
   $("play").textContent = play.paused ? "Resume" : "Pause";
   if (!play.paused && play.resume) { const r = play.resume; play.resume = null; r(); }
 });
-$("restart").addEventListener("click", () => current && playSession(current));
+$("restart").addEventListener("click", () => current && start(current));
+function start(pb) { return pb.kind === "health" ? playHealth(pb) : playSession(pb); }
 $("speed").addEventListener("change", (e) => { play.speed = Number(e.target.value) || 1; });
 
 async function loadList() {
   const list = await (await fetch("sessions/index.json", { cache: "no-store" })).json();
   $("session-list").replaceChildren();
   for (const s of list) {
-    const verdicts = Object.values(s.summary);
+    const verdicts = Object.values(s.summary || {});
     const proven = verdicts.filter((v) => v.startsWith("proven")).length;
     const b = el("button", { type: "button", "aria-pressed": "false" });
     b.append(el("span", { class: "name" }, s.device),

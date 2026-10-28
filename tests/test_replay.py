@@ -34,3 +34,21 @@ def test_record_then_replay_gives_same_verdicts(tmp_path, monkeypatch):
     out = replay.replay(path, log=lambda *a: None)
     assert live["spec"]["memory"]["verdict"] == out["spec"]["memory"]["verdict"] == "proven-experiment"
     assert out["spec"]["memory"]["attempts"] == 2 and out["replay"]["unused_answers"] == 0
+
+
+def test_health_recording_exports_a_timeline(tmp_path):
+    import json
+    from onboardiq import playback
+    rows = [{"name": "c #1", "score": 0.0, "level": "critical", "why": "100%"}]
+    lines = [{"score": 100, "level": "ok", "families": {}, "at": "2026-10-28T17:37:00", "anomalies": []},
+             {"score": 40, "level": "warning", "capped_by": "critical", "at": "2026-10-28T17:37:10",
+              "families": {"cpu_load": {"score": 0.0, "worst": "c #1", "rows": rows}}, "anomalies": [],
+              "explanation": {"text": "CPU is at 100 percent.", "source": "m", "checked": True}},
+             {"score": 100, "level": "ok", "families": {}, "at": "2026-10-28T17:37:20", "anomalies": []}]
+    f = tmp_path / "x.jsonl"
+    f.write_text("\n".join(json.dumps(x) for x in lines))
+    pb = playback.export_health(f)
+    assert pb["kind"] == "health" and len(pb["samples"]) == 3
+    assert pb["samples"][1]["level"] == "critical"  # a critical row reads as critical
+    assert pb["samples"][1]["explanation"]["text"] == "CPU is at 100 percent."
+    assert "recovered" in pb["highlight"]

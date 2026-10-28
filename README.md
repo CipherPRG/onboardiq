@@ -1,6 +1,6 @@
 # OnboardIQ
 
-An agent that onboards any network or CCTV device into monitoring: it reads the device's MIB and manual, proves every metric on the live device, then scores its health from 0 to 100 using only what was proven and flags readings that leave a row's own normal. (A plain-English explanation of each anomaly is in progress.)
+An agent that onboards any network or CCTV device into monitoring: it reads the device's MIB and manual, proves every metric on the live device, then scores its health from 0 to 100 using only what was proven and flags readings that leave a row's own normal. (A plain-English explanation checked against the readings (see the CPU stress replay in the web player).)
 
 Built for the Meta Global AI Developer Hackathon (Oct 26 - Nov 4, 2026), Indie track, theme "Push the Frontier".
 

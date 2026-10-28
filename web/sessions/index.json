@@ -1,5 +1,13 @@
 [
  {
+  "id": "laptop_stress",
+  "device": "Linux laptop (net-snmp agent), CPU stress test",
+  "highlight": "health fell 100 \u2192 40 under load, then recovered",
+  "summary": {},
+  "recorded": "2026-10-28 17:37 UTC",
+  "kind": "health"
+ },
+ {
   "id": "laptop_witness",
   "device": "Linux server running the net-snmp agent",
   "highlight": "memory proven by experiment and by a second object",

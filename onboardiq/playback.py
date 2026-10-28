@@ -61,16 +61,68 @@ def export(path: Path) -> dict:
 
 
 
+# Health recordings (scripts/monitor.py --record) carry no device description; name them here.
+HEALTH_DEVICE = {"laptop_stress": "Linux laptop (net-snmp agent), CPU stress test"}
+
+
+def _row_level(f):
+    lv = [r["level"] for r in f.get("rows", [])]
+    return "critical" if "critical" in lv else ("warning" if "warning" in lv else "ok")
+
+
+def export_health(path: Path) -> dict:
+    """A monitor recording (one JSON line per poll) as a compact timeline: score, level, the family
+    breakdown with its worst row, anomalies and the checked explanation. Nothing is recomputed except
+    the level label, which follows the current rule (a critical row reads as critical)."""
+    lines = [json.loads(x) for x in path.read_text().splitlines() if x.strip()]
+    samples = []
+    for x in lines:
+        fams = {}
+        for k, f in (x.get("families") or {}).items():
+            worst = next((r for r in f["rows"] if r["name"] == f["worst"]), f["rows"][0])
+            fams[k] = {"score": f["score"], "worst": f["worst"], "why": worst["why"], "rows": len(f["rows"]),
+                       "flagged": sum(r["level"] != "ok" for r in f["rows"]), "partial": f.get("partial", False)}
+        level = x.get("level")
+        worst_rows = {_row_level(f) for f in (x.get("families") or {}).values()}
+        if "critical" in worst_rows:
+            level = "critical"
+        s = {"at": x.get("at"), "score": x.get("score"), "level": level, "capped_by": x.get("capped_by"),
+             "summary": x.get("summary"), "coverage": x.get("coverage"), "families": fams,
+             "anomalies": x.get("anomalies") or []}
+        if x.get("explanation"):
+            e = x["explanation"]
+            s["explanation"] = {"text": e.get("text"), "source": e.get("source"), "note": e.get("note")}
+        samples.append(s)
+    scores = [s["score"] for s in samples if s["score"] is not None]
+    hi, lo = max(scores), min(scores)
+    recovered = scores[-1] >= hi - 5 and lo < hi
+    return {
+        "id": path.stem, "kind": "health",
+        "device": HEALTH_DEVICE.get(path.stem, "Recorded device"),
+        "highlight": f"health fell {hi} → {lo} under load" + (", then recovered" if recovered else ""),
+        "recorded": (samples[0]["at"] or "")[:16].replace("T", " ") + " UTC" if samples else None,
+        "policy": lines[0].get("policy") if lines else None,
+        "interval": 10,
+        "not_scored": lines[0].get("excluded", []) if lines else [],
+        "samples": samples, "summary": {},
+    }
+
+
 def export_all(files=None, dest=None) -> list:
-    files = [Path(f) for f in files] if files else sorted((ROOT / "demo").glob("*.json"))
+    files = [Path(f) for f in files] if files else sorted((ROOT / "demo").glob("*.json")) + \
+        sorted((ROOT / "demo").glob("*.jsonl"))
     dest = Path(dest or ROOT / "web" / "sessions")
     dest.mkdir(parents=True, exist_ok=True)
-    index = []
+    # Exporting some files updates their entries and keeps the rest of the list.
+    old = dest / "index.json"
+    index = json.loads(old.read_text()) if files and old.exists() else []
     for f in files:
-        pb = export(f)
+        pb = export_health(f) if f.suffix == ".jsonl" else export(f)
         (dest / f"{pb['id']}.json").write_text(json.dumps(pb, separators=(",", ":")))
+        index = [x for x in index if x["id"] != pb["id"]]
         index.append({"id": pb["id"], "device": pb["device"], "highlight": pb["highlight"],
-                      "summary": pb["summary"], "recorded": pb["recorded"]})
+                      "summary": pb["summary"], "recorded": pb["recorded"],
+                      **({"kind": "health"} if pb.get("kind") == "health" else {})})
     index.sort(key=lambda x: x.get("recorded") or "", reverse=True)
     (dest / "index.json").write_text(json.dumps(index, indent=1))
     return index
