@@ -64,15 +64,32 @@ def line_at(path, n):
         return []
 
 
+def raw_text(path):
+    """The file as the converter reads it: line endings kept (CRLF files shift every later offset by one per line)."""
+    with open(path, encoding="utf-8", errors="replace", newline="") as fh:
+        return fh.read()
+
+
 def around_offset(path, off, before=70, after=40):
     """The text where the converter says it stopped (a character offset into the file), on one line."""
     try:
-        t = Path(path).read_text(errors="replace")
+        t = raw_text(path)
     except OSError:
         return []
-    a = t[max(off - before, 0):off].replace("\n", " ⏎ ")
-    b = t[off:off + after].replace("\n", " ⏎ ")
-    return [f"offset {off}: …{a[-before:]} ▶ {b}"]
+    a = t[max(off - before, 0):off].replace("\r", "").replace("\n", " ⏎ ")
+    b = t[off:off + after].replace("\r", "").replace("\n", " ⏎ ")
+    crlf = t.count("\r\n")
+    return [f"offset {off}{' (CRLF file, ' + str(crlf) + ' lines)' if crlf else ''}: …{a[-before:]} ▶ {b}"]
+
+
+def where_defined(mod, symbol, files, folder_index):
+    """Which file really holds a symbol the converter complained about: the module itself, or one it imports."""
+    hits = []
+    for name in [mod] + (intake.imports_of(files[mod]) if mod in files else []):
+        path = files.get(name) or folder_index.get(name)
+        if path and grep(path, symbol, 1):
+            hits.append(name + (" (itself)" if name == mod else " (imported)"))
+    return hits
 
 
 def def_block(path, symbol, lines=7):
@@ -93,8 +110,9 @@ def def_block(path, symbol, lines=7):
     return ["no definition line found"]
 
 
-def detail(mod, msg, failed, files):
+def detail(mod, msg, failed, files, folder_index=None):
     f = files.get(mod)
+    folder_index = folder_index or {}
     out = []
     m = re.search(r'no module "([^"]+)" in symbolTable', msg)
     if m:
@@ -102,10 +120,18 @@ def detail(mod, msg, failed, files):
         out.append(f"needs {dep}: " + (f"it also FAILED ({failed[dep][:90]})" if dep in failed else "not in the failed list"))
     m = re.search(r"Duplicate symbol found: (\S+)", msg)
     if m and f:
-        out += grep(f, m.group(1))
+        sym = m.group(1)
+        out += grep(f, sym)
+        out.append(f"{sym} appears in: " + (", ".join(where_defined(mod, sym, files, folder_index)) or "no file I can see"))
     m = re.search(r"Unknown parents? (?:for symbols?: )?(\w+)", msg)
     if m and f:
-        out += def_block(f, m.group(1))
+        blk = def_block(f, m.group(1))
+        out += blk
+        pm = re.search(r"::=\s*\{\s*([A-Za-z][\w-]*)", " ".join(blk))
+        if pm:
+            parent = pm.group(1)
+            out.append(f"its parent {parent} is defined in: " + (", ".join(where_defined(mod, parent, files, folder_index)) or "NOWHERE I can see")
+                       + "; lines: " + " | ".join(grep(f, parent, 2)))
     m = re.search(r"Unknown parent symbol: (\S+)", msg)
     if m and f:
         out += grep(f, m.group(1), 2)
@@ -124,11 +150,13 @@ def detail(mod, msg, failed, files):
 
 
 def main(path, show_detail=False, folder=None):
+    folder_index = {}
     d = json.load(open(path))
     failed, missing, files = d["failed"], d.get("missing_imports", {}), d.get("files", {})
     if folder and not files:                       # an older report: find each failed module's file again
         found = intake.modules_in(folder)
         files = {m: str(found[m]) for m in failed if m in found}
+        folder_index = {k: str(v) for k, v in found.items()}
     groups, examples = Counter(), {}
     for mod, msg in failed.items():
         p = pattern(msg)
@@ -146,7 +174,7 @@ def main(path, show_detail=False, folder=None):
         for mod, msg in examples[p][:3 if show_detail else 1]:
             print(f"       e.g. {mod}")
             if show_detail:
-                for ln in detail(mod, msg, failed, files):
+                for ln in detail(mod, msg, failed, files, folder_index):
                     print(f"            {ln}")
     if roots:
         print("\nmodules whose failure was named by others as the missing piece (upper bound on what fixing them clears):")
