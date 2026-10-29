@@ -8,22 +8,6 @@
   "kind": "health"
  },
  {
-  "id": "linux-laptop-health-20261029-014353",
-  "device": "Linux laptop",
-  "highlight": "health fell 100 \u2192 40 under load, then recovered",
-  "summary": {},
-  "recorded": "2026-10-28 20:13 UTC",
-  "kind": "health"
- },
- {
-  "id": "linux-laptop-6-18-54-1-microsoft-standar-health-20261028-181601",
-  "device": "Linux device 6.18.54.1-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Tue Oct 6 19:13:07 UTC 2026 x86_64 (sysObjectID 1.3.6.1.4.1.8072.3.2.10)",
-  "highlight": "health fell 100 \u2192 40 under load, then recovered",
-  "summary": {},
-  "recorded": "2026-10-28 18:16 UTC",
-  "kind": "health"
- },
- {
   "id": "laptop_witness",
   "device": "Linux server running the net-snmp agent",
   "highlight": "memory proven by experiment and by a second object",
