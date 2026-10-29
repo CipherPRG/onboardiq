@@ -64,6 +64,35 @@ def line_at(path, n):
         return []
 
 
+def around_offset(path, off, before=70, after=40):
+    """The text where the converter says it stopped (a character offset into the file), on one line."""
+    try:
+        t = Path(path).read_text(errors="replace")
+    except OSError:
+        return []
+    a = t[max(off - before, 0):off].replace("\n", " ⏎ ")
+    b = t[off:off + after].replace("\n", " ⏎ ")
+    return [f"offset {off}: …{a[-before:]} ▶ {b}"]
+
+
+def def_block(path, symbol, lines=7):
+    """The definition of a symbol, from its name to the first '::=' line (where its parent is named)."""
+    try:
+        text = Path(path).read_text(errors="replace").splitlines()
+    except OSError:
+        return []
+    for i, ln in enumerate(text):
+        if re.match(r"\s*" + re.escape(symbol) + r"\s+(OBJECT|MODULE|NOTIFICATION|TRAP|OBJECT-)", ln) or \
+                (re.match(r"\s*" + re.escape(symbol) + r"\s*$", ln) and i + 1 < len(text) and "OBJECT" in text[i + 1]):
+            out = []
+            for k in range(i, min(i + 40, len(text))):
+                if "::=" in text[k]:
+                    out.append(f"line {k + 1}: {text[k].strip()[:110]}")
+                    return [f"defined at line {i + 1}"] + out
+            return [f"defined at line {i + 1}, no '::=' within 40 lines"]
+    return ["no definition line found"]
+
+
 def detail(mod, msg, failed, files):
     f = files.get(mod)
     out = []
@@ -76,10 +105,21 @@ def detail(mod, msg, failed, files):
         out += grep(f, m.group(1))
     m = re.search(r"Unknown parents? (?:for symbols?: )?(\w+)", msg)
     if m and f:
+        out += def_block(f, m.group(1))
+    m = re.search(r"Unknown parent symbol: (\S+)", msg)
+    if m and f:
         out += grep(f, m.group(1), 2)
-    m = re.search(r"line (\d+)", msg)
+        out.append("imported in this file: " + ("yes" if any("IMPORTS" in x or "FROM" in x for x in grep(f, m.group(1), 6)) else "not obviously"))
+    m = re.search(r"no symbol \"([^\"]+)\" in module \"([^\"]+)\"", msg)
+    if m:
+        out.append(f"{m.group(2)}: " + ("FAILED " + failed[m.group(2)][:70] if m.group(2) in failed else
+                                         "exists, but does not define " + m.group(1) + " (a different version of that file?)"))
+    m = re.search(r"near offset (\d+)", msg)
     if m and f and "grammar" in msg:
-        out += line_at(f, int(m.group(1)))
+        out += around_offset(f, int(m.group(1)))
+        m2 = re.search(r"line (\d+)", msg)
+        if m2:
+            out += line_at(f, int(m2.group(1)))
     return out
 
 
@@ -95,12 +135,12 @@ def main(path, show_detail=False, folder=None):
         groups[p] += 1
         examples.setdefault(p, []).append((mod, msg))
     roots = Counter()
-    for mod in failed:
-        r = chain_root(mod, failed, files)
-        if r != mod:
-            roots[r] += 1
+    for mod, msg in failed.items():
+        m = re.search(r'no module "([^"]+)" in symbolTable', msg)
+        if m and m.group(1) in failed:                 # direct evidence only: it says which module it needed
+            roots[m.group(1)] += 1
     chained = sum(roots.values())
-    print(f"{len(failed)} failed; {chained} of them import another failed module (a chain; the root is the real fault)\n")
+    print(f"{len(failed)} failed; {chained} say they could not find a module that itself failed (direct chain)\n")
     for p, n in groups.most_common(12):
         print(f"{n:5d}  {p}")
         for mod, msg in examples[p][:3 if show_detail else 1]:
@@ -109,7 +149,7 @@ def main(path, show_detail=False, folder=None):
                 for ln in detail(mod, msg, failed, files):
                     print(f"            {ln}")
     if roots:
-        print("\nroot modules whose failure blocks the most others (fix these first):")
+        print("\nmodules whose failure was named by others as the missing piece (upper bound on what fixing them clears):")
         for r, n in roots.most_common(10):
             print(f"{n:5d}  {r}: {failed[r][:100]}")
     gone = Counter(i for m in failed for i in missing.get(m, []))
