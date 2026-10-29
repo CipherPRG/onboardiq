@@ -53,6 +53,29 @@ class Recorder:
                                           "mem_total_kb": verify._meminfo_kb()}, indent=1))
 
 
+IDENTITY_OIDS = ("1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.4.0", "1.3.6.1.2.1.1.6.0")     # sysName, sysContact, sysLocation
+
+
+def scrub_raw(d):
+    """Remove who-owns-it details from a raw health recording, in place: the device's own name (sysName) wherever
+    it appears in any answer (sysDescr usually repeats it), and sysContact / sysLocation. Returns d."""
+    names = set()
+    for p in d.get("polls", []):
+        for c in p["calls"]:
+            for v in c["vars"]:
+                if v[0] == IDENTITY_OIDS[0] and len(v[2].strip()) >= 3:
+                    names.add(v[2].strip())
+    for p in d.get("polls", []):
+        for c in p["calls"]:
+            for v in c["vars"]:
+                if v[0] in IDENTITY_OIDS[1:]:
+                    v[2] = ""
+                    continue
+                for n in names:
+                    v[2] = v[2].replace(n, "device")
+    return d
+
+
 def anonymise_answer_ids(path):
     """Rewrite an older recording's cache-hash ids to a0, a1, ... (same answers, same order)."""
     d = json.loads(Path(path).read_text())
@@ -194,9 +217,9 @@ class PollRecorder:
                 cache[ids[key]] = json.loads(f.read_text())
             order.append(ids[key])
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        Path(path).write_text(json.dumps(
+        Path(path).write_text(json.dumps(scrub_raw(
             {"kind": "health_raw", **meta, "epoch": round(self.t0, 3), "polls": self.polls,
-             "llm_cache": cache, "llm_order": order}, separators=(",", ":")))
+             "llm_cache": cache, "llm_order": order}), separators=(",", ":")))
 
 
 class PollReplayer:

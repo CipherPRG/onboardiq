@@ -175,7 +175,7 @@ def explain(ev, model=None):
     try:
         r = llm.chat([{"role": "system", "content": SYSTEM},
                       {"role": "user", "content": "Facts:\n" + json.dumps(ev, indent=1)}],
-                     model=model or config.EXPLAIN_MODEL, max_tokens=1500, reasoning_effort="low")
+                     model=model or config.EXPLAIN_MODEL, max_tokens=4000, reasoning_effort="low")
     except Exception as e:  # noqa: BLE001 - no key, out of budget, outage: the monitor must keep running
         return card(template_card(ev), "template", note=f"model unavailable ({type(e).__name__})")
     try:
@@ -183,7 +183,10 @@ def explain(ev, model=None):
         ok, why = check_card(c, ev)
     except ValueError as e:
         ok, why = False, f"not the requested JSON ({e})" if (r.get("content") or "").strip() else "empty"
+    fb = r.get("fallback_from")
     if ok:
-        return card(c, r.get("model"), cost_usd=r.get("cost_usd", 0))
+        # say so when the first-choice model could not answer (budget, outage) and another one did
+        return card(c, r.get("model"), cost_usd=r.get("cost_usd", 0),
+                    **({"note": f"first choice unavailable: {fb[0]}"} if fb else {}))
     return card(template_card(ev), "template", note=f"{r.get('model')} answer rejected: {why}",
                 cost_usd=r.get("cost_usd", 0))

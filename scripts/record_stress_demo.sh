@@ -6,6 +6,7 @@
 set -e
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
+export OIQ_BASETEN_DAILY_USD=${OIQ_BASETEN_DAILY_USD:-25}   # the explanation is written by Muse Spark Open on Baseten
 OUT=demo/laptop_stress.raw.json
 ONB=$($PY - <<'PYEOF'
 import json, glob, os

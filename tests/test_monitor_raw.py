@@ -96,3 +96,14 @@ def test_export_marks_the_session_as_recomputed(tmp_path):
     assert s["kind"] == "health" and s["recomputed"]["polls"] == 12
     assert s["recomputed"]["snmp_responses"] > 12 and len(s["samples"]) == 12
     assert s["samples"][-1]["events"]
+
+
+def test_scrub_removes_the_device_name_everywhere():
+    d = {"polls": [{"t": 0, "calls": [{"op": "get", "args": [], "vars": [
+        ["1.3.6.1.2.1.1.5.0", "STRING", "MYLAPTOP"],
+        ["1.3.6.1.2.1.1.1.0", "STRING", "Linux MYLAPTOP 6.1 #1 SMP"],
+        ["1.3.6.1.2.1.1.4.0", "STRING", "me@example.com"],
+        ["1.3.6.1.2.1.1.6.0", "STRING", "my desk"]]}]}]}
+    out = json.dumps(replay.scrub_raw(d))
+    assert "MYLAPTOP" not in out and "example.com" not in out and "my desk" not in out
+    assert "Linux device 6.1" in out
