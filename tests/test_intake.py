@@ -113,3 +113,14 @@ def test_reason_names_the_real_cause_and_never_the_download_line():
 def test_conversion_is_told_not_to_borrow_from_the_internet(tmp_path):
     arg = intake.no_download(tmp_path)
     assert arg[0] == "--mib-borrower" and arg[1].startswith("file://") and "http" not in arg[1]
+
+
+def test_a_hyphen_ending_identifier_is_repaired_in_the_copy_only():
+    text = "x OBJECT IDENTIFIER ::= { y 1 }\nbadName8- OBJECT-TYPE\nuses badName8- here\n"
+    err = "Failed MIBs: M (Identifier should not end with '-': badName8- at MIB M, line 2)"
+    fixed, note = intake.repair(text, err)
+    assert "badName8-" not in fixed and "badName8 OBJECT-TYPE" in fixed and "2 places" in note
+    assert "OBJECT-TYPE" in fixed
+    assert intake.repair(text, "Failed MIBs: M (Bad grammar near offset 3)") is None
+    clash = text + "badName8 OBJECT-TYPE\n"
+    assert intake.repair(clash, err) is None            # would collide with a real name: do not guess
