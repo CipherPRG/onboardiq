@@ -149,37 +149,44 @@ def detail(mod, msg, failed, files, folder_index=None):
     return out
 
 
+def culprit(mod, msg):
+    """The module the converter actually blames: 'Failed MIBs: X (...)' names X, which is the importer's own name
+    only when the fault is in its own file. For a module that imports a broken one, X is the broken dependency."""
+    m = re.match(r"Failed MIBs: (\S+) \(", msg or "")
+    return m.group(1) if m else mod
+
+
 def main(path, show_detail=False, folder=None):
-    folder_index = {}
     d = json.load(open(path))
-    failed, missing, files = d["failed"], d.get("missing_imports", {}), d.get("files", {})
-    if folder and not files:                       # an older report: find each failed module's file again
+    failed, missing, files = d["failed"], d.get("missing_imports", {}), dict(d.get("files", {}))
+    folder_index = {}
+    if folder:                                     # find every module's file again (also the culprits)
         found = intake.modules_in(folder)
-        files = {m: str(found[m]) for m in failed if m in found}
         folder_index = {k: str(v) for k, v in found.items()}
-    groups, examples = Counter(), {}
+        files = {**folder_index, **files}
+    own, dependents = {}, Counter()                 # culprit -> message; culprit -> how many modules it blames
     for mod, msg in failed.items():
+        c = culprit(mod, msg)
+        own.setdefault(c, msg)
+        if c != mod:
+            dependents[c] += 1
+    print(f"{len(failed)} modules failed, but only {len(own)} distinct files are blamed by the converter "
+          f"({sum(dependents.values())} modules failed because of a file they import)\n")
+    groups, examples = Counter(), {}
+    for c, msg in own.items():
         p = pattern(msg)
         groups[p] += 1
-        examples.setdefault(p, []).append((mod, msg))
-    roots = Counter()
-    for mod, msg in failed.items():
-        m = re.search(r'no module "([^"]+)" in symbolTable', msg)
-        if m and m.group(1) in failed:                 # direct evidence only: it says which module it needed
-            roots[m.group(1)] += 1
-    chained = sum(roots.values())
-    print(f"{len(failed)} failed; {chained} say they could not find a module that itself failed (direct chain)\n")
+        examples.setdefault(p, []).append((c, msg))
+    print("causes, counted by the distinct broken file (not by how many modules import it):")
     for p, n in groups.most_common(12):
-        print(f"{n:5d}  {p}")
-        for mod, msg in examples[p][:3 if show_detail else 1]:
-            print(f"       e.g. {mod}")
+        victims = sum(dependents[c] for c, _ in examples[p])
+        print(f"{n:5d} file(s), plus {victims} importing module(s)  {p}")
+        ex = sorted(examples[p], key=lambda t: -dependents[t[0]])[:3 if show_detail else 1]
+        for c, msg in ex:
+            print(f"       e.g. {c}  (blamed for {dependents[c]} importer(s))")
             if show_detail:
-                for ln in detail(mod, msg, failed, files, folder_index):
+                for ln in detail(c, msg, failed, files, folder_index):
                     print(f"            {ln}")
-    if roots:
-        print("\nmodules whose failure was named by others as the missing piece (upper bound on what fixing them clears):")
-        for r, n in roots.most_common(10):
-            print(f"{n:5d}  {r}: {failed[r][:100]}")
     gone = Counter(i for m in failed for i in missing.get(m, []))
     if gone:
         print("\nmost often missing (adding these would unblock the most modules):")
