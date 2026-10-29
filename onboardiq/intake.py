@@ -155,7 +155,7 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
     pool.update(mine)                                  # the user's own files win
     mods = {k: v for k, v in mine.items() if not only or k in set(only)}
     if not mods:
-        return {"converted": [], "failed": {}, "missing_imports": {}, "incomplete": [], "duplicates": {},
+        return {"converted": [], "failed": {}, "missing_imports": {}, "incomplete": [], "duplicates": {}, "files": {},
                 "note": "no MIB modules found in the folder"}
     out_dir = Path(out_dir).expanduser()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -187,7 +187,8 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
             converted.append(name)
     return {"converted": converted, "failed": failed, "missing_imports": missing,
             "incomplete": sorted(m for m in converted if m in missing),
-            "duplicates": {k: v for k, v in duplicates.items() if not only or k in set(only)}}
+            "duplicates": {k: v for k, v in duplicates.items() if not only or k in set(only)},
+            "files": {k: str(mods[k]) for k in failed if k in mods}}
 
 
 def failure_kind(reason):
