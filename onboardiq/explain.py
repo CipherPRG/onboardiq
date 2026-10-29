@@ -21,8 +21,12 @@ SYSTEM = (
     "quote numbers exactly as they appear in the facts. Reply with one JSON object and nothing else, with "
     "exactly these string fields: "
     '"headline" (at most 8 words naming the problem and the part affected, no full stop), '
-    '"what_happened" (one sentence: the score and how it changed), '
-    '"why" (one or two sentences: the measured readings and the limits they were compared with). '
+    '"what_happened" (one sentence: the score now and the step it just made, using previous_score, for example '
+    '"fell from 70 to 40"), '
+    '"why" (one or two sentences saying what the readings MEAN in plain words, then the numbers: if '
+    "rows_below_full_marks equals rows for a family, say all of them moved together, which points to one cause "
+    "for the whole device; if only some did, name the part that is out on its own; give the reading and the limit "
+    'it was compared with). '
     "If the device is healthy, say so plainly. No markdown, no lists."
 )
 FIELDS = ("headline", "what_happened", "why")
@@ -59,6 +63,7 @@ def evidence(result, anomalies=(), provenance=None, history=(), at=None):
     for fam, f in (result.get("families") or {}).items():
         low = sorted((r for r in f["rows"] if r["score"] < 100), key=lambda r: r["score"])[:4]
         fams[fam] = {"score": f["score"], "rows": len(f["rows"]), "worst": f["worst"],
+                     "rows_below_full_marks": sum(1 for r in f["rows"] if r["score"] < 100),
                      "lowest_rows": [{"row": r["name"], "score": r["score"], "why": r["why"]} for r in low]}
     ev = {"score_out_of_100": result.get("score"), "level": result.get("level"),
           "capped_by": result.get("capped_by"), "summary": result.get("summary"), "families": fams,
@@ -69,6 +74,11 @@ def evidence(result, anomalies=(), provenance=None, history=(), at=None):
         ev["time"] = at
     if history:
         ev["recent_scores"] = [{"time": t, "score": s} for t, s in list(history)[-8:]]
+        now = result.get("score")
+        before = [s for _, s in history if s != now]
+        # the step just taken: the last score that differs from the current one (not the last healthy one)
+        if before:
+            ev["previous_score"] = before[-1]
     if provenance:
         ev["device"] = {k: provenance.get(k) for k in ("sysDescr", "firmware") if provenance.get(k)}
     return ev
@@ -80,10 +90,24 @@ def _worst(ev):
     return min(low, key=lambda t: t[1]["score"]) if low else (None, None)
 
 
+HOST_OS = re.compile(r"^\s*(Linux|FreeBSD|OpenBSD|NetBSD|Darwin|Windows|Hardware:)", re.I)
+# a network device has no `top`: its own CPU / process view and its traffic are the first places to look
+NETWORK_CHECKS = {
+    "cpu": "Open the device's own CPU or process view (its command line or web page) and check its busiest "
+           "interfaces and routing changes around this time.",
+    "memory": "Open the device's own memory view and check whether usage keeps growing, which points to a leak "
+              "or a growing table.",
+}
+NETWORK_CHECKS["cpu_load"] = NETWORK_CHECKS["cpu"]
+
+
 def next_step(ev):
     fam, _ = _worst(ev)
     if fam is None:
         return HEALTHY_CHECK
+    descr = (ev.get("device") or {}).get("sysDescr")
+    if descr and not HOST_OS.match(descr) and fam in NETWORK_CHECKS:
+        return NETWORK_CHECKS[fam]
     return CHECKS.get(fam, CHECKS["default"])
 
 

@@ -104,3 +104,20 @@ def test_template_says_nothing_proven_when_there_is_no_score():
 def test_cut_off_answer_is_rejected():
     ok, why = explain.check("Your device health is 40 out of 100 and the cpu load family scored 0 with", {"score": 40})
     assert not ok and "cut off" in why
+
+
+def test_evidence_carries_the_step_and_how_many_rows_moved_together():
+    r = health.score({"metrics": {"cpu_load": {"verdict": "standard-mib", "object": "x", "unit": "percent", "kind": "per_core",
+                      "rows": [{"name": "c", "index": str(i), "value": 100.0} for i in range(3)]}}})
+    ev = explain.evidence(r, history=[("t1", 100), ("t2", 70), ("t3", r["score"])])
+    assert ev["previous_score"] == 70
+    f = ev["families"]["cpu_load"]
+    assert f["rows"] == 3 and f["rows_below_full_marks"] == 3
+
+
+def test_next_step_on_a_network_device_does_not_say_top():
+    r = health.score({"metrics": {"cpu_load": {"verdict": "standard-mib", "object": "x", "unit": "percent", "kind": "per_core",
+                      "rows": [{"name": "c", "index": "1", "value": 100.0}]}}})
+    sw = explain.evidence(r, provenance={"sysDescr": "Cisco IOS Software, Catalyst L3 Switch"})
+    host = explain.evidence(r, provenance={"sysDescr": "Linux box 6.1 #1 SMP"})
+    assert "top" not in explain.next_step(sw) and "top" in explain.next_step(host)
