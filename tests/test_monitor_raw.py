@@ -117,3 +117,10 @@ def test_scrub_finds_the_host_name_in_sysdescr_when_sysname_was_not_read():
     assert "OFFICEPC" not in out and "Linux device 6.1" in out
     d2 = {"polls": [{"t": 0, "calls": [{"op": "get", "args": [], "vars": [["1.3.6.1.2.1.1.1.0", "STRING", "box9 x"]]}]}]}
     assert "box9" not in json.dumps(replay.scrub_raw(d2, extra_names=["box9"]))
+
+
+def test_scrub_also_cleans_the_saved_device_line():
+    d = {"device": "Linux OFFICEPC 6.1 #1 SMP (sysObjectID 1.3.6.1.4.1.8072.3.2.10)", "spec": {"x": ["OFFICEPC disk"]},
+         "polls": []}
+    out = json.dumps(replay.scrub_raw(d))
+    assert "OFFICEPC" not in out and "Linux device 6.1" in out

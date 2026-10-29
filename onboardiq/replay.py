@@ -60,12 +60,28 @@ IDENTITY_OIDS = ("1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.4.0", "1.3.6.1.2.1.1.6.0") 
 SYSDESCR_HOST = re.compile(r"^(?:Linux|FreeBSD|OpenBSD|NetBSD|Darwin|SunOS)\s+(\S{3,})\s")
 
 
+def _replace_everywhere(x, names):
+    """Replace every name in every string of a nested structure (keys are left alone)."""
+    if isinstance(x, str):
+        for n in names:
+            x = x.replace(n, "device")
+        return x
+    if isinstance(x, list):
+        return [_replace_everywhere(i, names) for i in x]
+    if isinstance(x, dict):
+        return {k: _replace_everywhere(v, names) for k, v in x.items()}
+    return x
+
+
 def scrub_raw(d, extra_names=()):
     """Remove who-owns-it details from a raw health recording, in place: the device's own name wherever it
-    appears in any answer, and sysContact / sysLocation. The name comes from sysName when the recording read it,
-    from sysDescr for agents that write the host name there ("Linux <host> <kernel> ..."), and from extra_names.
-    Returns d."""
+    appears anywhere in the file (poll answers, the saved device line, specs, model answers), and sysContact /
+    sysLocation. The name comes from sysName when the recording read it, from sysDescr or the saved device line
+    for agents that write the host name there ("Linux <host> <kernel> ..."), and from extra_names. Returns d."""
     names = {n.strip() for n in extra_names if len(n.strip()) >= 3}
+    for m in (SYSDESCR_HOST.match(d.get("device") or "") if isinstance(d.get("device"), str) else None,):
+        if m:
+            names.add(m.group(1))
     for p in d.get("polls", []):
         for c in p["calls"]:
             for v in c["vars"]:
@@ -75,14 +91,11 @@ def scrub_raw(d, extra_names=()):
                     m = SYSDESCR_HOST.match(v[2] or "")
                     if m:
                         names.add(m.group(1))
-    for p in d.get("polls", []):
-        for c in p["calls"]:
-            for v in c["vars"]:
-                if v[0] in IDENTITY_OIDS[1:]:
+                elif v[0] in IDENTITY_OIDS[1:]:
                     v[2] = ""
-                    continue
-                for n in names:
-                    v[2] = v[2].replace(n, "device")
+    out = _replace_everywhere(d, names)
+    d.clear()
+    d.update(out)
     return d
 
 
