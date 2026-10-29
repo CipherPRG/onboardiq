@@ -72,7 +72,10 @@ def test_committed_recordings_carry_no_vendor_mib_description_text():
     ranges (facts the replay needs) and descriptions only for modules with an open licence (IETF RFC text,
     net-snmp)."""
     import glob
-    open_modules = {"HOST-RESOURCES-MIB", "UCD-SNMP-MIB", "LM-SENSORS-MIB"}
+    open_modules = {"HOST-RESOURCES-MIB", "LM-SENSORS-MIB"}      # IETF RFC text and the net-snmp project's own MIBs
+
+    def is_open(m):
+        return m in open_modules or m.startswith(("UCD-", "NET-SNMP-"))
     for f in glob.glob("demo/*.json"):
         for c in json.load(open(f)).get("cands", []):
-            assert c["module"] in open_modules or not c.get("description"), (f, c["module"])
+            assert is_open(c["module"]) or not c.get("description"), (f, c["module"])
