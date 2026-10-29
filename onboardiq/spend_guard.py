@@ -21,8 +21,9 @@ try:
 except ImportError:      # Windows: no file lock; one process at a time is assumed
     fcntl = None
 
-# Baseten "meta-models/muse-spark-open-1026" is deliberately NOT listed: its
-# price is unconfirmed, so it is charged at UNKNOWN_PRICE until verified.
+# Baseten "meta-models/muse-spark-open-1026": the price shown in the Baseten dashboard could not be read, so it
+# is charged at the price Fireworks lists for the same open weights (below), 4x under UNKNOWN_PRICE. The real
+# bill comes from a $100 hackathon credit; confirm in the dashboard when it is reachable.
 # USD per 1M tokens: (input, output, cached input). Unknown models get a
 # deliberately high price so estimates err on the safe side.
 PRICES = {
@@ -34,6 +35,7 @@ PRICES = {
     # Fireworks Muse Spark Open: $1.25 in / $4.25 out per 1M as listed in the account (no cached-token
     # discount assumed, so the estimate errs high). Confirm in the dashboard.
     "accounts/fireworks/models/muse-spark-open": (1.25, 4.25, 1.25),
+    "meta-models/muse-spark-open-1026": (1.25, 4.25, 1.25),
 }
 UNKNOWN_PRICE = (5.0, 15.0, 5.0)
 HARD_CEILING_USD = 25.0
