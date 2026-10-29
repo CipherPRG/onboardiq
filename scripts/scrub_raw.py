@@ -1,6 +1,6 @@
 """Remove the device's own name, contact and location from a raw health recording, in place.
 
-  python scripts/scrub_raw.py demo/laptop_stress.raw.json
+  python scripts/scrub_raw.py demo/laptop_stress.raw.json [extra-name ...]
 
 New recordings are scrubbed when saved; this is for one recorded before the scrubber existed.
 """
@@ -14,6 +14,6 @@ from onboardiq.replay import scrub_raw  # noqa: E402
 
 if __name__ == "__main__":
     f = Path(sys.argv[1])
-    d = scrub_raw(json.loads(f.read_text()))
+    d = scrub_raw(json.loads(f.read_text()), extra_names=sys.argv[2:])
     f.write_text(json.dumps(d, separators=(",", ":")))
     print(f"scrubbed {f}")

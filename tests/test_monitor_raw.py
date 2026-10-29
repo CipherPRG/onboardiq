@@ -107,3 +107,13 @@ def test_scrub_removes_the_device_name_everywhere():
     out = json.dumps(replay.scrub_raw(d))
     assert "MYLAPTOP" not in out and "example.com" not in out and "my desk" not in out
     assert "Linux device 6.1" in out
+
+
+def test_scrub_finds_the_host_name_in_sysdescr_when_sysname_was_not_read():
+    d = {"polls": [{"t": 0, "calls": [{"op": "get", "args": [], "vars": [
+        ["1.3.6.1.2.1.1.1.0", "STRING", "Linux OFFICEPC 6.1 #1 SMP"],
+        ["1.3.6.1.2.1.25.2.3.1.3.1", "STRING", "mount OFFICEPC"]]}]}]}
+    out = json.dumps(replay.scrub_raw(d))
+    assert "OFFICEPC" not in out and "Linux device 6.1" in out
+    d2 = {"polls": [{"t": 0, "calls": [{"op": "get", "args": [], "vars": [["1.3.6.1.2.1.1.1.0", "STRING", "box9 x"]]}]}]}
+    assert "box9" not in json.dumps(replay.scrub_raw(d2, extra_names=["box9"]))

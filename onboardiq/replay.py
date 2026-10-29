@@ -6,6 +6,7 @@ Replay serves the same responses to the same steps in order on a virtual clock, 
 sees the device exactly as it behaved live (including during load experiments) in seconds.
 """
 import json
+import re
 import time as _time
 from pathlib import Path
 
@@ -56,15 +57,24 @@ class Recorder:
 IDENTITY_OIDS = ("1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.1.4.0", "1.3.6.1.2.1.1.6.0")     # sysName, sysContact, sysLocation
 
 
-def scrub_raw(d):
-    """Remove who-owns-it details from a raw health recording, in place: the device's own name (sysName) wherever
-    it appears in any answer (sysDescr usually repeats it), and sysContact / sysLocation. Returns d."""
-    names = set()
+SYSDESCR_HOST = re.compile(r"^(?:Linux|FreeBSD|OpenBSD|NetBSD|Darwin|SunOS)\s+(\S{3,})\s")
+
+
+def scrub_raw(d, extra_names=()):
+    """Remove who-owns-it details from a raw health recording, in place: the device's own name wherever it
+    appears in any answer, and sysContact / sysLocation. The name comes from sysName when the recording read it,
+    from sysDescr for agents that write the host name there ("Linux <host> <kernel> ..."), and from extra_names.
+    Returns d."""
+    names = {n.strip() for n in extra_names if len(n.strip()) >= 3}
     for p in d.get("polls", []):
         for c in p["calls"]:
             for v in c["vars"]:
                 if v[0] == IDENTITY_OIDS[0] and len(v[2].strip()) >= 3:
                     names.add(v[2].strip())
+                elif v[0] == "1.3.6.1.2.1.1.1.0":
+                    m = SYSDESCR_HOST.match(v[2] or "")
+                    if m:
+                        names.add(m.group(1))
     for p in d.get("polls", []):
         for c in p["calls"]:
             for v in c["vars"]:
