@@ -34,10 +34,6 @@ def main():
           f"import, {sm['failed']} failed {sm['failed_by_cause'] or ''}")
     if sm["most_missing_imports"]:
         print("  most often missing:", ", ".join(f"{m} ({n})" for m, n in sm["most_missing_imports"]))
-    if sm["repaired"]:
-        print(f"  {sm['repaired']} module(s) converted after fixing a typo in a temporary copy (your files are not changed):")
-        for m, note in list(r["repaired"].items())[:5]:
-            print(f"    {m}: {note}")
     if sm["duplicate_modules"]:
         print(f"  {sm['duplicate_modules']} module name(s) defined in more than one file (the first one is used)")
     if a.report:

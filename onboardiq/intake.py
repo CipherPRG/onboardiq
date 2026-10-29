@@ -70,29 +70,20 @@ def imports_of(path):
     return sorted(set(FROM.findall(m.group(1)))) if m else []
 
 
-def _dump(name, src, tmp, mine=None):
-    """Run mibdump for one module into its own folder. Returns (name, json path or None, error line, repair note).
-    A known typo (see repair) is fixed in a temporary copy of the file and the module is tried once more."""
-    note = ""
-    for attempt in (0, 1):
-        dest = Path(tmp) / "out" / name
-        dest.mkdir(parents=True, exist_ok=True)
-        try:
-            r = subprocess.run([_mibdump(), "--mib-source", f"file://{src}", *no_download(tmp), "--destination-format",
-                                "json", "--destination-directory", str(dest), "--generate-mib-texts",
-                                "--ignore-errors", name], capture_output=True, text=True, timeout=120)
-        except subprocess.TimeoutExpired:
-            return name, None, "converter timed out after 120 s", note
-        produced = dest / f"{name}.json"
-        if produced.exists() and produced.stat().st_size > 2:
-            return name, produced, "", note
-        err = reason_from(r.stdout + "\n" + r.stderr)
-        fixed = repair((src / name).read_text(errors="replace"), err) if attempt == 0 else None
-        if not fixed:
-            return name, None, err, note
-        (src / name).write_text(fixed[0])              # the temporary copy only
-        note = fixed[1]
-    return name, None, err, note
+def _dump(name, src, tmp):
+    """Run mibdump for one module into its own folder. Returns (name, json path or None, error line)."""
+    dest = Path(tmp) / "out" / name
+    dest.mkdir(parents=True, exist_ok=True)
+    try:
+        r = subprocess.run([_mibdump(), "--mib-source", f"file://{src}", *no_download(tmp), "--destination-format", "json",
+                            "--destination-directory", str(dest), "--generate-mib-texts", "--ignore-errors", name],
+                           capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        return name, None, "converter timed out after 120 s"
+    produced = dest / f"{name}.json"
+    if produced.exists() and produced.stat().st_size > 2:
+        return name, produced, ""
+    return name, None, reason_from(r.stdout + "\n" + r.stderr)
 
 
 def no_download(tmp):
@@ -101,25 +92,6 @@ def no_download(tmp):
     empty = Path(tmp) / "noborrow"
     empty.mkdir(exist_ok=True)
     return ["--mib-borrower", f"file://{empty}/@mib@"]
-
-
-BAD_TAIL = re.compile(r"Identifier should not end with '-': (\S+) at MIB (\S+), line \d+")
-
-
-def repair(text, error):
-    """A narrow fix for a known typo in a vendor's MIB, applied to a temporary copy only (the user's file is never
-    changed). Returns (new text, note) or None. Today: an identifier that ends with '-' (illegal in the MIB language)
-    is renamed without the trailing '-', and only that exact token the converter named."""
-    m = BAD_TAIL.search(error or "")
-    if not m:
-        return None
-    bad = m.group(1)
-    good = bad.rstrip("-")
-    if not good or re.search(r"(?<![\w-])" + re.escape(good) + r"(?![\w-])", text):
-        return None                                    # the fixed name would clash with a real one: do not guess
-    fixed, n = re.subn(r"(?<![\w-])" + re.escape(bad) + r"(?![\w-])", good, text)
-    return (fixed, f"renamed the identifier {bad} to {good} ({n} place{'s' if n != 1 else ''}): a typo in the vendor's file") \
-        if n else None
 
 
 REASON = re.compile(r"(error|fail|missing|unresolved|cannot|can't|not found|expect|unexpected|invalid|illegal)", re.I)
@@ -192,7 +164,7 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
         gone = [i for i in imports_of(p) if i not in pool and i not in BUILTIN]
         if gone:
             missing[m] = gone
-    converted, failed, repaired = [], {}, {}
+    converted, failed = [], {}
     with tempfile.TemporaryDirectory() as tmp:
         # one flat source directory with file names equal to module names (what mibdump looks up)
         src = Path(tmp) / "src"
@@ -202,9 +174,7 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
         todo = sorted(n for n in mods if n not in BUILTIN)    # base SMI modules are used as import text only
         with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
             results = list(ex.map(lambda n: _dump(n, src, tmp), todo))
-        for name, produced, err, note in results:
-            if note:
-                repaired[name] = note
+        for name, produced, err in results:
             if produced is None:
                 failed[name] = err
                 continue
@@ -217,8 +187,7 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
             converted.append(name)
     return {"converted": converted, "failed": failed, "missing_imports": missing,
             "incomplete": sorted(m for m in converted if m in missing),
-            "duplicates": {k: v for k, v in duplicates.items() if not only or k in set(only)},
-            "repaired": {k: v for k, v in repaired.items() if k in converted}}
+            "duplicates": {k: v for k, v in duplicates.items() if not only or k in set(only)}}
 
 
 def failure_kind(reason):
@@ -247,4 +216,4 @@ def summary(r):
             "converted_incomplete": len(r.get("incomplete", [])), "failed": len(r["failed"]),
             "failed_by_cause": dict(Counter(failure_kind(v) for v in r["failed"].values())),
             "most_missing_imports": Counter(i for v in r["missing_imports"].values() for i in v).most_common(10),
-            "duplicate_modules": len(r.get("duplicates", {})), "repaired": len(r.get("repaired", {}))}
+            "duplicate_modules": len(r.get("duplicates", {}))}
