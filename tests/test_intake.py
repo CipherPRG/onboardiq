@@ -79,3 +79,23 @@ def test_committed_recordings_carry_no_vendor_mib_description_text():
     for f in glob.glob("demo/*.json"):
         for c in json.load(open(f)).get("cands", []):
             assert is_open(c["module"]) or not c.get("description"), (f, c["module"])
+
+
+def test_duplicate_module_definitions_are_reported(tmp_path):
+    (tmp_path / "a.txt").write_text(GOOD)
+    (tmp_path / "copy.mib").write_text(GOOD)
+    dup = {}
+    mods = intake.modules_in(tmp_path, dup)
+    assert list(mods) == ["DEMO-MIB"] and len(dup["DEMO-MIB"]) == 2
+
+
+def test_failure_causes_are_grouped_and_counted():
+    assert intake.failure_kind("converter timed out after 120 s") == "timeout"
+    assert intake.failure_kind("converter wrote nothing") == "nothing written"
+    assert intake.failure_kind("Unresolved import FOO-MIB") == "missing import"
+    assert intake.failure_kind("syntax error at line 4") == "syntax"
+    r = {"converted": ["A", "B"], "failed": {"C": "converter wrote nothing", "D": "syntax error at line 4"},
+         "missing_imports": {"B": ["X-MIB"], "C": ["X-MIB", "Y-MIB"]}, "incomplete": ["B"], "duplicates": {}}
+    s = intake.summary(r)
+    assert (s["modules"], s["converted_clean"], s["converted_incomplete"], s["failed"]) == (4, 1, 1, 2)
+    assert s["most_missing_imports"][0] == ("X-MIB", 2) and s["failed_by_cause"]["syntax"] == 1

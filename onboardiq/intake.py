@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 DEFINES = re.compile(r"^\s*([A-Za-z][A-Za-z0-9-]*)\s+DEFINITIONS\s*(?:(?:EXPLICIT|IMPLICIT|AUTOMATIC)\s+TAGS\s*)?::=\s*BEGIN",
@@ -43,8 +44,9 @@ def _mibdump():
     return str(here) if here.exists() else (shutil.which("mibdump") or "mibdump")
 
 
-def modules_in(folder):
-    """{module name: file path} for every MIB module defined by a file in the folder (recursive)."""
+def modules_in(folder, duplicates=None):
+    """{module name: file path} for every MIB module defined by a file in the folder (recursive). When two files
+    define the same module the first (by path) wins; pass a dict as `duplicates` to learn the others."""
     out = {}
     for p in sorted(Path(folder).expanduser().rglob("*")):
         if not p.is_file() or p.stat().st_size > 20_000_000:
@@ -54,6 +56,8 @@ def modules_in(folder):
         except OSError:
             continue
         for name in DEFINES.findall(text):
+            if name in out and duplicates is not None:
+                duplicates.setdefault(name, [str(out[name])]).append(str(p))
             out.setdefault(name, p)
     return out
 
@@ -66,23 +70,44 @@ def imports_of(path):
     return sorted(set(FROM.findall(m.group(1)))) if m else []
 
 
-def convert(folder, out_dir, only=None, extra_dirs=None):
+def _dump(name, src, tmp):
+    """Run mibdump for one module into its own folder. Returns (name, json path or None, error line)."""
+    dest = Path(tmp) / "out" / name
+    dest.mkdir(parents=True, exist_ok=True)
+    try:
+        r = subprocess.run([_mibdump(), "--quiet", "--mib-source", f"file://{src}", "--destination-format", "json",
+                            "--destination-directory", str(dest), "--generate-mib-texts", "--ignore-errors", name],
+                           capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        return name, None, "converter timed out after 120 s"
+    produced = dest / f"{name}.json"
+    if produced.exists() and produced.stat().st_size > 2:
+        return name, produced, ""
+    return name, None, ((r.stderr or r.stdout).strip().splitlines() or ["converter wrote nothing"])[-1][:200]
+
+
+def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
     """Convert the folder's modules to JSON in out_dir. Imports are looked up in the folder first, then in
-    extra_dirs (default: system_dirs()). Returns {"converted": [...], "failed": {module: reason},
-    "missing_imports": {module: [imported modules found nowhere]}}."""
-    mine = modules_in(folder)
+    extra_dirs (default: system_dirs()). Returns
+      {"converted": [...], "failed": {module: reason}, "missing_imports": {module: [imported modules found nowhere]},
+       "incomplete": [converted modules that import something not found: some names may be unresolved],
+       "duplicates": {module: [files defining it]}}.
+    Modules are converted `workers` at a time; one failing module never stops the others."""
+    duplicates = {}
+    mine = modules_in(folder, duplicates)
     pool = {}
     for d in (extra_dirs if extra_dirs is not None else system_dirs()):
         pool.update(modules_in(d))
     pool.update(mine)                                  # the user's own files win
     mods = {k: v for k, v in mine.items() if not only or k in set(only)}
     if not mods:
-        return {"converted": [], "failed": {}, "missing_imports": {}, "note": "no MIB modules found in the folder"}
+        return {"converted": [], "failed": {}, "missing_imports": {}, "incomplete": [], "duplicates": {},
+                "note": "no MIB modules found in the folder"}
     out_dir = Path(out_dir).expanduser()
     out_dir.mkdir(parents=True, exist_ok=True)
     missing = {}
     for m, p in mods.items():
-        gone = [i for i in imports_of(p) if i not in pool]
+        gone = [i for i in imports_of(p) if i not in pool and i not in BUILTIN]
         if gone:
             missing[m] = gone
     converted, failed = [], {}
@@ -92,23 +117,49 @@ def convert(folder, out_dir, only=None, extra_dirs=None):
         src.mkdir()
         for name, p in pool.items():
             shutil.copyfile(p, src / name)
-        for name in sorted(mods):
-            if name in BUILTIN:
-                continue                               # base SMI modules are used as import text only
-            dest = Path(tmp) / "out"
-            dest.mkdir(exist_ok=True)
-            r = subprocess.run([_mibdump(), "--quiet", "--mib-source", f"file://{src}", "--destination-format", "json",
-                                "--destination-directory", str(dest), "--generate-mib-texts", "--ignore-errors", name],
-                               capture_output=True, text=True, timeout=120)
-            produced = dest / f"{name}.json"
-            if produced.exists() and produced.stat().st_size > 2:
-                try:
-                    json.loads(produced.read_text())
-                except ValueError:
-                    failed[name] = "converter wrote invalid JSON"
-                    continue
-                shutil.copyfile(produced, out_dir / produced.name)
-                converted.append(name)
-            else:
-                failed[name] = ((r.stderr or r.stdout).strip().splitlines() or ["converter wrote nothing"])[-1][:200]
-    return {"converted": converted, "failed": failed, "missing_imports": missing}
+        todo = sorted(n for n in mods if n not in BUILTIN)    # base SMI modules are used as import text only
+        with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
+            results = list(ex.map(lambda n: _dump(n, src, tmp), todo))
+        for name, produced, err in results:
+            if produced is None:
+                failed[name] = err
+                continue
+            try:
+                json.loads(produced.read_text())
+            except ValueError:
+                failed[name] = "converter wrote invalid JSON"
+                continue
+            shutil.copyfile(produced, out_dir / produced.name)
+            converted.append(name)
+    return {"converted": converted, "failed": failed, "missing_imports": missing,
+            "incomplete": sorted(m for m in converted if m in missing),
+            "duplicates": {k: v for k, v in duplicates.items() if not only or k in set(only)}}
+
+
+def failure_kind(reason):
+    """A short cause for a failure line, for counting: missing import / syntax / timeout / nothing written / other."""
+    r = (reason or "").lower()
+    if "timed out" in r:
+        return "timeout"
+    if "invalid json" in r:
+        return "invalid output"
+    if "wrote nothing" in r:
+        return "nothing written"
+    if any(w in r for w in ("not found", "unresolved", "no module", "failed to locate")):
+        return "missing import"
+    if any(w in r for w in ("syntax", "parse", "lex", "unexpected", "expecting", "error at")):
+        return "syntax"
+    return "other"
+
+
+def summary(r):
+    """Counts for a report: modules tried, converted cleanly, converted but incomplete, failed (by cause),
+    modules that import something missing, and duplicate definitions."""
+    from collections import Counter
+    total = len(r["converted"]) + len(r["failed"])
+    return {"modules": total, "converted": len(r["converted"]),
+            "converted_clean": len(r["converted"]) - len(r.get("incomplete", [])),
+            "converted_incomplete": len(r.get("incomplete", [])), "failed": len(r["failed"]),
+            "failed_by_cause": dict(Counter(failure_kind(v) for v in r["failed"].values())),
+            "most_missing_imports": Counter(i for v in r["missing_imports"].values() for i in v).most_common(10),
+            "duplicate_modules": len(r.get("duplicates", {}))}

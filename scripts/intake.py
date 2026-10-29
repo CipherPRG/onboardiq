@@ -20,9 +20,22 @@ def main():
     ap.add_argument("folder")
     ap.add_argument("--out", default=str(Path.home() / "data" / "mibs_json"))
     ap.add_argument("--only", help="comma-separated module names (default: every module found)")
+    ap.add_argument("--workers", type=int, default=4, help="modules converted at the same time (default 4)")
+    ap.add_argument("--report", help="also write the counts and every failure to this JSON file")
     a = ap.parse_args()
-    r = intake.convert(a.folder, a.out, a.only.split(",") if a.only else None)
+    r = intake.convert(a.folder, a.out, a.only.split(",") if a.only else None, workers=a.workers)
     print(f"converted {len(r['converted'])} module(s) into {a.out}")
+    sm = intake.summary(r)
+    print(f"  {sm['modules']} tried: {sm['converted_clean']} clean, {sm['converted_incomplete']} converted but missing an "
+          f"import, {sm['failed']} failed {sm['failed_by_cause'] or ''}")
+    if sm["most_missing_imports"]:
+        print("  most often missing:", ", ".join(f"{m} ({n})" for m, n in sm["most_missing_imports"]))
+    if sm["duplicate_modules"]:
+        print(f"  {sm['duplicate_modules']} module name(s) defined in more than one file (the first one is used)")
+    if a.report:
+        import json
+        Path(a.report).write_text(json.dumps({"summary": sm, **r}, indent=1))
+        print(f"  full report: {a.report}")
     for m, why in r["failed"].items():
         print(f"  FAILED {m}: {why}")
     for m, miss in r["missing_imports"].items():
