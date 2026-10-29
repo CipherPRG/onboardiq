@@ -49,6 +49,32 @@ def check_oid(oid: str) -> str:
     return oid.strip()
 
 
+V3_AUTH = {"MD5", "SHA", "SHA-224", "SHA-256", "SHA-384", "SHA-512"}
+V3_PRIV = {"DES", "AES", "AES-192", "AES-256"}
+
+
+def credentials(body: dict) -> dict:
+    """Keyword arguments for Snmp() from a form or JSON body: version, community and (for v3) the user, protocols
+    and passphrases. Raises ValueError with a readable message. Nothing here is ever echoed back to the page."""
+    version = str(body.get("version") or "2c")
+    if version not in ("1", "2c", "3"):
+        raise ValueError("SNMP version must be 1, 2c or 3")
+    if version != "3":
+        community = str(body.get("community") or "public")
+        if len(community) > 64 or any(ord(c) < 32 for c in community):
+            raise ValueError("bad community")
+        return {"community": community, "version": version}
+    v3 = {"user": str(body.get("v3_user") or "").strip(), "auth_proto": body.get("v3_auth_proto") or "SHA",
+          "auth_pass": str(body.get("v3_auth_pass") or ""), "priv_proto": body.get("v3_priv_proto") or "AES",
+          "priv_pass": str(body.get("v3_priv_pass") or "")}
+    if not v3["user"] or len(v3["user"]) > 64:
+        raise ValueError("SNMPv3 user name is required (up to 64 characters)")
+    if len(v3["auth_pass"]) > 128 or len(v3["priv_pass"]) > 128:
+        raise ValueError("passphrase too long")
+    Snmp._write_conf("x", {k: v for k, v in v3.items() if v}, "3")   # validates everything; the temp dir is removed at exit
+    return {"v3": {k: v for k, v in v3.items() if v}, "version": "3"}
+
+
 class Snmp:
     """Read-only SNMP client (v2c or v3). `runner` is injectable for tests.
 
@@ -57,35 +83,55 @@ class Snmp:
     reads through SNMPCONFPATH, and the directory is deleted when the process exits.
 
     v3 = {"user": ..., "auth_proto": "SHA", "auth_pass": ..., "priv_proto": "AES", "priv_pass": ...}
+    version = "1", "2c" (default) or "3" (v3 is implied when a v3 dict is given). Protocol names are checked
+    against a short list (they go into a config file) and passphrases must be at least 8 characters, the net-snmp rule.
     """
 
     def __init__(self, host: str = "localhost", community: str = "public", port: int | None = None,
-                 timeout: float = 2.0, retries: int = 1, runner=None, v3: dict | None = None):
+                 timeout: float = 2.0, retries: int = 1, runner=None, v3: dict | None = None, version: str = "2c"):
         if not re.match(r"^[A-Za-z0-9.:\[\]_-]{1,253}$", host or "") or host.startswith("-"):
             raise ValueError(f"refusing host {host!r}")
         self.target = f"{host}:{port}" if port else host
         self.base = ["-t", str(timeout), "-r", str(retries), "-On", "-Oe", "-Ot"]
         self.runner = runner or self._run
         self.calls = 0
-        self._conf_dir = self._write_conf(community, v3)
+        self._conf_dir = self._write_conf(community, v3, version)
 
     @staticmethod
-    def _write_conf(community, v3):
+    def _write_conf(community, v3, version="2c"):
         def clean(x):
             x = str(x)
             if any(c in x for c in "\r\n\0") or not x:
                 raise ValueError("credential contains a line break, NUL or is empty")
             return x
-        if v3:
+
+        def proto(x, allowed, what):
+            x = str(x).upper()
+            if x not in allowed:
+                raise ValueError(f"unknown {what} protocol {x!r}; choose one of {', '.join(sorted(allowed))}")
+            return x
+
+        def phrase(x, what):
+            x = clean(x)
+            if len(x) < 8:
+                raise ValueError(f"{what} passphrase must be at least 8 characters (net-snmp rule)")
+            return x
+        if v3 or str(version) == "3":
+            if not v3 or not v3.get("user") or not v3.get("auth_pass"):
+                raise ValueError("SNMPv3 needs a user name and an authentication passphrase")
             lines = ["defVersion 3", f"defSecurityName {clean(v3['user'])}"]
             if v3.get("priv_pass"):
-                lines += ["defSecurityLevel authPriv", f"defPrivType {clean(v3.get('priv_proto', 'AES'))}",
-                          f"defPrivPassphrase {clean(v3['priv_pass'])}"]
+                lines += ["defSecurityLevel authPriv",
+                          f"defPrivType {proto(v3.get('priv_proto', 'AES'), V3_PRIV, 'privacy')}",
+                          f"defPrivPassphrase {phrase(v3['priv_pass'], 'privacy')}"]
             else:
                 lines += ["defSecurityLevel authNoPriv"]
-            lines += [f"defAuthType {clean(v3.get('auth_proto', 'SHA'))}", f"defAuthPassphrase {clean(v3['auth_pass'])}"]
+            lines += [f"defAuthType {proto(v3.get('auth_proto', 'SHA'), V3_AUTH, 'authentication')}",
+                      f"defAuthPassphrase {phrase(v3['auth_pass'], 'authentication')}"]
         else:
-            lines = ["defVersion 2c", f"defCommunity {clean(community)}"]
+            if str(version) not in ("1", "2c"):
+                raise ValueError(f"unknown SNMP version {version!r}")
+            lines = [f"defVersion {version}", f"defCommunity {clean(community)}"]
         d = tempfile.mkdtemp(prefix="oiq-snmp-")
         os.chmod(d, 0o700)
         f = os.path.join(d, "snmp.conf")

@@ -30,7 +30,7 @@ from .alerts import Alerter, OUTBOX
 from .monitor import Monitor, load_onboarding
 from .playback import export_all
 from .config import MODEL, ROOT
-from .snmp import Snmp
+from .snmp import Snmp, credentials
 from .verify import prompt_load
 
 WEB = (ROOT / "web").resolve()
@@ -110,11 +110,9 @@ def validate(body: dict) -> dict:
         raise ValueError("lab experiments only run against this machine's own agent (localhost, default port)")
     load_by_hand = body.get("load_by_hand")
     load_by_hand = _clean_text(load_by_hand, 300) if load_by_hand else None
-    community = str(body.get("community") or "public")
-    if len(community) > 64 or any(ord(c) < 32 for c in community):
-        raise ValueError("bad community")
+    creds = credentials(body)
     return {"device": device, "modules": modules, "host": host, "port": port, "families": families,
-            "lab": lab, "load_by_hand": load_by_hand, "community": community,
+            "lab": lab, "load_by_hand": load_by_hand, "snmp": creds,
             "record": bool(body.get("record", True))}
 
 
@@ -148,13 +146,11 @@ def validate_monitor(body: dict) -> dict:
     port = None if port in (None, "", 161) else int(port)
     if port is not None and not 1 <= port <= 65535:
         raise ValueError("bad port")
-    community = str(body.get("community") or "public")
-    if len(community) > 64 or any(ord(c) < 32 for c in community):
-        raise ValueError("bad community")
+    creds = credentials(body)
     interval = float(body.get("interval") or 10)
     if not 5 <= interval <= 300:
         raise ValueError("interval must be 5 to 300 seconds")
-    return {"onboarded": name, "host": host, "port": port, "community": community, "interval": interval,
+    return {"onboarded": name, "host": host, "port": port, "snmp": creds, "interval": interval,
             "explain": bool(body.get("explain")), "record": bool(body.get("record", True)),
             "alert": bool(body.get("alert", True)),
             "local": host in LOCAL and port is None}
@@ -184,7 +180,7 @@ def watch(run: Run, opts: dict):
     try:
         saved, mods = load_onboarding(RESULTS / f"{opts['onboarded']}.json")
         device = str(saved.get("device") or saved.get("args", {}).get("device") or "device")[:200]
-        snmp = Snmp(opts["host"], opts["community"], port=opts["port"])
+        snmp = Snmp(opts["host"], port=opts["port"], **opts["snmp"])
         mon = Monitor(snmp, saved, mods, STATE["mib_dir"], explain_on=opts["explain"],
                       alerter=Alerter(device, outbox=STATE.get("outbox")) if opts.get("alert") else None)
         if opts["record"]:
@@ -234,7 +230,7 @@ def slug(text):
 def execute(run: Run, opts: dict):
     try:
         cands = mib.candidates(STATE["mib_dir"], opts["modules"])
-        snmp = Snmp(opts["host"], opts["community"], port=opts["port"])
+        snmp = Snmp(opts["host"], port=opts["port"], **opts["snmp"])
         dev = replay.Recorder(snmp) if opts["record"] else snmp
         verify_kw, lab = {}, opts["lab"]
         if opts["load_by_hand"]:
