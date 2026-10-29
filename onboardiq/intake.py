@@ -75,7 +75,7 @@ def _dump(name, src, tmp):
     dest = Path(tmp) / "out" / name
     dest.mkdir(parents=True, exist_ok=True)
     try:
-        r = subprocess.run([_mibdump(), "--quiet", "--mib-source", f"file://{src}", "--destination-format", "json",
+        r = subprocess.run([_mibdump(), "--mib-source", f"file://{src}", *no_download(tmp), "--destination-format", "json",
                             "--destination-directory", str(dest), "--generate-mib-texts", "--ignore-errors", name],
                            capture_output=True, text=True, timeout=120)
     except subprocess.TimeoutExpired:
@@ -83,7 +83,61 @@ def _dump(name, src, tmp):
     produced = dest / f"{name}.json"
     if produced.exists() and produced.stat().st_size > 2:
         return name, produced, ""
-    return name, None, ((r.stderr or r.stdout).strip().splitlines() or ["converter wrote nothing"])[-1][:200]
+    return name, None, reason_from(r.stdout + "\n" + r.stderr)
+
+
+def no_download(tmp):
+    """mibdump borrows a missing or failed module's compiled JSON from https://mibs.pysnmp.com unless it is given
+    other places to borrow from. An empty local folder keeps the whole conversion on this machine."""
+    empty = Path(tmp) / "noborrow"
+    empty.mkdir(exist_ok=True)
+    return ["--mib-borrower", f"file://{empty}/@mib@"]
+
+
+REASON = re.compile(r"(error|fail|missing|unresolved|cannot|can't|not found|expect|unexpected|invalid|illegal)", re.I)
+
+
+def reason_from(output):
+    """The most telling line of mibdump's output: the first line that reports an error, else the last line."""
+    lines = [ln.strip() for ln in (output or "").splitlines() if ln.strip()]
+    if not lines:
+        return "converter wrote nothing"
+    for ln in lines:                                   # mibdump's own summary lines name the cause
+        for key in ("Failed MIBs:", "Missing source MIBs:"):
+            if ln.startswith(key) and ln[len(key):].strip():
+                return ln[:200]
+    for ln in lines:
+        if REASON.search(ln) and "compiled" not in ln.lower() and not ln.startswith(("Borrow", "Ignore", "Missing source MIBs:", "Failed MIBs:")):
+            return ln[:200]
+    return "converter wrote nothing (" + lines[-1][:150] + ")"
+
+
+def why(folder, module, extra_dirs=None):
+    """The full converter output for one module (for a person to read): imports it needs and what was found."""
+    pool = {}
+    for d in (extra_dirs if extra_dirs is not None else system_dirs()):
+        pool.update(modules_in(d))
+    mine = modules_in(folder)
+    pool.update(mine)
+    if module not in pool:
+        return f"{module} is not defined in {folder}"
+    lines = [f"{module}: {pool[module]}"]
+    for imp in imports_of(pool[module]):
+        lines.append(f"  imports {imp}: " + ("builtin" if imp in BUILTIN else str(pool[imp]) if imp in pool else "NOT FOUND"))
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / "src"
+        src.mkdir()
+        for name, p in pool.items():
+            shutil.copyfile(p, src / name)
+        dest = Path(tmp) / "out"
+        dest.mkdir()
+        r = subprocess.run([_mibdump(), "--mib-source", f"file://{src}", *no_download(tmp), "--destination-format", "json",
+                            "--destination-directory", str(dest), "--generate-mib-texts", "--ignore-errors", module],
+                           capture_output=True, text=True, timeout=120)
+        lines.append("converter said:")
+        lines += ["  " + ln for ln in (r.stdout + r.stderr).strip().splitlines()[-25:]] or ["  (nothing)"]
+        lines.append("output written: " + ("yes" if (dest / f"{module}.json").exists() else "no"))
+    return "\n".join(lines)
 
 
 def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
@@ -145,9 +199,9 @@ def failure_kind(reason):
         return "invalid output"
     if "wrote nothing" in r:
         return "nothing written"
-    if any(w in r for w in ("not found", "unresolved", "no module", "failed to locate")):
+    if any(w in r for w in ("not found", "unresolved", "no module", "failed to locate", "missing source")):
         return "missing import"
-    if any(w in r for w in ("syntax", "parse", "lex", "unexpected", "expecting", "error at")):
+    if any(w in r for w in ("syntax", "parse", "lex", "unexpected", "expecting", "error at", "grammar")):
         return "syntax"
     return "other"
 

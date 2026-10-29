@@ -99,3 +99,17 @@ def test_failure_causes_are_grouped_and_counted():
     s = intake.summary(r)
     assert (s["modules"], s["converted_clean"], s["converted_incomplete"], s["failed"]) == (4, 1, 1, 2)
     assert s["most_missing_imports"][0] == ("X-MIB", 2) and s["failed_by_cause"]["syntax"] == 1
+
+
+def test_reason_names_the_real_cause_and_never_the_download_line():
+    out = ("Borrow missing/failed MIBs from: https://mibs.pysnmp.com/fulltexts/@mib@\n"
+           "Failed MIBs: BAD-MIB (Bad grammar near offset 71 at MIB BAD-MIB, line 4)\n")
+    r = intake.reason_from(out)
+    assert r.startswith("Failed MIBs: BAD-MIB") and intake.failure_kind(r) == "syntax"
+    assert intake.failure_kind("Missing source MIBs: FOO-MIB") == "missing import"
+    assert intake.reason_from("").startswith("converter wrote nothing")
+
+
+def test_conversion_is_told_not_to_borrow_from_the_internet(tmp_path):
+    arg = intake.no_download(tmp_path)
+    assert arg[0] == "--mib-borrower" and arg[1].startswith("file://") and "http" not in arg[1]

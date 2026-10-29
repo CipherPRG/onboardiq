@@ -21,8 +21,12 @@ def main():
     ap.add_argument("--out", default=str(Path.home() / "data" / "mibs_json"))
     ap.add_argument("--only", help="comma-separated module names (default: every module found)")
     ap.add_argument("--workers", type=int, default=4, help="modules converted at the same time (default 4)")
+    ap.add_argument("--why", metavar="MODULE", help="show the full converter output for one module and exit")
     ap.add_argument("--report", help="also write the counts and every failure to this JSON file")
     a = ap.parse_args()
+    if a.why:
+        print(intake.why(a.folder, a.why))
+        return
     r = intake.convert(a.folder, a.out, a.only.split(",") if a.only else None, workers=a.workers)
     print(f"converted {len(r['converted'])} module(s) into {a.out}")
     sm = intake.summary(r)
