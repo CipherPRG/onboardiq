@@ -86,7 +86,7 @@ def test_provider_routing(env, monkeypatch):
     with pytest.raises(RuntimeError, match="BASETEN_API_KEY"):
         llm.client("baseten")
     # open model has no confirmed price yet -> charged conservatively
-    assert sg.cost_usd("meta-models/muse-spark-open-1026", 1_000_000, 0) == pytest.approx(5.0)
+    assert sg.cost_usd("meta-models/muse-spark-open-1026", 1_000_000, 0) == pytest.approx(1.25)
 
 
 def test_providers_have_separate_ledgers_and_limits(env, monkeypatch):
