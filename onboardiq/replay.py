@@ -149,3 +149,108 @@ def replay(session_path, log=print, on_event=None):
         return out
     finally:
         llm.chat, verify.time, agent.time, verify._meminfo_kb = saved
+
+
+# ---- health monitoring: raw readings in, the same scoring code out ---------------------------------------------
+
+class PollRecorder:
+    """Wraps the SNMP client during monitoring and keeps every raw answer, grouped by poll. The score, the
+    levels and the anomalies are NOT stored: replay recomputes them from these answers with the real code."""
+
+    def __init__(self, snmp, clock=_time.time):
+        self.snmp, self.clock, self.t0, self.polls, self.cur = snmp, clock, clock(), [], None
+        self.llm_start = len(llm.USED_KEYS)
+
+    @property
+    def calls(self):
+        return self.snmp.calls
+
+    def begin(self):
+        self.cur = {"t": round(self.clock() - self.t0, 3), "calls": []}
+        self.polls.append(self.cur)
+
+    def _rec(self, op, args, fn):
+        out = fn()
+        if self.cur is not None:
+            self.cur["calls"].append({"op": op, "args": list(args), "vars": [[v.oid, v.type, v.value] for v in out]})
+        return out
+
+    def walk(self, oid):
+        return self._rec("walk", [oid], lambda: self.snmp.walk(oid))
+
+    def get(self, *oids):
+        return self._rec("get", oids, lambda: self.snmp.get(*oids))
+
+    def save(self, path, **meta):
+        """meta: device, spec, modules, cands, policy (dict), explain. Model answers are stored under short ids
+        in call order, as in onboarding recordings."""
+        ids, cache, order = {}, {}, []
+        for key in llm.USED_KEYS[self.llm_start:]:
+            if key not in ids:
+                f = llm.CACHE_DIR / "llm" / f"{key}.json"
+                if not f.exists():
+                    continue
+                ids[key] = f"a{len(ids)}"
+                cache[ids[key]] = json.loads(f.read_text())
+            order.append(ids[key])
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(json.dumps(
+            {"kind": "health_raw", **meta, "epoch": round(self.t0, 3), "polls": self.polls,
+             "llm_cache": cache, "llm_order": order}, separators=(",", ":")))
+
+
+class PollReplayer:
+    """Drop-in for Snmp during one recorded poll: answers each query from that poll's recorded answers, in order."""
+
+    def __init__(self, polls):
+        self.polls, self.calls, self.q = polls, 0, {}
+
+    def begin(self, i):
+        self.q = {}
+        for c in self.polls[i]["calls"]:
+            self.q.setdefault((c["op"], tuple(c["args"])), []).append(c["vars"])
+
+    def _answer(self, op, args):
+        self.calls += 1
+        recs = self.q.get((op, tuple(args)))
+        if not recs:
+            return []                       # not asked live in this poll: absent
+        return [Var(*v) for v in (recs.pop(0) if len(recs) > 1 else recs[0])]
+
+    def walk(self, oid):
+        return self._answer("walk", [oid])
+
+    def get(self, *oids):
+        return self._answer("get", list(oids))
+
+
+def replay_health(path):
+    """Recompute every poll of a raw health recording: [result dicts]. No device, no key. The scoring, anomaly
+    detection, restart detection and the check on the explanation all run on the recorded raw answers; only the
+    model's wording is served from the recording (and is checked again against the recomputed readings)."""
+    from . import monitor
+    d = json.loads(Path(path).read_text())
+    answers = [d["llm_cache"][k] for k in d["llm_order"]]
+    clock = VirtualClock()
+
+    def recorded_chat(*a, **k):
+        if not answers:
+            raise RuntimeError("health replay diverged from the recording: more model calls than recorded")
+        return {**answers.pop(0), "cached": True}
+
+    saved = llm.chat
+    llm.chat = recorded_chat
+    try:
+        snmp = PollReplayer(d["polls"])
+        mon = monitor.Monitor(snmp, {"spec": d["spec"]}, d["modules"], None, policy=d["policy"],
+                              explain_on=d.get("explain", False), cands=d["cands"], clock=clock.time)
+        out = []
+        for i, p in enumerate(d["polls"]):
+            snmp.begin(i)
+            clock.now = d["epoch"] + p["t"]
+            res = mon.poll()
+            res["device"] = d.get("device")
+            out.append(res)
+        return out
+    finally:
+        llm.chat = saved

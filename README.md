@@ -122,6 +122,20 @@ API key in the process and the SNMP community in memory for the run only, and se
 explanation as readings arrive. When the device is this machine's own agent, a button puts CPU load on it for
 120 seconds so you can watch the score fall and recover. A run stops after 30 minutes and can be saved as a replay.
 
+## Replays are recomputed, not stored
+
+A health recording made with `--record-raw` keeps every raw SNMP answer of every poll. Replaying it feeds those
+answers back into the same scoring, anomaly, restart-detection and explanation-check code, so the score on the page
+is calculated at replay time, not read from a file:
+
+```bash
+python scripts/monitor.py --replay-raw demo/laptop_stress.raw.json      # no device, no key
+```
+Edit one raw number in the file and the replayed score changes (`tests/test_monitor_raw.py` does exactly that). Only
+the model's wording of an explanation is served from the recording, and it is checked again against the recomputed
+readings. The monitor also reads `sysUpTime`: when uptime falls it reports a device restart (a 32-bit uptime wrap at
+497 days is told apart from a restart) and resets what counts as normal for each row.
+
 ## Alerts and the explanation card
 
 When a device's level changes, `scripts/monitor.py --alert` (and the **Monitor live** panel) send one email, and one

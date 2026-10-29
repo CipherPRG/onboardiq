@@ -286,7 +286,8 @@ function healthView(pb) {
   const big = el("p", { class: "h-score" }, "–");
   const lvl = el("p", { class: "h-level" });
   const sum = el("p", { class: "h-sum" }, "Waiting for the first reading…");
-  const meta = el("p", { class: "h-meta" }, `Thresholds: ${pb.policy || "policy file"}. Polled every ${pb.interval} s.`);
+  const meta = el("p", { class: "h-meta" }, `Thresholds: ${pb.policy || "policy file"}. Polled every ${pb.interval} s.` +
+    (pb.recomputed ? ` Recomputed from ${pb.recomputed.snmp_responses} raw SNMP responses (${pb.recomputed.polls} polls): the score is calculated now, not stored.` : ""));
   const left = el("div");
   left.append(big, lvl);
   const right = el("div");
@@ -338,7 +339,8 @@ function healthView(pb) {
                      (f.partial ? " · some rows skipped" : "")));
         fams.append(row);
       }
-      anom.replaceChildren(...(x.anomalies || []).map((a) => el("li", {}, "Unusual: " + a)));
+      anom.replaceChildren(...(x.events || []).map((a) => el("li", {}, "Event: " + a)),
+                           ...(x.anomalies || []).map((a) => el("li", {}, "Unusual: " + a)));
       if (x.explanation) {
         const e = x.explanation;
         const src = e.source === "template" ? "Written from the measured readings (template)" +
@@ -383,7 +385,7 @@ function liveSample(res) {
                 flagged: f.rows.filter((r) => r.level !== "ok").length, partial: f.partial };
   }
   return { at: res.at, alert: res.alert, score: res.score, level: res.level, capped_by: res.capped_by, summary: res.summary,
-           note: res.note, coverage: res.coverage, families: fams, anomalies: res.anomalies || [],
+           note: res.note, coverage: res.coverage, families: fams, anomalies: res.anomalies || [], events: res.events || [],
            explanation: res.explanation, alert: res.alert };
 }
 

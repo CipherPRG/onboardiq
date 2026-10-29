@@ -75,6 +75,23 @@ def export_health(path: Path) -> dict:
     breakdown with its worst row, anomalies and the checked explanation. Nothing is recomputed except
     the level label, which follows the current rule (a critical row reads as critical)."""
     lines = [json.loads(x) for x in path.read_text().splitlines() if x.strip()]
+    return _health_session(path.stem, lines)
+
+
+def export_health_raw(path: Path) -> dict:
+    """A raw health recording (every SNMP answer of every poll): the readings are RECOMPUTED here by the real
+    scoring code, so the page shows what the code makes of the device's own answers, not stored scores."""
+    from . import replay
+    raw = json.loads(Path(path).read_text())
+    lines = replay.replay_health(path)
+    session = _health_session(Path(path).name.removesuffix(".raw.json").removesuffix(".json"), lines)
+    session["recomputed"] = {"polls": len(raw["polls"]),
+                             "snmp_responses": sum(len(p["calls"]) for p in raw["polls"])}
+    session["interval"] = raw.get("interval") or session["interval"]
+    return session
+
+
+def _health_session(stem, lines) -> dict:
     samples = []
     for x in lines:
         fams = {}
@@ -88,7 +105,8 @@ def export_health(path: Path) -> dict:
             level = "critical"
         s = {"at": x.get("at"), "score": x.get("score"), "level": level, "capped_by": x.get("capped_by"),
              "summary": x.get("summary"), "coverage": x.get("coverage"), "families": fams,
-             "anomalies": x.get("anomalies") or [], **({"alert": x["alert"]} if x.get("alert") else {})}
+             "anomalies": x.get("anomalies") or [], **({"alert": x["alert"]} if x.get("alert") else {}),
+             **({"events": x["events"]} if x.get("events") else {})}
         if x.get("explanation"):
             e = x["explanation"]
             s["explanation"] = {k: e.get(k) for k in ("headline", "what_happened", "why", "check", "text", "source", "note")
@@ -98,8 +116,8 @@ def export_health(path: Path) -> dict:
     hi, lo = max(scores), min(scores)
     recovered = scores[-1] >= hi - 5 and lo < hi
     return {
-        "id": path.stem, "kind": "health",
-        "device": HEALTH_DEVICE.get(path.stem) or (lines[0].get("device") if lines else None) or "Recorded device",
+        "id": stem, "kind": "health",
+        "device": HEALTH_DEVICE.get(stem) or (lines[0].get("device") if lines else None) or "Recorded device",
         "highlight": f"health fell {hi} → {lo} under load" + (", then recovered" if recovered else ""),
         "recorded": (samples[0]["at"] or "")[:16].replace("T", " ") + " UTC" if samples else None,
         "policy": lines[0].get("policy") if lines else None,
@@ -112,13 +130,17 @@ def export_health(path: Path) -> dict:
 def export_all(files=None, dest=None) -> list:
     files = [Path(f) for f in files] if files else sorted((ROOT / "demo").glob("*.json")) + \
         sorted((ROOT / "demo").glob("*.jsonl"))
+    # a raw recording replaces the score-only recording of the same run (the raw one is recomputed on export)
+    raw = {f.name.removesuffix(".raw.json") for f in files if f.name.endswith(".raw.json")}
+    files = [f for f in files if not (f.suffix == ".jsonl" and f.stem in raw)]
     dest = Path(dest or ROOT / "web" / "sessions")
     dest.mkdir(parents=True, exist_ok=True)
     # Exporting some files updates their entries and keeps the rest of the list.
     old = dest / "index.json"
     index = json.loads(old.read_text()) if files and old.exists() else []
     for f in files:
-        pb = export_health(f) if f.suffix == ".jsonl" else export(f)
+        pb = export_health(f) if f.suffix == ".jsonl" else \
+            export_health_raw(f) if f.name.endswith(".raw.json") else export(f)
         (dest / f"{pb['id']}.json").write_text(json.dumps(pb, separators=(",", ":")))
         index = [x for x in index if x["id"] != pb["id"]]
         index.append({"id": pb["id"], "device": pb["device"], "highlight": pb["highlight"],
