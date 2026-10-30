@@ -47,6 +47,11 @@ def main():
     ap.add_argument("--load-by-hand", metavar="CPU_INSTRUCTIONS",
                     help="prove CPU picks on a remote device: you start a load on the device when asked "
                          "(e.g. a RouterOS busy loop); the agent measures before/during")
+    ap.add_argument("--load-by-hand-memory", metavar="MEMORY_INSTRUCTIONS",
+                    help="prove memory picks on a remote device: you allocate memory on the device when asked "
+                         "(e.g. a RouterOS script that builds a long string); needs --memory-mib")
+    ap.add_argument("--memory-mib", type=float, default=0,
+                    help="how many MiB your --load-by-hand-memory command allocates (the check expects that change)")
     args = ap.parse_args()
     log = lambda m: print(m, flush=True)  # noqa: E731
     if args.replay:
@@ -70,9 +75,17 @@ def main():
         dev = replay.Recorder(snmp) if args.record else snmp
         verify_kw = {}
         lab = args.lab
-        if args.load_by_hand:
+        if args.load_by_hand or args.load_by_hand_memory:
             from onboardiq.verify import prompt_load
-            verify_kw["load"] = prompt_load({"cpu": args.load_by_hand})
+            instr, sizes = {}, {}
+            if args.load_by_hand:
+                instr["cpu"] = args.load_by_hand
+            if args.load_by_hand_memory:
+                if args.memory_mib <= 0:
+                    raise SystemExit("--load-by-hand-memory needs --memory-mib N: how many MiB your command allocates")
+                instr["memory"] = args.load_by_hand_memory
+                sizes["memory"] = int(args.memory_mib * 1024 ** 2)
+            verify_kw["load"] = prompt_load(instr, sizes=sizes)
             lab = True    # experiments run, but the load is applied on the device by a person
         out = agent.onboard(args.device, cands, dev, lab=lab, families=args.families.split(","),
                             max_attempts=args.max_attempts, model=args.model, effort=args.effort,

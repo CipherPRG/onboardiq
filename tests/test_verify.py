@@ -230,3 +230,38 @@ def test_counterbasedgauge64_is_a_gauge_when_the_mib_says_so():
     it.mib_type = "CounterBasedGauge64"
     r = verify_item(dev, it, lab=True, load=dev.load, **FAST)
     assert r.verdict == "proven-experiment" and "RFC 2856" in r.evidence[1]["detail"]
+
+
+def test_load_by_hand_memory_expects_the_declared_size():
+    """A person allocates 16 MiB on the device: the check expects that change, not a size taken from this machine."""
+    from onboardiq.verify import prompt_load
+    mib = 1024 * 1024
+    dev = FakeDevice({"1.9.9.9": ("INTEGER", lambda l, t: 200_000 + (16_384 if l else 0))})   # KiB used
+    said = []
+    loader = prompt_load({"memory": "build a long string"}, ask=lambda m: "", say=said.append, sizes={"memory": 16 * mib})
+
+    def hand(kind, seconds, size):
+        p = loader(kind, seconds, size)
+        dev.loaded = True
+        stop = p.terminate
+
+        class P:
+            def terminate(self):
+                dev.loaded = False
+                stop()
+
+            def wait(self, timeout=None):
+                return p.wait()
+        return P()
+    hand.bytes = loader.bytes
+    r = verify_item(dev, Item("memory", "1.9.9.9", name="hrStorageUsed", scale=1024, canonical_unit="bytes",
+                              under_load="rise"), lab=True, load=hand, **FAST)
+    assert r.verdict == "proven-experiment" and "allocated 16 MiB" in r.evidence[-1]["detail"]
+    assert any("about 16 MiB" in s for s in said)
+    # the same object that does not move is rejected, not proven
+    dev2 = FakeDevice({"1.9.9.9": ("INTEGER", lambda l, t: 200_000)})      # a constant total: never moves
+    loader2 = prompt_load({"memory": "build a long string"}, ask=lambda m: "", say=lambda m: None,
+                          sizes={"memory": 16 * mib})
+    r = verify_item(dev2, Item("memory", "1.9.9.9", name="hrMemorySize", scale=1024, canonical_unit="bytes",
+                               under_load="rise"), lab=True, load=loader2, **FAST)
+    assert r.verdict == "rejected" and "allocated 16 MiB" in r.evidence[-1]["detail"]

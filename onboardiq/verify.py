@@ -291,17 +291,21 @@ class NotInducible(Exception):
     """This load source cannot produce the requested kind of load."""
 
 
-def prompt_load(instructions: dict, ask=input, say=print):
+def prompt_load(instructions: dict, ask=input, say=print, sizes: dict | None = None):
     """Load applied by a person on the device itself (e.g. a traffic test on a router).
 
     instructions: {"cpu": "how to start CPU load on this device"}; families without an entry
     cannot be loaded this way. The verifier pauses until the operator confirms start and stop.
+    sizes: {"memory": bytes} how much the operator's memory command allocates; the experiment then expects
+    that change (the device's own memory total is not known to the loader, so the size is declared, not guessed).
     """
     def start(kind, seconds, size_bytes=0):
         if kind not in instructions:
             raise NotInducible(f"no way to load {kind} on this device by hand")
         say(f"\n>>> START {kind.upper()} LOAD ON THE DEVICE NOW and keep it running for about {seconds} s:")
         say(f"    {instructions[kind]}")
+        if kind == "memory" and (sizes or {}).get("memory"):
+            say(f"    (this should allocate about {sizes['memory'] / 1024 ** 2:.0f} MiB)")
         ask(">>> Press Enter once the load is running... ")
 
         class Stop:
@@ -312,6 +316,7 @@ def prompt_load(instructions: dict, ask=input, say=print):
                 ask(">>> Press Enter once it has stopped... ")
                 return 0
         return Stop()
+    start.bytes = dict(sizes or {})
     return start
 
 
@@ -363,7 +368,10 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
     if adapt_windows and wait > 0:
         time.sleep(wait)
     alloc = 0
-    if it.family == "memory":
+    declared = (getattr(load, "bytes", None) or {}).get("memory") if it.family == "memory" else None
+    if declared:                                 # a person allocates a known amount on the device itself
+        alloc = int(declared)
+    elif it.family == "memory":
         total_kb = _meminfo_kb() or 4 * 1024 * 1024
         alloc = int(min(1024 ** 3, total_kb * 1024 * 0.25))
     PHASE["name"] = "base"
@@ -421,6 +429,11 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
             res.add("experiment", ok, f"cpu load: {m0 * scale:.1f} -> {m1 * scale:.1f} {it.canonical_unit}"
                                       f" (change {delta:+.1f}, expected {'rise' if sign > 0 else 'fall'}, per {source})")
         else:
+            if it.canonical_unit == "percent" and declared:
+                PHASE["name"] = "static"
+                res.add("experiment", None, "memory is reported in percent and this device's total is not known "
+                                            "here, so a by-hand allocation cannot be compared; pick a bytes object")
+                return res
             if it.canonical_unit == "percent":
                 expect = alloc / ((_meminfo_kb() or 1) * 1024) * 100
             else:
