@@ -8,9 +8,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
-# Only the open IETF / net-snmp MIBs are converted into the image; vendor MIBs are never bundled.
-RUN python scripts/intake.py /usr/share/snmp/mibs --out /app/mibs_json \
-      --only HOST-RESOURCES-MIB,UCD-SNMP-MIB,LM-SENSORS-MIB
+# Only the open IETF / net-snmp MIBs are converted into the image (fetched here from a pinned net-snmp release;
+# Debian's package does not carry the host-resources module). Vendor MIBs are never bundled. The build fails if a
+# module the sandbox needs did not convert.
+RUN python scripts/fetch_open_mibs.py /tmp/open_mibs \
+    && python scripts/intake.py /tmp/open_mibs --out /app/mibs_json \
+         --only HOST-RESOURCES-MIB,UCD-SNMP-MIB,LM-SENSORS-MIB \
+    && test -s /app/mibs_json/HOST-RESOURCES-MIB.json && test -s /app/mibs_json/UCD-SNMP-MIB.json \
+    && rm -rf /tmp/open_mibs
 # The agent being monitored: this container's own net-snmp, read-only, reachable from inside only.
 # It listens on 1161 (an unprivileged port) so nothing here needs root; the server maps "localhost, default port" to it.
 RUN printf 'agentaddress udp:127.0.0.1:1161\nrocommunity public 127.0.0.1\nsysLocation OnboardIQ judge container\n' > /etc/snmp/snmpd.conf
