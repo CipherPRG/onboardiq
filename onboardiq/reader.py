@@ -118,6 +118,8 @@ def _normalise(pick):
 
 
 def _parse(content):
+    if not (content or "").strip():
+        raise ValueError("empty reply")
     content = content.strip()
     if content.startswith("```"):
         parts = content.strip("`").split("\n", 1)

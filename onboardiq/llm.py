@@ -30,7 +30,7 @@ def client(provider: str = "meta"):
         key = os.environ.get(cfg["key_env"])
         if not key:
             raise RuntimeError(f"{cfg['key_env']} is not set (copy .env.example to .env)")
-        _clients[provider] = OpenAI(base_url=cfg["base"], api_key=key, timeout=600)
+        _clients[provider] = OpenAI(base_url=cfg["base"], api_key=key, timeout=600, max_retries=6)
     return _clients[provider]
 
 

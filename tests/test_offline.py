@@ -237,3 +237,11 @@ def test_cli_passphrases_come_from_the_environment_never_the_command_line(monkey
     a = ap.parse_args(["--snmp-version", "3", "--v3-user", "ops"])
     monkeypatch.setenv("OIQ_V3_AUTH_PASS", "authpassphrase")
     assert snmp.cli_credentials(a)["v3"]["auth_pass"] == "authpassphrase"
+
+
+def test_reader_parse_empty_reply_is_a_bad_reply():
+    import pytest
+    from onboardiq import reader
+    for empty in (None, "", "  \n"):
+        with pytest.raises(ValueError):
+            reader._parse(empty)
