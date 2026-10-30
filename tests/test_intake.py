@@ -113,3 +113,84 @@ def test_reason_names_the_real_cause_and_never_the_download_line():
 def test_conversion_is_told_not_to_borrow_from_the_internet(tmp_path):
     arg = intake.no_download(tmp_path)
     assert arg[0] == "--mib-borrower" and arg[1].startswith("file://") and "http" not in arg[1]
+
+
+# --- repair rules (onboardiq/mibfix.py): text in, fixed text and a note out; unsure means no change -------------------
+from onboardiq import mibfix  # noqa: E402
+
+
+def test_trailing_comma_is_removed_only_when_the_converter_stopped_at_the_brace():
+    t = "n NOTIFICATION-TYPE\r\n  OBJECTS { a,\r\n    b,\r\n  }\r\n"
+    off = t.index("}")
+    fixed, note = mibfix.repair(t, f"Failed MIBs: M (Bad grammar near offset {off} at MIB M, line 4)")
+    assert "b,\r\n  }" not in fixed and "b\r\n  }" in fixed and "comma" in note
+    assert mibfix.repair(t, "Failed MIBs: M (Bad grammar near offset 3 at MIB M, line 1)") is None
+
+
+def test_digit_enum_labels_get_a_letter_in_front():
+    t = "SYNTAX INTEGER\r\n { 100(0),\r\n 10(1), up(2) }\r\nMAX-ACCESS read-only\r\n"
+    off = t.index("100")
+    fixed, note = mibfix.repair(t, f"Failed MIBs: M (Bad grammar near offset {off} at MIB M, line 2)")
+    assert "n100(0)" in fixed and "n10(1)" in fixed and "up(2)" in fixed and "2 enumeration labels" in note
+
+
+def test_hyphen_ending_identifier_and_clash_guard():
+    err = "Failed MIBs: M (Identifier should not end with '-': abc- at MIB M, line 2)"
+    fixed, _ = mibfix.repair("abc- OBJECT-TYPE\nuses abc-\n", err)
+    assert "abc-" not in fixed and fixed.count("abc") == 2
+    assert mibfix.repair("abc OBJECT-TYPE\nabc- OBJECT-TYPE\n", err) is None
+
+
+def test_implicit_enterprises_gets_imported_from_the_right_smi_module():
+    err = "Failed MIBs: M (Unknown parent symbol: enterprises at MIB M)"
+    v2 = "M DEFINITIONS ::= BEGIN\nIMPORTS MODULE-IDENTITY, OBJECT-TYPE\n    FROM SNMPv2-SMI;\nm MODULE-IDENTITY ::= { enterprises 1 }\nEND\n"
+    fixed, note = mibfix.repair(v2, err)
+    assert "OBJECT-TYPE, enterprises" in fixed and "SNMPv2-SMI" in note
+    v1 = "M DEFINITIONS ::= BEGIN\nx OBJECT IDENTIFIER ::= { enterprises 5 }\nEND\n"
+    fixed, note = mibfix.repair(v1, err)
+    assert "IMPORTS enterprises FROM RFC1155-SMI;" in fixed
+    assert mibfix.repair("M DEFINITIONS ::= BEGIN\nIMPORTS enterprises FROM RFC1155-SMI;\nEND\n", err) is None
+    assert mibfix.repair(v1, "Failed MIBs: M (Unknown parent symbol: someVendorRoot at MIB M)") is None
+
+
+def test_duplicate_definitions_identical_ones_dropped_different_ones_renamed():
+    same = "a OBJECT IDENTIFIER ::= { r 1 }\nb OBJECT IDENTIFIER ::= { r 2 }\na OBJECT IDENTIFIER ::= { r 1 }\n"
+    fixed, note = mibfix.repair(same, "Failed MIBs: M (Duplicate symbol found: a at MIB M)")
+    assert fixed.count("a OBJECT IDENTIFIER") == 1 and "identical" in note
+    diff = "a OBJECT IDENTIFIER ::= { r 1 }\na OBJECT IDENTIFIER ::= { r 9 }\n"
+    fixed, note = mibfix.repair(diff, "Failed MIBs: M (Duplicate symbol found: a at MIB M)")
+    assert "aDup2 OBJECT IDENTIFIER ::= { r 9 }" in fixed and "a OBJECT IDENTIFIER ::= { r 1 }" in fixed
+    assert mibfix.repair("a OBJECT IDENTIFIER ::= { r 1 }\n", "Failed MIBs: M (Duplicate symbol found: a at MIB M)") is None
+
+
+def test_hyphen_underscore_collision_is_found():
+    t = "S5330-28TX OBJECT IDENTIFIER ::= { p 1 }\nS5330_28TX OBJECT IDENTIFIER ::= { p 2 }\n"
+    fixed, note = mibfix.repair(t, "Failed MIBs: M (Duplicate symbol found: S5330_28TX at MIB M)")
+    assert "Dup2" in fixed
+
+
+_HEAD = ('{M} DEFINITIONS ::= BEGIN\nIMPORTS MODULE-IDENTITY, OBJECT-TYPE, Integer32, NOTIFICATION-TYPE, enterprises FROM SNMPv2-SMI;\n'
+         '{m} MODULE-IDENTITY LAST-UPDATED "202001010000Z" ORGANIZATION "t" CONTACT-INFO "t" DESCRIPTION "t" '
+         'REVISION "202001010000Z" DESCRIPTION "t" ::= {{ enterprises {n} }}\n')
+_OBJ = '{o} OBJECT-TYPE SYNTAX {s} MAX-ACCESS read-only STATUS current DESCRIPTION "d" ::= {{ {p} {i} }}\n'
+
+
+@needs_base
+def test_real_converter_accepts_files_after_repair_and_never_touches_the_originals(tmp_path):
+    comma = (_HEAD.format(M="COMMA-MIB", m="commaMib", n=2) + _OBJ.format(o="cA", s="Integer32", p="commaMib", i=1)
+             + 'cTrap NOTIFICATION-TYPE OBJECTS { cA,\n } STATUS current DESCRIPTION "d" ::= { commaMib 3 }\nEND\n')
+    enum = (_HEAD.format(M="ENUM-MIB", m="enumMib", n=3)
+            + _OBJ.format(o="eSpeed", s="INTEGER\n { 100(0),\n 10(1)\n }", p="enumMib", i=1) + "END\n")
+    dup = (_HEAD.format(M="DUP-MIB", m="dupMib", n=4) + "dupNode OBJECT IDENTIFIER ::= { dupMib 7 }\n"
+           + _OBJ.format(o="dupVal", s="Integer32", p="dupNode", i=1) + "dupNode OBJECT IDENTIFIER ::= { dupMib 7 }\nEND\n")
+    src = tmp_path / "mibs"
+    src.mkdir()
+    for n, t in {"comma": comma, "enum": enum, "dup": dup}.items():
+        (src / f"{n}.mib").write_bytes(t.replace("\n", "\r\n").encode())
+    before = {p.name: p.read_bytes() for p in src.iterdir()}
+    off = intake.convert(src, tmp_path / "off", repair=False)
+    on = intake.convert(src, tmp_path / "on", repair=True)
+    assert sorted(off["failed"]) == ["COMMA-MIB", "DUP-MIB", "ENUM-MIB"]
+    assert on["failed"] == {} and sorted(on["repairs"]) == ["COMMA-MIB", "DUP-MIB", "ENUM-MIB"]
+    assert (tmp_path / "on" / "_repairs.json").exists()
+    assert {p.name: p.read_bytes() for p in src.iterdir()} == before          # the originals are untouched

@@ -21,17 +21,24 @@ def main():
     ap.add_argument("--out", default=str(Path.home() / "data" / "mibs_json"))
     ap.add_argument("--only", help="comma-separated module names (default: every module found)")
     ap.add_argument("--workers", type=int, default=4, help="modules converted at the same time (default 4)")
+    ap.add_argument("--no-repair", action="store_true",
+                    help="do not fix known slips in temporary copies of vendor MIBs (see onboardiq/mibfix.py)")
     ap.add_argument("--why", metavar="MODULE", help="show the full converter output for one module and exit")
     ap.add_argument("--report", help="also write the counts and every failure to this JSON file")
     a = ap.parse_args()
     if a.why:
         print(intake.why(a.folder, a.why))
         return
-    r = intake.convert(a.folder, a.out, a.only.split(",") if a.only else None, workers=a.workers)
+    r = intake.convert(a.folder, a.out, a.only.split(",") if a.only else None, workers=a.workers, repair=not a.no_repair)
     print(f"converted {len(r['converted'])} module(s) into {a.out}")
     sm = intake.summary(r)
     print(f"  {sm['modules']} tried: {sm['converted_clean']} clean, {sm['converted_incomplete']} converted but missing an "
           f"import, {sm['failed']} failed {sm['failed_by_cause'] or ''}")
+    if r.get("repairs"):
+        print(f"  {len(r['repairs'])} file(s) needed a small fix in a temporary copy (your files are not changed; "
+              f"see _repairs.json in {a.out}):")
+        for m, notes in list(r["repairs"].items())[:6]:
+            print(f"    {m}: {'; '.join(notes)[:150]}")
     if sm["most_missing_imports"]:
         print("  most often missing:", ", ".join(f"{m} ({n})" for m, n in sm["most_missing_imports"]))
     if sm["duplicate_modules"]:

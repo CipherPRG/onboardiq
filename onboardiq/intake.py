@@ -18,8 +18,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+from . import mibfix
 
 DEFINES = re.compile(r"^\s*([A-Za-z][A-Za-z0-9-]*)\s+DEFINITIONS\s*(?:(?:EXPLICIT|IMPLICIT|AUTOMATIC)\s+TAGS\s*)?::=\s*BEGIN",
                      re.M)
@@ -70,20 +73,72 @@ def imports_of(path):
     return sorted(set(FROM.findall(m.group(1)))) if m else []
 
 
-def _dump(name, src, tmp):
-    """Run mibdump for one module into its own folder. Returns (name, json path or None, error line)."""
+BLAME = re.compile(r"Failed MIBs: (\S+) \(")
+MAX_REPAIRS = 8                                        # per module: a loop guard, not a target
+_LOCKS = {}
+
+
+class Repairs:
+    """The repairs made to the temporary copies of MIB files (never to the user's), shared by the worker threads."""
+
+    def __init__(self, src, enabled=True):
+        self.src, self.enabled = Path(src), enabled
+        self.notes = {}                                # file (module) -> [what was changed]
+        self.version = {}                              # file (module) -> how many times it has been rewritten
+        self.guard = threading.Lock()
+
+    def _lock(self, name):
+        with self.guard:
+            return _LOCKS.setdefault((id(self), name), threading.Lock())
+
+    def apply(self, culprit, error, seen_version):
+        """Try to repair the file the converter blamed. Returns "fixed", "changed" (another worker already changed
+        that file since the failure was seen: just try again) or None (no rule is sure)."""
+        path = self.src / culprit
+        if not self.enabled or not path.exists():
+            return None
+        with self._lock(culprit):
+            if self.version.get(culprit, 0) != seen_version:
+                return "changed"
+            with open(path, encoding="utf-8", errors="replace", newline="") as fh:
+                text = fh.read()
+            got = mibfix.repair(text, error)
+            if not got:
+                return None
+            with open(path, "w", encoding="utf-8", newline="") as fh:
+                fh.write(got[0])
+            self.version[culprit] = seen_version + 1
+            self.notes.setdefault(culprit, []).append(got[1])
+            return "fixed"
+
+
+def _dump(name, src, tmp, repairs=None):
+    """Run mibdump for one module into its own folder. Returns (name, json path or None, error line).
+    When the converter blames a file for a mistake one of the repair rules is sure about, that temporary copy is
+    repaired and the module is tried again (at most MAX_REPAIRS times)."""
     dest = Path(tmp) / "out" / name
     dest.mkdir(parents=True, exist_ok=True)
-    try:
-        r = subprocess.run([_mibdump(), "--mib-source", f"file://{src}", *no_download(tmp), "--destination-format", "json",
-                            "--destination-directory", str(dest), "--generate-mib-texts", "--ignore-errors", name],
-                           capture_output=True, text=True, timeout=120)
-    except subprocess.TimeoutExpired:
-        return name, None, "converter timed out after 120 s"
-    produced = dest / f"{name}.json"
-    if produced.exists() and produced.stat().st_size > 2:
-        return name, produced, ""
-    return name, None, reason_from(r.stdout + "\n" + r.stderr)
+    err = ""
+    for _ in range(MAX_REPAIRS + 1):
+        seen = dict(repairs.version) if repairs else {}
+        try:
+            r = subprocess.run([_mibdump(), "--mib-source", f"file://{src}", *no_download(tmp), "--destination-format",
+                                "json", "--destination-directory", str(dest), "--generate-mib-texts",
+                                "--ignore-errors", name], capture_output=True, text=True, timeout=120)
+        except subprocess.TimeoutExpired:
+            return name, None, "converter timed out after 120 s"
+        produced = dest / f"{name}.json"
+        if produced.exists() and produced.stat().st_size > 2:
+            return name, produced, ""
+        err = reason_from(r.stdout + "\n" + r.stderr)
+        if not repairs or not repairs.enabled:
+            break
+        m = BLAME.match(err)
+        culprit = m.group(1) if m else name
+        status = repairs.apply(culprit, err, seen.get(culprit, 0))
+        if status is None:
+            break
+    return name, None, err
 
 
 def no_download(tmp):
@@ -105,10 +160,10 @@ def reason_from(output):
     for ln in lines:                                   # mibdump's own summary lines name the cause
         for key in ("Failed MIBs:", "Missing source MIBs:"):
             if ln.startswith(key) and ln[len(key):].strip():
-                return ln[:200]
+                return ln[:400]
     for ln in lines:
         if REASON.search(ln) and "compiled" not in ln.lower() and not ln.startswith(("Borrow", "Ignore", "Missing source MIBs:", "Failed MIBs:")):
-            return ln[:200]
+            return ln[:400]
     return "converter wrote nothing (" + lines[-1][:150] + ")"
 
 
@@ -140,13 +195,16 @@ def why(folder, module, extra_dirs=None):
     return "\n".join(lines)
 
 
-def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
+def convert(folder, out_dir, only=None, extra_dirs=None, workers=4, repair=True):
     """Convert the folder's modules to JSON in out_dir. Imports are looked up in the folder first, then in
     extra_dirs (default: system_dirs()). Returns
       {"converted": [...], "failed": {module: reason}, "missing_imports": {module: [imported modules found nowhere]},
        "incomplete": [converted modules that import something not found: some names may be unresolved],
        "duplicates": {module: [files defining it]}}.
-    Modules are converted `workers` at a time; one failing module never stops the others."""
+    With repair=True (default) a mistake in a vendor file that a rule in mibfix.py is sure about is fixed in a
+    temporary copy and logged: "repairs" maps file -> what was changed, and `_repairs.json` in out_dir says the
+    same. The user's files are never changed. Modules are converted `workers` at a time; one failing module
+    never stops the others."""
     duplicates = {}
     mine = modules_in(folder, duplicates)
     pool = {}
@@ -155,7 +213,7 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
     pool.update(mine)                                  # the user's own files win
     mods = {k: v for k, v in mine.items() if not only or k in set(only)}
     if not mods:
-        return {"converted": [], "failed": {}, "missing_imports": {}, "incomplete": [], "duplicates": {}, "files": {},
+        return {"converted": [], "failed": {}, "missing_imports": {}, "incomplete": [], "duplicates": {}, "files": {}, "repairs": {},
                 "note": "no MIB modules found in the folder"}
     out_dir = Path(out_dir).expanduser()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -172,8 +230,9 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
         for name, p in pool.items():
             shutil.copyfile(p, src / name)
         todo = sorted(n for n in mods if n not in BUILTIN)    # base SMI modules are used as import text only
+        repairs = Repairs(src, enabled=repair)
         with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
-            results = list(ex.map(lambda n: _dump(n, src, tmp), todo))
+            results = list(ex.map(lambda n: _dump(n, src, tmp, repairs), todo))
         for name, produced, err in results:
             if produced is None:
                 failed[name] = err
@@ -185,7 +244,10 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4):
                 continue
             shutil.copyfile(produced, out_dir / produced.name)
             converted.append(name)
-    return {"converted": converted, "failed": failed, "missing_imports": missing,
+    done = {k: v for k, v in repairs.notes.items() if k in converted}
+    if done:
+        (out_dir / "_repairs.json").write_text(json.dumps(done, indent=1))
+    return {"converted": converted, "failed": failed, "missing_imports": missing, "repairs": done,
             "incomplete": sorted(m for m in converted if m in missing),
             "duplicates": {k: v for k, v in duplicates.items() if not only or k in set(only)},
             "files": {k: str(mods[k]) for k in failed if k in mods}}
@@ -217,4 +279,4 @@ def summary(r):
             "converted_incomplete": len(r.get("incomplete", [])), "failed": len(r["failed"]),
             "failed_by_cause": dict(Counter(failure_kind(v) for v in r["failed"].values())),
             "most_missing_imports": Counter(i for v in r["missing_imports"].values() for i in v).most_common(10),
-            "duplicate_modules": len(r.get("duplicates", {}))}
+            "duplicate_modules": len(r.get("duplicates", {})), "repaired_files": len(r.get("repairs", {}))}
