@@ -17,12 +17,16 @@ Hosted sandbox (OIQ_SANDBOX=1, used by the public demo): the server ignores ever
 for a run. The target is this container's own read-only agent, the MIB modules, the device name and the load
 mode are fixed in code, so nothing a visitor types reaches SNMP, a shell or the model prompt. One run at a
 time, a cooldown between runs, a cap on runs per process, the daily dollar cap of spend_guard, no monitor mode,
-and the model is called fresh every time (OIQ_NO_CACHE=1) so a run is never a cached answer.
+and the model is called fresh every time (OIQ_NO_CACHE=1) so a run is never a cached answer. Also: a per-visitor
+daily limit, the OIQ_PAID=off kill switch, random run ids, strict security headers, nothing written to disk.
+See docs/SANDBOX.md.
 """
+import ipaddress
 import json
 import os
 import queue
 import re
+import secrets
 import shutil
 import subprocess
 import threading
@@ -60,6 +64,18 @@ SANDBOX_DEVICE = "Linux host running the net-snmp agent (hosted demo device)"
 SANDBOX_MODULES = ["UCD-SNMP-MIB", "HOST-RESOURCES-MIB"]
 SANDBOX_COOLDOWN_S = int(os.environ.get("OIQ_SANDBOX_COOLDOWN", "60"))
 SANDBOX_MAX_RUNS = int(os.environ.get("OIQ_SANDBOX_MAX_RUNS", "40"))
+SANDBOX_PER_IP = int(os.environ.get("OIQ_SANDBOX_PER_IP", "3"))          # runs per visitor address per 24 h
+SANDBOX_MIN_BUDGET = float(os.environ.get("OIQ_SANDBOX_MIN_BUDGET", "0.30"))   # dollars that must remain to start
+SANDBOX_ATTEMPTS = int(os.environ.get("OIQ_SANDBOX_ATTEMPTS", "3"))      # model tries per metric (3 = two re-reads)
+SANDBOX_EFFORT = os.environ.get("OIQ_SANDBOX_EFFORT") or EFFORT
+TRUSTED_HOPS = int(os.environ.get("OIQ_TRUSTED_HOPS", "1"))             # proxies that append to X-Forwarded-For
+# inside the container the agent listens on an unprivileged port, so nothing in the image needs root
+LOCAL_SNMP_PORT = int(os.environ.get("OIQ_LOCAL_SNMP_PORT") or 0) or None
+MAX_VIEWERS = 8                    # event-stream readers per run
+DAY = 24 * 3600
+CSP = ("default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+       "font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; base-uri 'none'; "
+       "form-action 'none'; frame-ancestors 'none'")
 
 
 def host_allowed(host, port, sandbox=None, public_hosts=None):
@@ -99,23 +115,81 @@ def public_error(e):
 
 def sandbox_options():
     """The only run the hosted demo allows. Nothing here comes from the request."""
-    return {"device": SANDBOX_DEVICE, "modules": list(SANDBOX_MODULES), "host": "localhost", "port": None,
-            "families": list(FAMILIES), "lab": True, "load_by_hand": None, "snmp": credentials({}),
-            "record": False}
+    return {"device": SANDBOX_DEVICE, "modules": list(SANDBOX_MODULES), "host": "localhost",
+            "port": LOCAL_SNMP_PORT, "families": list(FAMILIES), "lab": True, "load_by_hand": None,
+            "snmp": credentials({}), "record": False}
 
 
-def sandbox_gate(state, now=None, cooldown=None, max_runs=None):
-    """None if a sandbox run may start, else (message, seconds to wait)."""
+def client_ip(xff, peer, hops=None):
+    """The visitor's address. X-Forwarded-For is client-controlled on its left; only the entries appended by our
+    own proxy (the right-most `hops`) can be trusted, so the visitor's address is the `hops`-th from the right.
+    IPv6 visitors are grouped by /64 (one subscriber holds a whole /64, so per-address limits would be moot)."""
+    hops = TRUSTED_HOPS if hops is None else hops
+    parts = [p.strip() for p in (xff or "").split(",") if p.strip()]
+    cand = parts[-hops] if hops > 0 and len(parts) >= hops else peer
+    try:
+        ip = ipaddress.ip_address(cand)
+    except ValueError:
+        ip = ipaddress.ip_address(peer)
+    if ip.version == 6:
+        return str(ipaddress.ip_network(f"{ip}/64", strict=False).network_address)
+    return str(ip)
+
+
+def ip_gate(table, ip, now, per_ip=None):
+    """None if this address may start another run today, else a message. `table` maps address -> start times."""
+    per_ip = SANDBOX_PER_IP if per_ip is None else per_ip
+    recent = [t for t in table.get(ip, []) if now - t < DAY]
+    if recent:
+        table[ip] = recent
+    else:
+        table.pop(ip, None)
+    if len(recent) >= per_ip:
+        return (f"This address has used its {per_ip} live runs for today. Play a recorded session, or run "
+                "OnboardIQ yourself (README: docker compose up).")
+    return None
+
+
+def ip_note(table, ip, now, cap=5000):
+    """Remember a started run. The table is bounded: past `cap` addresses the stalest entries are dropped."""
+    table.setdefault(ip, []).append(now)
+    if len(table) > cap:
+        for k in sorted(table, key=lambda a: table[a][-1])[: len(table) - cap // 2]:
+            del table[k]
+
+
+def sandbox_gate(state, now=None, cooldown=None, max_runs=None, paid=None, budget_left=None, ip=None, per_ip=None):
+    """None if a sandbox run may start, else (message, seconds to wait). Checked in this order: the owner's
+    kill switch, the dollar budget, the run limit, this visitor's daily limit, the cooldown."""
     now = time.time() if now is None else now
     cooldown = SANDBOX_COOLDOWN_S if cooldown is None else cooldown
     max_runs = SANDBOX_MAX_RUNS if max_runs is None else max_runs
+    paid = os.environ.get("OIQ_PAID", "on").lower() != "off" if paid is None else paid
+    if not paid:
+        return ("The live demo is paused by its owner. Play a recorded session instead.", 0)
+    if budget_left is not None and budget_left < SANDBOX_MIN_BUDGET:
+        return ("The demo's budget for today is used up. Play a recorded session instead.", 0)
     if state["runs"] >= max_runs:
         return ("The hosted demo has reached its run limit for now. Play a recorded session instead, or run "
                 "OnboardIQ yourself (README: docker compose up).", 0)
+    if ip is not None:
+        why = ip_gate(state.setdefault("ips", {}), ip, now, per_ip)
+        if why:
+            return (why, 0)
     wait = state["last_end"] + cooldown - now
     if wait > 0:
         return (f"The demo device is cooling down after the last run. Try again in {int(wait) + 1} s.", int(wait) + 1)
     return None
+
+
+def budget_left():
+    """Dollars left today on the model account, from the same ledger the spend guard enforces."""
+    try:
+        from . import llm
+        g = llm.guard("meta")
+        return max(g.daily_usd - g.spent_today()["usd"], 0.0)
+    except Exception:  # noqa: BLE001 - an unreadable ledger must stop runs, not allow them
+        return 0.0
 
 
 class Run:
@@ -123,6 +197,7 @@ class Run:
         self.id, self.events, self.confirm = rid, [], queue.Queue()
         self.cond, self.finished = threading.Condition(), False
         self.kind, self.stop, self.opts, self.load = kind, threading.Event(), {}, []
+        self.viewers = 0
 
     def emit(self, ev):
         with self.cond:
@@ -181,6 +256,8 @@ def validate(body: dict) -> dict:
     load_by_hand = body.get("load_by_hand")
     load_by_hand = _clean_text(load_by_hand, 300) if load_by_hand else None
     creds = credentials(body)
+    if port is None and host in LOCAL and LOCAL_SNMP_PORT:      # this container's own agent
+        port = LOCAL_SNMP_PORT
     return {"device": device, "modules": modules, "host": host, "port": port, "families": families,
             "lab": lab, "load_by_hand": load_by_hand, "snmp": creds,
             "record": bool(body.get("record", True))}
@@ -220,10 +297,13 @@ def validate_monitor(body: dict) -> dict:
     interval = float(body.get("interval") or 10)
     if not 5 <= interval <= 300:
         raise ValueError("interval must be 5 to 300 seconds")
+    local = host in LOCAL and port is None
+    if local and LOCAL_SNMP_PORT:
+        port = LOCAL_SNMP_PORT
     return {"onboarded": name, "host": host, "port": port, "snmp": creds, "interval": interval,
             "explain": bool(body.get("explain")), "record": bool(body.get("record", True)),
             "alert": bool(body.get("alert", True)),
-            "local": host in LOCAL and port is None}
+            "local": local}
 
 
 def start_cpu_load(seconds: int) -> list:
@@ -315,9 +395,10 @@ def execute(run: Run, opts: dict):
             lab = True
         run.emit({"kind": "start", "device": opts["device"], "objects": len(cands),
                   "modules": ",".join(opts["modules"]), "model": MODEL, "live": True})
+        extra = {"max_attempts": SANDBOX_ATTEMPTS} if SANDBOX else {}
         out = agent.onboard(opts["device"], cands, dev, lab=lab, families=opts["families"],
-                            effort=EFFORT, log=lambda m: None, on_event=run.emit, verify_kw=verify_kw,
-                            modules=opts["modules"])
+                            effort=SANDBOX_EFFORT if SANDBOX else EFFORT, log=lambda m: None, on_event=run.emit,
+                            verify_kw=verify_kw, modules=opts["modules"], **extra)
         saved = None
         if opts["record"]:
             name = f"{slug(opts['device'])}-{time.strftime('%Y%m%d-%H%M%S')}"
@@ -328,11 +409,13 @@ def execute(run: Run, opts: dict):
             export_all()
             saved = name
         # saved like a terminal onboarding, so the live monitor can pick it up; no community is stored
-        RESULTS.mkdir(exist_ok=True)
-        ob = f"onboard_{time.strftime('%Y%m%d_%H%M%S')}"
-        args = {"device": opts["device"], "modules": ",".join(opts["modules"]), "host": opts["host"],
-                "port": opts["port"], "lab": lab, "families": ",".join(opts["families"])}
-        (RESULTS / f"{ob}.json").write_text(json.dumps({"args": args, **out}, indent=2, default=str))
+        ob = None
+        if not SANDBOX:                      # the hosted demo keeps nothing on disk
+            RESULTS.mkdir(exist_ok=True)
+            ob = f"onboard_{time.strftime('%Y%m%d_%H%M%S')}"
+            args = {"device": opts["device"], "modules": ",".join(opts["modules"]), "host": opts["host"],
+                    "port": opts["port"], "lab": lab, "families": ",".join(opts["families"])}
+            (RESULTS / f"{ob}.json").write_text(json.dumps({"args": args, **out}, indent=2, default=str))
         run.emit({"kind": "end", "onboarded": ob, "summary": {f: v["verdict"] for f, v in out["spec"].items()},
                   "cost_usd": out["cost_usd"], "seconds": out["seconds"], "snmp_calls": out["snmp_calls"],
                   "saved": saved})
@@ -348,6 +431,7 @@ def execute(run: Run, opts: dict):
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "OnboardIQ"
+    timeout = 30            # a client that stalls mid-request frees its thread instead of holding it
 
     def log_message(self, fmt, *args):   # quiet; never logs bodies
         pass
@@ -355,14 +439,26 @@ class Handler(BaseHTTPRequestHandler):
     def _host_ok(self):
         return host_allowed(self.headers.get("Host"), STATE["port"])
 
+    def _security_headers(self, csp=True):
+        if csp:
+            self.send_header("Content-Security-Policy", CSP)
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
+        if SANDBOX:
+            self.send_header("Strict-Transport-Security", "max-age=31536000")
+
     def _send(self, code, body=b"", ctype="application/json", extra=None):
+        extra = extra or {}
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Referrer-Policy", "no-referrer")
+        self._security_headers(csp="Content-Security-Policy" not in extra)
         self.send_header("Cache-Control", "no-store")
-        for k, v in (extra or {}).items():
+        for k, v in extra.items():
             self.send_header(k, v)
         self.end_headers()
         if body:
@@ -383,14 +479,16 @@ class Handler(BaseHTTPRequestHandler):
                 sb = STATE["sandbox"]
                 out.update({"sandbox": True, "model": MODEL, "device": SANDBOX_DEVICE,
                             "modules": SANDBOX_MODULES, "cooldown_s": SANDBOX_COOLDOWN_S,
-                            "runs_left": max(SANDBOX_MAX_RUNS - sb["runs"], 0)})
+                            "runs_left": max(SANDBOX_MAX_RUNS - sb["runs"], 0),
+                            "per_visitor": SANDBOX_PER_IP,
+                            "paused": os.environ.get("OIQ_PAID", "on").lower() == "off"})
             return self._json(200, out)
         if url.path == "/api/modules":
             q = (parse_qs(url.query).get("q") or [""])[0].upper()[:40]
             names = module_names()
             return self._json(200, [n for n in names if q in n.upper()][:40])
         m = re.fullmatch(r"/api/outbox/(alert-\d{8}-\d{6}\.html)", url.path)
-        if m:
+        if m and not SANDBOX:
             f = (STATE.get("outbox") or OUTBOX) / m.group(1)
             if not f.is_file():
                 return self._send(404, b'{"error":"not found"}')
@@ -398,7 +496,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, f.read_bytes(), "text/html; charset=utf-8",
                               {"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox"})
         if url.path == "/api/onboarded":
-            return self._json(200, onboarded_list())
+            return self._json(200, [] if SANDBOX else onboarded_list())
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/events", url.path)
         if m:
             return self._stream(m.group(1))
@@ -418,10 +516,13 @@ class Handler(BaseHTTPRequestHandler):
         run = STATE["run"]
         if not run or run.id != rid:
             return self._send(404, b'{"error":"no such run"}')
+        if run.viewers >= MAX_VIEWERS:
+            return self._send(429, b'{"error":"too many viewers"}')
+        run.viewers += 1
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-store")
-        self.send_header("X-Content-Type-Options", "nosniff")
+        self._security_headers()
         self.end_headers()
         sent = 0
         try:
@@ -439,8 +540,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.flush()
                 if run.finished and sent >= len(run.events):
                     return
-        except (BrokenPipeError, ConnectionResetError):
+        except OSError:                 # reader went away or stalled (reset, broken pipe, timeout)
             return
+        finally:
+            run.viewers -= 1
 
     def do_POST(self):
         if not self._host_ok():
@@ -451,7 +554,12 @@ class Handler(BaseHTTPRequestHandler):
         if self.headers.get("X-OnboardIQ") != "1" or \
                 not (self.headers.get("Content-Type") or "").startswith("application/json"):
             return self._send(403, b'{"error":"missing header"}')
-        length = int(self.headers.get("Content-Length") or 0)
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            return self._send(400, b'{"error":"bad length"}')
+        if length < 0:
+            return self._send(400, b'{"error":"bad length"}')
         if length > MAX_BODY:
             return self._send(413, b'{"error":"too large"}')
         try:
@@ -464,17 +572,19 @@ class Handler(BaseHTTPRequestHandler):
                 if STATE["run"] and not STATE["run"].finished:
                     return self._json(409, {"error": "a run is already in progress"})
                 if SANDBOX:
-                    blocked = sandbox_gate(STATE["sandbox"])
+                    ip = client_ip(self.headers.get("X-Forwarded-For"), self.client_address[0])
+                    blocked = sandbox_gate(STATE["sandbox"], budget_left=budget_left(), ip=ip)
                     if blocked:
                         return self._json(429, {"error": blocked[0], "retry_after": blocked[1]})
                     opts = sandbox_options()               # the request body is ignored on purpose
                     STATE["sandbox"]["runs"] += 1
+                    ip_note(STATE["sandbox"].setdefault("ips", {}), ip, time.time())
                 else:
                     try:
                         opts = validate(body)
                     except (ValueError, TypeError) as e:
                         return self._json(400, {"error": str(e)})
-                run = Run(f"{int(time.time() * 1000) & 0xFFFFFFFFFFFF:012x}")
+                run = Run(secrets.token_hex(6))
                 STATE["run"] = run
             threading.Thread(target=execute, args=(run, opts), daemon=True).start()
             return self._json(202, {"id": run.id})
@@ -488,7 +598,7 @@ class Handler(BaseHTTPRequestHandler):
                     opts = validate_monitor(body)
                 except (ValueError, TypeError) as e:
                     return self._json(400, {"error": str(e)})
-                run = Run(f"{int(time.time() * 1000) & 0xFFFFFFFFFFFF:012x}", kind="monitor")
+                run = Run(secrets.token_hex(6), kind="monitor")
                 run.opts = opts
                 STATE["run"] = run
             threading.Thread(target=watch, args=(run, opts), daemon=True).start()

@@ -8,7 +8,7 @@ case "${1:-serve}" in
     python scripts/onboard.py --replay demo/laptop_full.json
     ;;
   serve)
-    snmpd -Lsd -Lf /dev/null -p /tmp/snmpd.pid -C -c /etc/snmp/snmpd.conf
+    snmpd -Lf /dev/null -p /tmp/snmpd.pid -C -c /etc/snmp/snmpd.conf
     python scripts/export_playback.py >/dev/null 2>&1 || true
     PORT="${PORT:-8765}"
     echo "OnboardIQ judge mode: open http://localhost:$PORT"

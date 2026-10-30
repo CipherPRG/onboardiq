@@ -8,4 +8,5 @@ services:
       MODEL_API_KEY: ${MODEL_API_KEY:-}      # optional: without it, recorded sessions still replay
       BASETEN_API_KEY: ${BASETEN_API_KEY:-}
     cap_drop: [ALL]
+    pids_limit: 512
     security_opt: ["no-new-privileges:true"]

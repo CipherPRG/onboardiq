@@ -804,7 +804,11 @@ async function loadList() {
     if (st && st.live && st.sandbox) {
       $("sandbox").hidden = false;
       $("sb-model").textContent = st.model || "Muse Spark";
-      $("sb-left").textContent = `Runs left on this server for now: ${st.runs_left}. Pause between runs: ${st.cooldown_s} s.`;
+      $("sb-left").textContent = st.paused
+        ? "The live demo is paused by its owner. The recorded sessions below still play."
+        : `Runs left on this server for now: ${st.runs_left}. Each visitor gets ${st.per_visitor} a day. ` +
+          `Pause between runs: ${st.cooldown_s} s.`;
+      if (st.paused) $("sb-run").disabled = true;
       $("lede").textContent = "Play recorded sessions, or run the real agent live on a demo device. In a replay, every " +
         "reading and model answer comes from the recording; in a live run they come from the device and the model.";
       $("sb-run").addEventListener("click", () => startRun({}, $("sb-run"), $("sb-error")));
