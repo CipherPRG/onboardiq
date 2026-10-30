@@ -351,8 +351,12 @@ def experiment(snmp, res: Result, base_s: float = 15, load_s: int = 30, interval
         res.add("direction", None, f"model predicts {'rise' if sign > 0 else 'fall'}; the name suggests the "
                                    "opposite: the experiment decides")
     if sign == 0:
-        res.add("experiment", None, "model predicts no movement under load: an experiment cannot prove it")
-        return res
+        # A CPU or memory utilisation reading moves when the device is loaded. If the model itself says this
+        # object does not (a total, a count, a constant), it is not the reading asked for: reject it so the
+        # agent chooses again, instead of leaving it unproven for good.
+        return res.reject("experiment", f"the model predicts this {it.family} object does not move under load, "
+                                        "so it is not a utilisation reading (a total or a constant); choose "
+                                        "an object that rises or falls with use")
     # Averaged objects (1/5-minute CPU, load averages) lag the load: give them time.
     text = f"{it.name or ''} {it.row_filter or ''}".lower()
     if adapt_windows and it.family == "cpu" and it.value_type != "counter":

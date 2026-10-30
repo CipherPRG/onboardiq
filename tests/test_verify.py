@@ -136,11 +136,15 @@ def test_model_prediction_beats_name_rule():
     assert any(e["check"] == "direction" for e in r.evidence)
     # the model predicts idle rises under load: the device disagrees
     assert run(Item("cpu", "1.9.9.4", name="ssCpuIdle", canonical_unit="percent", under_load="rise")).verdict == "rejected"
-    # the model predicts no movement: nothing to prove, and no load is started
+    # the model predicts no movement: not a utilisation reading (a total or a constant), so it is rejected
+    # for the agent to choose again, and no load is started
     n = len(loads)
     r = verify_item(DEV, Item("cpu", "1.9.9.3", canonical_unit="percent", under_load="none"), lab=True,
                     load=counting_load, **FAST)
-    assert r.verdict == "unproven" and len(loads) == n
+    assert r.verdict == "rejected" and len(loads) == n and "not a utilisation reading" in r.evidence[-1]["detail"]
+    # without a lab the experiment never runs, so the same pick is only unproven (recorded-device evals)
+    r = verify_item(DEV, Item("cpu", "1.9.9.3", canonical_unit="percent", under_load="none"), lab=False, **FAST)
+    assert r.verdict != "rejected"
 
 
 def test_benchmark_schema_unchanged():
