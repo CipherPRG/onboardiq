@@ -233,6 +233,19 @@ def convert(folder, out_dir, only=None, extra_dirs=None, workers=4, repair=True)
         repairs = Repairs(src, enabled=repair)
         with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
             results = list(ex.map(lambda n: _dump(n, src, tmp, repairs), todo))
+            # a module that failed only because a module it imports had not been repaired yet is tried again
+            # once the whole first pass is done (at most two more passes)
+            for _ in range(2):
+                again = [i for i, (n, p, e) in enumerate(results)
+                         if p is None and e and re.search(r"no module .* in symbolTable|no symbol .* in module", e, re.I)]
+                if not again:
+                    break
+                redone = list(ex.map(lambda i: _dump(results[i][0], src, tmp, repairs), again))
+                if all(r[1] is None for r in redone):
+                    results = [redone[again.index(i)] if i in again else r for i, r in enumerate(results)]
+                    break
+                for i, r in zip(again, redone):
+                    results[i] = r
         for name, produced, err in results:
             if produced is None:
                 failed[name] = err
@@ -264,6 +277,12 @@ def failure_kind(reason):
         return "nothing written"
     if any(w in r for w in ("not found", "unresolved", "no module", "failed to locate", "missing source")):
         return "missing import"
+    if "unknown parent" in r:
+        return "unknown parent"
+    if "duplicate symbol" in r:
+        return "duplicate symbol"
+    if "no symbol" in r:
+        return "version mismatch"
     if any(w in r for w in ("syntax", "parse", "lex", "unexpected", "expecting", "error at", "grammar")):
         return "syntax"
     return "other"

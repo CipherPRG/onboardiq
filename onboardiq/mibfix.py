@@ -16,6 +16,8 @@ Rules (error message -> fix):
   implicit root      "Unknown parent symbol: enterprises" (and kin)        -> import it from the SMI module
   duplicate name     "Duplicate symbol found: X"                           -> drop an identical repeat of the
                                                                               definition, else rename the repeat
+  missing comma      "Bad grammar", stopped at  web(4)  right after  snmp(3) -> add the comma
+  repeated TC        "Duplicate symbol found: X", X a TEXTUAL-CONVENTION     -> rename the later copy
 """
 import re
 
@@ -130,7 +132,42 @@ def duplicate_name(text, error):
     return out, "; ".join(reversed(notes))
 
 
-RULES = (trailing_comma, digit_enum_label, hyphen_identifier, implicit_root, duplicate_name)
+def missing_comma(text, error):
+    """`snmp(3) web(4)`: two enumeration items with no comma between them."""
+    off = _offset(error)
+    if off is None or off >= len(text):
+        return None
+    if not re.match(r"[A-Za-z][\w-]*[ \t]*\(\s*-?\d+\s*\)", text[off:off + 80]):
+        return None
+    j = off - 1
+    while j >= 0 and text[j] in " \t\r\n":
+        j -= 1
+    if j < 0 or text[j] != ")":
+        return None
+    start = text.rfind("{", 0, off)
+    if start < 0 or "}" in text[start:off]:
+        return None                                    # not inside a { ... } list
+    return text[:j + 1] + "," + text[j + 1:], f"added a missing comma between enumeration items (line {_line(text, off)})"
+
+
+def duplicate_convention(text, error):
+    """A TEXTUAL-CONVENTION defined twice: the later copy is renamed (uses of the name keep the first)."""
+    m = re.search(r"Duplicate symbol found: (\S+) at MIB", error or "")
+    if not m:
+        return None
+    pat = re.escape(m.group(1)).replace("_", "[-_]").replace(r"\-", "[-_]")
+    defs = list(re.finditer(r"^[ \t]*(%s)[ \t]*::=[ \t]*TEXTUAL-CONVENTION\b" % pat, text, re.M | re.I))
+    if len(defs) < 2:
+        return None
+    out, notes = text, []
+    for k, d in reversed(list(enumerate(defs))[1:]):
+        out = out[:d.start(1)] + f"{d.group(1)}Dup{k + 1}" + out[d.end(1):]
+        notes.append(f"renamed the repeated TEXTUAL-CONVENTION {d.group(1)} at line {_line(text, d.start())}")
+    return out, "; ".join(reversed(notes))
+
+
+RULES = (trailing_comma, digit_enum_label, missing_comma, hyphen_identifier, implicit_root, duplicate_name,
+         duplicate_convention)
 
 
 def repair(text, error):

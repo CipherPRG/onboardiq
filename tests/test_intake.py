@@ -194,3 +194,26 @@ def test_real_converter_accepts_files_after_repair_and_never_touches_the_origina
     assert on["failed"] == {} and sorted(on["repairs"]) == ["COMMA-MIB", "DUP-MIB", "ENUM-MIB"]
     assert (tmp_path / "on" / "_repairs.json").exists()
     assert {p.name: p.read_bytes() for p in src.iterdir()} == before          # the originals are untouched
+
+
+def test_mibfix_missing_comma():
+    from onboardiq import mibfix
+    text = "X ::= INTEGER { snmp(3)\n  web(4) }"
+    err = f"Bad grammar near offset {text.index('web')} at MIB X, line 2"
+    new, note = mibfix.repair(text, err)
+    assert "snmp(3)," in new and "comma" in note
+    assert mibfix.repair("A ::= B web(4)", "Bad grammar near offset 9 at MIB X, line 1") is None   # not in a list
+
+
+def test_mibfix_repeated_textual_convention():
+    from onboardiq import mibfix
+    text = "Foo ::= TEXTUAL-CONVENTION\n SYNTAX Integer32\nFoo ::= TEXTUAL-CONVENTION\n SYNTAX Integer32\n"
+    new, note = mibfix.repair(text, "Duplicate symbol found: Foo at MIB X")
+    assert new.count("Foo ::=") == 1 and "FooDup2" in new
+
+
+def test_failure_kind_new_causes():
+    from onboardiq.intake import failure_kind
+    assert failure_kind("Unknown parent symbol: x") == "unknown parent"
+    assert failure_kind("Duplicate symbol found: y") == "duplicate symbol"
+    assert failure_kind("no symbol Z in module Q") == "version mismatch"
