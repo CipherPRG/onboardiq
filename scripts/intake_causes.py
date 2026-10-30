@@ -3,6 +3,7 @@
   python scripts/intake.py ~/data/librenms/mibs --out ~/data/mibs_json_test --report ~/intake_report.json
   python scripts/intake_causes.py ~/intake_report.json            # counts per cause
   python scripts/intake_causes.py ~/intake_report.json --detail   # + the source lines behind the top causes
+  python scripts/intake_causes.py ~/intake_report.json ~/data/librenms/mibs --shapes   # group grammar errors by where they stop
   python scripts/intake_causes.py ~/intake_report.json ~/data/librenms/mibs --detail   # older report: give the MIB folder too
 
 Names, numbers and line numbers are replaced so the same error in different modules counts as one cause.
@@ -156,6 +157,57 @@ def culprit(mod, msg):
     return m.group(1) if m else mod
 
 
+KEYWORDS = ("IMPORTS", "SYNTAX", "DESCRIPTION", "REFERENCE", "INDEX", "AUGMENTS", "DEFVAL", "UNITS", "STATUS",
+            "MAX-ACCESS", "ACCESS", "OBJECTS", "VARIATION", "REVISION", "CONTACT-INFO", "ORGANIZATION", "DISPLAY-HINT",
+            "TEXTUAL-CONVENTION", "SEQUENCE", "OBJECT-TYPE", "NOTIFICATION-TYPE", "TRAP-TYPE", "::=", "BEGIN", "END")
+
+
+def _tok(t):
+    t = t.strip()
+    if not t:
+        return "<end>"
+    if t[0] == '"':
+        return "STRING"
+    if t[0].isdigit() or (t[0] == "-" and t[1:2].isdigit()):
+        return "NUM"
+    m = re.match(r"[A-Za-z][\w-]*", t)
+    if m:
+        w = m.group(0)
+        return w if w in KEYWORDS or w.isupper() else "id"
+    return t[0]
+
+
+def shape(path, off):
+    """Where the converter stopped, as a short pattern: what construct we are in, the token before, the token it stopped at."""
+    full = raw_text(path)
+    before, at = full[:off].replace("\r", ""), full[off:off + 60].replace("\r", "")
+    kw = max(((before.rfind(k), k) for k in KEYWORDS), default=(-1, "?"))[1]
+    prev = re.findall(r"\"[^\"]*\"|[A-Za-z][\w-]*|\d+|\S", before[-80:])[-2:]
+    return f"in {kw}: after [{' '.join(_tok(x) for x in prev)}] stopped at [{_tok(at)}]"
+
+
+def shapes(path, folder):
+    d = json.load(open(path))
+    files = {k: str(v) for k, v in intake.modules_in(folder).items()}
+    groups, ex = Counter(), {}
+    for mod, msg in d["failed"].items():
+        m = re.search(r"Failed MIBs: (\S+) \(Bad grammar near offset (\d+)", msg or "")
+        if not m or m.group(1) not in files:
+            continue
+        try:
+            sh = shape(files[m.group(1)], int(m.group(2)))
+        except OSError:
+            continue
+        groups[sh] += 1
+        ex.setdefault(sh, []).append((m.group(1), int(m.group(2))))
+    print(f"{sum(groups.values())} grammar failures, {len(groups)} shapes:\n")
+    for sh, n in groups.most_common(15):
+        mod, off = ex[sh][0]
+        print(f"{n:4d}  {sh}")
+        for ln in around_offset(files[mod], off):
+            print(f"        {mod}  {ln[:230]}")
+
+
 def main(path, show_detail=False, folder=None):
     d = json.load(open(path))
     failed, missing, files = d["failed"], d.get("missing_imports", {}), dict(d.get("files", {}))
@@ -196,4 +248,7 @@ def main(path, show_detail=False, folder=None):
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    main(args[0], "--detail" in sys.argv, args[1] if len(args) > 1 else None)
+    if "--shapes" in sys.argv:
+        shapes(args[0], args[1])
+    else:
+        main(args[0], "--detail" in sys.argv, args[1] if len(args) > 1 else None)
