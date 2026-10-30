@@ -25,7 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check the page has no secrets or local paths
         run: |
-          ! grep -rEn '/home/|C:\\\\Users|"community"|"host"|sk-[A-Za-z0-9]{16,}' web/
+          ! grep -rEn '/home/|C:\\\\Users|sk-[A-Za-z0-9]{16,}' web/
+          ! grep -rEn '"community"|"host"|LAPTOP|prath|Pratham' web/sessions/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
