@@ -52,3 +52,9 @@ def test_health_recording_exports_a_timeline(tmp_path):
     assert pb["samples"][1]["level"] == "critical"  # a critical row reads as critical
     assert pb["samples"][1]["explanation"]["text"] == "CPU is at 100 percent."
     assert "recovered" in pb["highlight"]
+
+
+def test_replay_keeps_the_declared_memory_size():
+    from onboardiq.replay import replay_load
+    assert replay_load({"memory_mib": 16.0}).bytes == {"memory": 16 * 1024 ** 2}
+    assert not getattr(replay_load({}), "bytes", None)

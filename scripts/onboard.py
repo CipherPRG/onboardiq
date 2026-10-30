@@ -91,7 +91,7 @@ def main():
                             max_attempts=args.max_attempts, model=args.model, effort=args.effort,
                             verify_kw=verify_kw, log=log, modules=args.modules.split(","))
         if args.record:
-            keep = ("device", "modules", "lab", "families", "effort", "model", "max_attempts")
+            keep = ("device", "modules", "lab", "families", "effort", "model", "max_attempts", "memory_mib")
             args.lab = lab
             args.model = args.model or MODEL
             dev.save(args.record, args={k: v for k, v in vars(args).items() if k in keep},

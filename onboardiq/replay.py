@@ -167,6 +167,16 @@ class _NoLoad:
         return 0
 
 
+def replay_load(args: dict):
+    """The stand-in load for a replay: nothing is applied (readings come from the recording), but a memory size
+    the operator declared for a by-hand allocation is kept, so the check judges the change against that size."""
+    load = lambda *x: _NoLoad()  # noqa: E731
+    mib = (args or {}).get("memory_mib")
+    if mib:
+        load.bytes = {"memory": int(float(mib) * 1024 ** 2)}
+    return load
+
+
 def replay(session_path, log=print, on_event=None):
     """Re-run the recorded onboarding. Returns the agent output (same shape as live).
 
@@ -190,7 +200,7 @@ def replay(session_path, log=print, on_event=None):
         out = agent.onboard(a["device"], session["cands"], Replayer(session, clock), lab=a["lab"],
                             families=a["families"].split(","), max_attempts=a["max_attempts"],
                             model=a.get("model"), effort=a["effort"],
-                            verify_kw={"load": lambda *x: _NoLoad()}, log=log, on_event=on_event)
+                            verify_kw={"load": replay_load(a)}, log=log, on_event=on_event)
         out["replay"] = {"virtual_seconds": round(clock.now, 1), "unused_answers": len(answers)}
         return out
     finally:
