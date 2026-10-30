@@ -226,3 +226,28 @@ def test_mibfix_implicit_type():
     new, note = mibfix.repair(text, "Failed MIBs: M (Unknown parents for symbols: a at MIB M)")
     assert "Counter32 FROM SNMPv2-SMI" in new and "Counter32" in note
     assert mibfix.repair(new, "Failed MIBs: M (Unknown parents for symbols: a at MIB M)") is None
+
+
+def _fix(text, bad):
+    from onboardiq import mibfix
+    return mibfix.repair(text, f"Bad grammar near offset {text.index(bad)} at MIB X, line 1")
+
+
+def test_mibfix_underscore_and_types():
+    t = 'a SYNTAX INTEGER { rate_64k (1), rate_56k (2) } "keep_this" -- keep_too\n'
+    new, _ = _fix(t, "_64k")
+    assert "rate-64k" in new and "rate-56k" in new and "keep_this" in new and "keep_too" in new
+    t = "x SYNTAX SEQUENCE OF pppoeEntry\npppoeEntry ::= SEQUENCE { a Integer32 }\n y SYNTAX pppoeEntry\n"
+    new, _ = _fix(t, "pppoeEntry\npppoe")
+    assert "OF PppoeEntry" in new and "PppoeEntry ::= SEQUENCE" in new and "SYNTAX PppoeEntry" in new
+    new, _ = _fix("SYNTAX Integer32 { a(0) }", "{")
+    assert "SYNTAX INTEGER {" in new
+
+
+def test_mibfix_empty_objects_range_labels():
+    new, _ = _fix("n NOTIFICATION-TYPE OBJECTS { } STATUS current", "}")
+    assert "OBJECTS" not in new and "STATUS" in new
+    new, _ = _fix("SYNTAX INTEGER { unlimit(64) } (1..16) MAX-ACCESS", "(1..16)")
+    assert "(1..16)" not in new
+    new, _ = _fix('SYNTAX INTEGER { "0:00"(0), "1:00"(1) }', '"0:00"')
+    assert "v0-00(0)" in new and "v1-00(1)" in new

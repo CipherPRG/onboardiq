@@ -17,6 +17,12 @@ Rules (error message -> fix):
   duplicate name     "Duplicate symbol found: X"                           -> drop an identical repeat of the
                                                                               definition, else rename the repeat
   unimported type    "Unknown parents for symbols: ...", their SYNTAX type not imported -> import it (Counter -> Counter32)
+  underscore name    "Bad grammar", stopped at '_' in a name                 -> '_' becomes '-' (outside quotes/comments)
+  lowercase type     SEQUENCE OF name / name ::= SEQUENCE, name not capitalised -> capitalise it where used as a type
+  Integer32 enum     SYNTAX Integer32 { a(0) }                               -> INTEGER
+  empty OBJECTS      OBJECTS { }                                             -> clause dropped
+  range after enum   } (1..16) after an enumeration list                     -> range dropped
+  string labels      INTEGER { "0:00"(0) }                                   -> labels become names
   missing comma      "Bad grammar", stopped at  web(4)  right after  snmp(3) -> add the comma
   repeated TC        "Duplicate symbol found: X", X a TEXTUAL-CONVENTION     -> rename the later copy
 """
@@ -209,8 +215,100 @@ def duplicate_convention(text, error):
     return out, "; ".join(reversed(notes))
 
 
+def underscore_names(text, error):
+    """Names with '_' (rate_64k, sync_waitForAdd): the grammar has no underscore. Every such name outside quotes
+    and comments becomes the same name with '-' (the converter itself treats '-' and '_' alike when it writes JSON)."""
+    off = _offset(error)
+    if off is None or off >= len(text) or text[off] != "_":
+        return None
+    count = [0]
+
+    def sub(m):
+        if m.group(1):
+            return m.group(0)
+        count[0] += 1
+        return m.group(2).replace("_", "-")
+    fixed = re.sub(r'("[^"]*"|--[^\n]*)|([A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+)', sub, text)
+    return (fixed, f"renamed {count[0]} name(s) containing '_' to use '-'") if count[0] else None
+
+
+def lowercase_type(text, error):
+    """`SEQUENCE OF pppoeEntry` / `pppoeEntry ::= SEQUENCE {`: a type name must start with a capital."""
+    off = _offset(error)
+    if off is None or off >= len(text):
+        return None
+    before = text[:off]
+    m = re.search(r"SEQUENCE\s+OF\s*$", before)
+    if m:
+        w = re.match(r"[a-z][\w-]*", text[off:])
+        name = w.group(0) if w else None
+    else:
+        m = re.search(r"([a-z][\w-]*)\s*$", before)
+        name = m.group(1) if m and re.match(r"::=\s*SEQUENCE\b", text[off:]) else None
+    if not name:
+        return None
+    big = name[0].upper() + name[1:]
+    e = re.escape(name)
+    out, n = text, 0
+    for pat, rep in ((r"(SEQUENCE\s+OF\s+)%s(?![\w-])" % e, r"\g<1>" + big),
+                     (r"(^[ \t]*)%s(\s*::=\s*SEQUENCE\b)" % e, r"\g<1>" + big + r"\g<2>"),
+                     (r"(\bSYNTAX\s+)%s(?![\w-])" % e, r"\g<1>" + big)):
+        out, k = re.subn(pat, rep, out, flags=re.M)
+        n += k
+    return (out, f"renamed type {name} to {big} ({n} place{'s' if n != 1 else ''})") if n else None
+
+
+def integer32_enum(text, error):
+    """`SYNTAX Integer32 { a(0), b(1) }`: named numbers belong to INTEGER, not Integer32."""
+    off = _offset(error)
+    if off is None or off >= len(text) or text[off] != "{":
+        return None
+    m = re.search(r"SYNTAX\s+(Integer32)\s*$", text[:off])
+    if not m:
+        return None
+    return text[:m.start(1)] + "INTEGER" + text[m.end(1):], f"SYNTAX Integer32 with named values became INTEGER (line {_line(text, off)})"
+
+
+def empty_objects(text, error):
+    """`OBJECTS { }` with nothing inside: the empty clause is dropped."""
+    off = _offset(error)
+    if off is None or off >= len(text) or text[off] != "}":
+        return None
+    m = re.search(r"OBJECTS\s*\{(?:\s|--[^\n]*)*$", text[:off])
+    if not m:
+        return None
+    return text[:m.start()] + text[off + 1:], f"dropped an empty OBJECTS clause (line {_line(text, off)})"
+
+
+def range_after_enum(text, error):
+    """`INTEGER { a(1) } (1..16)`: a size range after the enumeration list is dropped."""
+    off = _offset(error)
+    if off is None or off >= len(text) or text[off] != "(" or not re.search(r"\}\s*$", text[:off]):
+        return None
+    m = re.match(r"\(\s*-?\d+\s*\.\.\s*-?\d+\s*\)", text[off:])
+    if not m:
+        return None
+    return text[:off] + text[off + m.end():], f"dropped a range after an enumeration list (line {_line(text, off)})"
+
+
+def string_enum_labels(text, error):
+    """`INTEGER { "0:00"(0), "1:00"(1) }`: labels must be names, so each quoted label becomes one."""
+    off = _offset(error)
+    if off is None or off >= len(text) or text[off] != '"':
+        return None
+    start, end = text.rfind("{", 0, off), text.find("}", off)
+    if start < 0 or end < 0:
+        return None
+
+    def label(m):
+        return "v" + re.sub(r"[^A-Za-z0-9]+", "-", m.group(1)).strip("-") + m.group(2)
+    group, n = re.subn(r'"([^"]*)"(\s*\(\s*-?\d+\s*\))', label, text[start:end])
+    return (text[:start] + group + text[end:], f"renamed {n} quoted enumeration label(s) to names") if n else None
+
+
 RULES = (trailing_comma, digit_enum_label, missing_comma, hyphen_identifier, implicit_root, implicit_type,
-         duplicate_name, duplicate_convention)
+         duplicate_name, duplicate_convention, underscore_names, lowercase_type, integer32_enum,
+         empty_objects, range_after_enum, string_enum_labels)
 
 
 def repair(text, error):
