@@ -217,3 +217,12 @@ def test_failure_kind_new_causes():
     assert failure_kind("Unknown parent symbol: x") == "unknown parent"
     assert failure_kind("Duplicate symbol found: y") == "duplicate symbol"
     assert failure_kind("no symbol Z in module Q") == "version mismatch"
+
+
+def test_mibfix_implicit_type():
+    from onboardiq import mibfix
+    text = ("M DEFINITIONS ::= BEGIN\nIMPORTS\n  OBJECT-TYPE, Integer32 FROM SNMPv2-SMI;\n"
+            "a OBJECT-TYPE\n  SYNTAX Counter32\n  MAX-ACCESS read-only\n  STATUS current\n  DESCRIPTION \"d\"\n  ::= { x 1 }\nEND\n")
+    new, note = mibfix.repair(text, "Failed MIBs: M (Unknown parents for symbols: a at MIB M)")
+    assert "Counter32 FROM SNMPv2-SMI" in new and "Counter32" in note
+    assert mibfix.repair(new, "Failed MIBs: M (Unknown parents for symbols: a at MIB M)") is None

@@ -16,6 +16,7 @@ Rules (error message -> fix):
   implicit root      "Unknown parent symbol: enterprises" (and kin)        -> import it from the SMI module
   duplicate name     "Duplicate symbol found: X"                           -> drop an identical repeat of the
                                                                               definition, else rename the repeat
+  unimported type    "Unknown parents for symbols: ...", their SYNTAX type not imported -> import it (Counter -> Counter32)
   missing comma      "Bad grammar", stopped at  web(4)  right after  snmp(3) -> add the comma
   repeated TC        "Duplicate symbol found: X", X a TEXTUAL-CONVENTION     -> rename the later copy
 """
@@ -81,11 +82,8 @@ def hyphen_identifier(text, error):
     return (fixed, f"renamed {bad} to {good} ({n} place{'s' if n != 1 else ''})") if n else None
 
 
-def implicit_root(text, error):
-    m = re.search(r"Unknown parent symbol: ([\w-]+) at MIB", error or "")
-    if not m or m.group(1) not in SMI_ROOTS:
-        return None
-    sym = m.group(1)
+def _add_import(text, sym):
+    """(new text, smi module) with `sym` imported from the SMI module the file already uses, or None."""
     block = re.search(r"\bIMPORTS\b(.*?);", text, re.S)
     if block and re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(sym), block.group(1)):
         return None                                    # already imported: something else is wrong
@@ -97,16 +95,61 @@ def implicit_root(text, error):
                 break
     if smi:                                            # add to the clause the module already has
         fixed, n = re.subn(r"(\s+)FROM(\s+%s\b)" % smi, r", %s\1FROM\2" % sym, text, count=1)
-        return (fixed, f"imported {sym} from {smi}") if n else None
+        return (fixed, smi) if n else None
     smi = "SNMPv2-SMI" if "MODULE-IDENTITY" in text else "RFC1155-SMI"
     clause = f"{sym} FROM {smi}"
     if block:
         pos = block.end(1)
-        return text[:pos] + f"\n        {clause}" + text[pos:], f"imported {sym} from {smi}"
+        return text[:pos] + f"\n        {clause}" + text[pos:], smi
     b = re.search(r"\bBEGIN\b", text)
     if not b:
         return None
-    return text[:b.end()] + f"\nIMPORTS {clause};" + text[b.end():], f"imported {sym} from {smi}"
+    return text[:b.end()] + f"\nIMPORTS {clause};" + text[b.end():], smi
+
+
+def implicit_root(text, error):
+    m = re.search(r"Unknown parent symbol: ([\w-]+) at MIB", error or "")
+    if not m or m.group(1) not in SMI_ROOTS:
+        return None
+    got = _add_import(text, m.group(1))
+    return (got[0], f"imported {m.group(1)} from {got[1]}") if got else None
+
+
+# SMI types a MIB may use without importing them; SMIv1 spellings map to the SMIv2 type
+SMI_TYPES = {"Counter32": "Counter32", "Counter64": "Counter64", "Gauge32": "Gauge32", "Unsigned32": "Unsigned32",
+             "Integer32": "Integer32", "TimeTicks": "TimeTicks", "IpAddress": "IpAddress", "Opaque": "Opaque",
+             "Counter": "Counter32", "Gauge": "Gauge32"}
+
+
+def implicit_type(text, error):
+    """"Unknown parents for symbols: a, b": the objects were dropped because their SYNTAX type is not imported."""
+    m = re.search(r"Unknown parents for symbols: ([^)]*?) at MIB", error or "")
+    if not m:
+        return None
+    block = re.search(r"\bIMPORTS\b(.*?);", text, re.S)
+    imported = block.group(1) if block else ""
+    done = []
+    for sym in [x.strip() for x in m.group(1).split(",") if x.strip()]:
+        d = re.search(r"^[ \t]*%s[ \t]+OBJECT-TYPE\b(.*?)::=" % re.escape(sym), text, re.M | re.S)
+        t = re.search(r"\bSYNTAX\s+([A-Za-z0-9]+)", d.group(1)) if d else None
+        if not t or t.group(1) not in SMI_TYPES or SMI_TYPES[t.group(1)] in done:
+            continue
+        want = SMI_TYPES[t.group(1)]
+        if not re.search(r"(?<![\w-])%s(?![\w-])" % want, imported):
+            done.append(want)
+    if not done:
+        return None
+    out, notes = text, []
+    for want in done:
+        if want == "Counter32" and not re.search(r"\bCounter\b", imported):
+            out = re.sub(r"(\bSYNTAX\s+)Counter(?![\w-])", r"\1Counter32", out)
+        if want == "Gauge32":
+            out = re.sub(r"(\bSYNTAX\s+)Gauge(?![\w-])", r"\1Gauge32", out)
+        got = _add_import(out, want)
+        if got:
+            out = got[0]
+            notes.append(want)
+    return (out, "imported " + ", ".join(notes) + " (used but not imported)") if notes else None
 
 
 def duplicate_name(text, error):
@@ -166,8 +209,8 @@ def duplicate_convention(text, error):
     return out, "; ".join(reversed(notes))
 
 
-RULES = (trailing_comma, digit_enum_label, missing_comma, hyphen_identifier, implicit_root, duplicate_name,
-         duplicate_convention)
+RULES = (trailing_comma, digit_enum_label, missing_comma, hyphen_identifier, implicit_root, implicit_type,
+         duplicate_name, duplicate_convention)
 
 
 def repair(text, error):
