@@ -61,7 +61,7 @@
  {
   "id": "mikrotik_chr",
   "device": "MikroTik RouterOS 7 router (CHR)",
-  "highlight": "0 of 4 metrics proven on the device",
+  "highlight": "picks passed the static checks on a real device; no load applied, so CPU and memory stay unproven",
   "summary": {
    "cpu": "unproven",
    "memory": "unproven",

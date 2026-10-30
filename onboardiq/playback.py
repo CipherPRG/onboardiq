@@ -25,6 +25,11 @@ def highlight(events, summary, args) -> str:
     if witnessed:
         return " and ".join(FAMILY.get(f, f) for f in witnessed) + " proven by experiment and by a second object"
     proven = [f for f, v in summary.items() if v.startswith("proven")]
+    if not proven:
+        picked = {e["family"] for e in events if e["kind"] == "verify" and e.get("verdict") == "unproven"}
+        if picked:
+            return ("picks passed the static checks on a real device; no load applied, so " +
+                    " and ".join(FAMILY.get(f, f) for f in sorted(picked)) + " stay unproven")
     return f"{len(proven)} of {len(summary)} metrics proven on the device"
 
 
