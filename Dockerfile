@@ -19,6 +19,8 @@ RUN python scripts/fetch_open_mibs.py /tmp/open_mibs \
 # The agent being monitored: this container's own net-snmp, read-only, reachable from inside only.
 # It listens on 1161 (an unprivileged port) so nothing here needs root; the server maps "localhost, default port" to it.
 RUN printf 'agentaddress udp:127.0.0.1:1161\nrocommunity public 127.0.0.1\nsysLocation OnboardIQ judge container\n' > /etc/snmp/snmpd.conf
+# The package ships this file readable only by root and Debian-snmp; the unprivileged user must read it.
+RUN chmod 644 /etc/snmp/snmpd.conf
 RUN chmod +x docker/entrypoint.sh
 # Everything runs as an unprivileged user that can write only the few folders a run needs.
 RUN useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin oiq \
