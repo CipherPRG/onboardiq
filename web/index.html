@@ -40,6 +40,17 @@
     <ul id="session-list"></ul>
   </nav>
 
+  <section class="live" id="sandbox" hidden>
+    <h2>Run it live</h2>
+    <p class="hint" id="sb-hint">This runs the real agent now: <span id="sb-model">Muse Spark</span> reads the MIB text of a
+      Linux host's net-snmp agent, every pick is tested on that device (inside this container, read-only), and CPU and
+      memory are proven with a real load test. It takes about 3 minutes and costs real model calls, so it is limited:
+      one run at a time, a pause between runs, and a daily cap. Nothing you type is sent to the device.</p>
+    <div class="actions"><button type="button" id="sb-run">Onboard the demo device</button>
+      <span id="sb-error" class="bad" role="alert"></span></div>
+    <p class="hint" id="sb-left"></p>
+  </section>
+
   <section class="live" id="live" hidden>
     <h2>Run live</h2>
     <p class="hint">This page is connected to a local OnboardIQ server, so it can onboard a device now. The

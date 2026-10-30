@@ -98,7 +98,7 @@ def _chat_one(messages, model, max_tokens, json_schema, reasoning_effort, use_ca
     key = hashlib.sha256(json.dumps([request, extra], sort_keys=True).encode()).hexdigest()
     cache_file = CACHE_DIR / "llm" / f"{key}.json"
     USED_KEYS.append(key)
-    if use_cache and cache_file.exists():
+    if use_cache and not os.environ.get("OIQ_NO_CACHE") and cache_file.exists():
         hit = json.loads(cache_file.read_text())
         hit["cached"] = True
         return hit

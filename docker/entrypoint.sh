@@ -10,8 +10,9 @@ case "${1:-serve}" in
   serve)
     snmpd -Lsd -Lf /dev/null -p /tmp/snmpd.pid -C -c /etc/snmp/snmpd.conf
     python scripts/export_playback.py >/dev/null 2>&1 || true
-    echo "OnboardIQ judge mode: open http://localhost:8765"
-    exec python -m onboardiq.server --port 8765 --bind 0.0.0.0 --mib-dir "$OIQ_MIB_DIR"
+    PORT="${PORT:-8765}"
+    echo "OnboardIQ judge mode: open http://localhost:$PORT"
+    exec python -m onboardiq.server --port "$PORT" --bind 0.0.0.0 --mib-dir "$OIQ_MIB_DIR"
     ;;
   *) exec "$@" ;;
 esac

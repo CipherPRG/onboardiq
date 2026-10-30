@@ -12,6 +12,12 @@ Security model (this server can start load experiments and holds an API key):
 - the API key never leaves the process; the SNMP community is kept in memory for the run
   only and is never echoed, logged or recorded;
 - static files are served only from web/, with the resolved path checked to stay inside it.
+
+Hosted sandbox (OIQ_SANDBOX=1, used by the public demo): the server ignores everything the browser sends
+for a run. The target is this container's own read-only agent, the MIB modules, the device name and the load
+mode are fixed in code, so nothing a visitor types reaches SNMP, a shell or the model prompt. One run at a
+time, a cooldown between runs, a cap on runs per process, the daily dollar cap of spend_guard, no monitor mode,
+and the model is called fresh every time (OIQ_NO_CACHE=1) so a run is never a cached answer.
 """
 import json
 import os
@@ -47,6 +53,70 @@ TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=u
          ".svg": "image/svg+xml"}
 MAX_BODY = 64 * 1024
 
+SANDBOX = os.environ.get("OIQ_SANDBOX") == "1"
+# hosts the public demo answers to (comma-separated); empty = any *.run.app name (Cloud Run's front end checks it)
+PUBLIC_HOSTS = {h.strip().lower() for h in os.environ.get("OIQ_PUBLIC_HOST", "").split(",") if h.strip()}
+SANDBOX_DEVICE = "Linux host running the net-snmp agent (hosted demo device)"
+SANDBOX_MODULES = ["UCD-SNMP-MIB", "HOST-RESOURCES-MIB"]
+SANDBOX_COOLDOWN_S = int(os.environ.get("OIQ_SANDBOX_COOLDOWN", "60"))
+SANDBOX_MAX_RUNS = int(os.environ.get("OIQ_SANDBOX_MAX_RUNS", "40"))
+
+
+def host_allowed(host, port, sandbox=None, public_hosts=None):
+    """Is this Host header one the server answers to? Locally: 127.0.0.1 / localhost on this port only
+    (defeats DNS rebinding). In the sandbox the public name(s) are accepted too."""
+    host = (host or "").lower()
+    if host in {f"127.0.0.1:{port}", f"localhost:{port}"}:
+        return True
+    sandbox = SANDBOX if sandbox is None else sandbox
+    hosts = PUBLIC_HOSTS if public_hosts is None else public_hosts
+    if not sandbox:
+        return False
+    return host in hosts if hosts else host.endswith(".run.app")
+
+
+def origin_allowed(origin, host, port, sandbox=None):
+    """Same-origin check for state-changing requests."""
+    if not origin:
+        return True
+    if origin in {f"http://127.0.0.1:{port}", f"http://localhost:{port}"}:
+        return True
+    sandbox = SANDBOX if sandbox is None else sandbox
+    return bool(sandbox and host and origin == f"https://{host.lower()}")
+
+
+def public_error(e):
+    """What the page is told about a failed run. Locally the type and message help the operator; in the hosted
+    sandbox the real error stays in the server log (paths and internals are not shown to visitors)."""
+    if not SANDBOX:
+        return type(e).__name__ + ": " + str(e)[:300]
+    import sys
+    print(f"sandbox run failed: {type(e).__name__}: {str(e)[:500]}", file=sys.stderr, flush=True)
+    if type(e).__name__ == "SpendLimitError":
+        return "The demo's budget for now is used up. Play a recorded session instead."
+    return "The live run could not finish on the server. Try again in a minute, or play a recorded session."
+
+
+def sandbox_options():
+    """The only run the hosted demo allows. Nothing here comes from the request."""
+    return {"device": SANDBOX_DEVICE, "modules": list(SANDBOX_MODULES), "host": "localhost", "port": None,
+            "families": list(FAMILIES), "lab": True, "load_by_hand": None, "snmp": credentials({}),
+            "record": False}
+
+
+def sandbox_gate(state, now=None, cooldown=None, max_runs=None):
+    """None if a sandbox run may start, else (message, seconds to wait)."""
+    now = time.time() if now is None else now
+    cooldown = SANDBOX_COOLDOWN_S if cooldown is None else cooldown
+    max_runs = SANDBOX_MAX_RUNS if max_runs is None else max_runs
+    if state["runs"] >= max_runs:
+        return ("The hosted demo has reached its run limit for now. Play a recorded session instead, or run "
+                "OnboardIQ yourself (README: docker compose up).", 0)
+    wait = state["last_end"] + cooldown - now
+    if wait > 0:
+        return (f"The demo device is cooling down after the last run. Try again in {int(wait) + 1} s.", int(wait) + 1)
+    return None
+
 
 class Run:
     def __init__(self, rid, kind="onboard"):
@@ -60,7 +130,7 @@ class Run:
             self.cond.notify_all()
 
 
-STATE = {"run": None, "lock": threading.Lock(), "port": 8765, "mib_dir": MIB_DIR}
+STATE = {"sandbox": {"runs": 0, "last_end": 0.0}, "run": None, "lock": threading.Lock(), "port": 8765, "mib_dir": MIB_DIR}
 
 
 def _clean_text(x, n=200):
@@ -267,9 +337,11 @@ def execute(run: Run, opts: dict):
                   "cost_usd": out["cost_usd"], "seconds": out["seconds"], "snmp_calls": out["snmp_calls"],
                   "saved": saved})
     except Exception as e:  # noqa: BLE001 - reported to the page without internals
-        run.emit({"kind": "error", "message": type(e).__name__ + ": " + str(e)[:300]})
+        run.emit({"kind": "error", "message": public_error(e)})
     finally:
         run.finished = True
+        if SANDBOX:
+            STATE["sandbox"]["last_end"] = time.time()
         with run.cond:
             run.cond.notify_all()
 
@@ -281,8 +353,7 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def _host_ok(self):
-        host = (self.headers.get("Host") or "").lower()
-        return host in {f"127.0.0.1:{STATE['port']}", f"localhost:{STATE['port']}"}
+        return host_allowed(self.headers.get("Host"), STATE["port"])
 
     def _send(self, code, body=b"", ctype="application/json", extra=None):
         self.send_response(code)
@@ -306,8 +377,14 @@ class Handler(BaseHTTPRequestHandler):
         url = urlparse(self.path)
         if url.path == "/api/status":
             run = STATE["run"]
-            return self._json(200, {"live": True, "running": bool(run and not run.finished),
-                                    "mib_dir_found": STATE["mib_dir"].is_dir()})
+            out = {"live": True, "running": bool(run and not run.finished),
+                   "mib_dir_found": STATE["mib_dir"].is_dir()}
+            if SANDBOX:
+                sb = STATE["sandbox"]
+                out.update({"sandbox": True, "model": MODEL, "device": SANDBOX_DEVICE,
+                            "modules": SANDBOX_MODULES, "cooldown_s": SANDBOX_COOLDOWN_S,
+                            "runs_left": max(SANDBOX_MAX_RUNS - sb["runs"], 0)})
+            return self._json(200, out)
         if url.path == "/api/modules":
             q = (parse_qs(url.query).get("q") or [""])[0].upper()[:40]
             names = module_names()
@@ -369,7 +446,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok():
             return self._send(403, b'{"error":"bad host"}')
         origin = self.headers.get("Origin")
-        if origin and origin not in {f"http://127.0.0.1:{STATE['port']}", f"http://localhost:{STATE['port']}"}:
+        if not origin_allowed(origin, self.headers.get("Host"), STATE["port"]):
             return self._send(403, b'{"error":"bad origin"}')
         if self.headers.get("X-OnboardIQ") != "1" or \
                 not (self.headers.get("Content-Type") or "").startswith("application/json"):
@@ -386,15 +463,24 @@ class Handler(BaseHTTPRequestHandler):
             with STATE["lock"]:
                 if STATE["run"] and not STATE["run"].finished:
                     return self._json(409, {"error": "a run is already in progress"})
-                try:
-                    opts = validate(body)
-                except (ValueError, TypeError) as e:
-                    return self._json(400, {"error": str(e)})
+                if SANDBOX:
+                    blocked = sandbox_gate(STATE["sandbox"])
+                    if blocked:
+                        return self._json(429, {"error": blocked[0], "retry_after": blocked[1]})
+                    opts = sandbox_options()               # the request body is ignored on purpose
+                    STATE["sandbox"]["runs"] += 1
+                else:
+                    try:
+                        opts = validate(body)
+                    except (ValueError, TypeError) as e:
+                        return self._json(400, {"error": str(e)})
                 run = Run(f"{int(time.time() * 1000) & 0xFFFFFFFFFFFF:012x}")
                 STATE["run"] = run
             threading.Thread(target=execute, args=(run, opts), daemon=True).start()
             return self._json(202, {"id": run.id})
         if url == "/api/monitor":
+            if SANDBOX:
+                return self._json(404, {"error": "monitoring is not available in the hosted demo"})
             with STATE["lock"]:
                 if STATE["run"] and not STATE["run"].finished:
                     return self._json(409, {"error": "a run is already in progress"})

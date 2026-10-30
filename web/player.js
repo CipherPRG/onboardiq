@@ -717,25 +717,31 @@ async function startLive(form) {
     families: fd.getAll("families"), lab: mode === "lab", load_by_hand: mode === "hand" ? fd.get("hand") : null,
     record: true,
   };
-  $("live-error").textContent = "";
+  return startRun(body, $("run"), $("live-error"));
+}
+
+async function startRun(body, runBtn, errEl) {
+  errEl.textContent = "";
   play.token++;   // stop any replay
   $("families").replaceChildren();
   for (const k of Object.keys(families)) delete families[k];
   try {
-    $("run").disabled = true;
+    runBtn.disabled = true;
     const { id } = await post("/api/runs", body);
     const pb = { events: [] };
     const es = new EventSource(`/api/runs/${id}/events`);
     es.onmessage = (m) => {
       const ev = JSON.parse(m.data);
       onLiveEvent(ev, pb);
-      if (ev.kind === "end" || ev.kind === "error") es.close();
+      if (ev.kind === "end" || ev.kind === "error") { es.close(); runBtn.disabled = false; }
     };
-    es.onerror = () => { es.close(); $("run").disabled = false; };
+    es.onerror = () => { es.close(); runBtn.disabled = false; };
     liveState.run = id;
+    $("device").scrollIntoView({ behavior: "smooth" });
   } catch (e) {
-    $("live-error").textContent = e.message;
-    $("run").disabled = false;
+    // the hosted demo can be busy, cooling down, out of budget or down: the recordings above always work
+    errEl.textContent = e.message + " You can still play a recorded session above.";
+    runBtn.disabled = false;
   }
 }
 
@@ -795,7 +801,14 @@ async function loadList() {
   // Live mode only when this page is served by the local OnboardIQ server.
   try {
     const st = await (await fetch("/api/status", { cache: "no-store" })).json();
-    if (st && st.live) {
+    if (st && st.live && st.sandbox) {
+      $("sandbox").hidden = false;
+      $("sb-model").textContent = st.model || "Muse Spark";
+      $("sb-left").textContent = `Runs left on this server for now: ${st.runs_left}. Pause between runs: ${st.cooldown_s} s.`;
+      $("lede").textContent = "Play recorded sessions, or run the real agent live on a demo device. In a replay, every " +
+        "reading and model answer comes from the recording; in a live run they come from the device and the model.";
+      $("sb-run").addEventListener("click", () => startRun({}, $("sb-run"), $("sb-error")));
+    } else if (st && st.live) {
       $("live").hidden = false;
       $("lede").textContent = "Replay recorded sessions, or onboard a device live from this machine. In a replay, " +
         "every reading and model answer comes from the recording; in a live run they come from the device and the model.";
