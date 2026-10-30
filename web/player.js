@@ -763,6 +763,8 @@ $("restart").addEventListener("click", () => current && start(current));
 function start(pb) { return pb.kind === "health" ? playHealth(pb) : playSession(pb); }
 $("speed").addEventListener("change", (e) => { play.speed = Number(e.target.value) || 1; });
 
+const buttons = {};
+
 async function loadList() {
   const list = await (await fetch("sessions/index.json", { cache: "no-store" })).json();
   $("session-list").replaceChildren();
@@ -770,9 +772,13 @@ async function loadList() {
     const verdicts = Object.values(s.summary || {});
     const proven = verdicts.filter((v) => v.startsWith("proven")).length;
     const b = el("button", { type: "button", "aria-pressed": "false" });
-    b.append(el("span", { class: "name" }, s.device),
-             el("span", { class: "tally" }, s.highlight || `${proven} of ${verdicts.length} proven`));
+    // the title says what the session shows; the device is the small line under it
+    const what = s.highlight || `${proven} of ${verdicts.length} metrics proven`;
+    b.append(el("span", { class: "name" }, what.charAt(0).toUpperCase() + what.slice(1)),
+             el("span", { class: "tally" }, s.device),
+             el("span", { class: "kind" }, s.kind === "health" ? "Health monitoring" : "Onboarding"));
     b.addEventListener("click", () => load(s.id, b));
+    buttons[s.id] = b;
     const li = el("li");
     li.append(b);
     $("session-list").append(li);
@@ -781,6 +787,11 @@ async function loadList() {
 
 (async () => {
   await loadList();
+  document.querySelectorAll("[data-start]").forEach((b) => {
+    const id = b.dataset.start;
+    if (!buttons[id]) { b.closest("li").hidden = true; return; }
+    b.addEventListener("click", () => { buttons[id].click(); $("device").scrollIntoView({ behavior: "smooth" }); });
+  });
   // Live mode only when this page is served by the local OnboardIQ server.
   try {
     const st = await (await fetch("/api/status", { cache: "no-store" })).json();
