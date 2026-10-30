@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from onboardiq.alerts import Alerter  # noqa: E402
 from onboardiq.monitor import Monitor, load_onboarding  # noqa: E402
+from onboardiq import snmp as snmp_mod  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 
 
@@ -53,6 +54,7 @@ def main():
     ap.add_argument("--host", default="localhost")
     ap.add_argument("--port", type=int, default=None)
     ap.add_argument("--community", default="public")
+    snmp_mod.add_cli_args(ap)
     ap.add_argument("--mib-dir", default=str(Path.home() / "data" / "mibs_json"))
     ap.add_argument("--interval", type=float, default=60)
     ap.add_argument("--once", action="store_true")
@@ -81,7 +83,7 @@ def main():
         saved, mods = load_onboarding(args.onboarded)
     except ValueError as e:
         raise SystemExit(str(e))
-    snmp = Snmp(args.host, args.community, port=args.port)
+    snmp = Snmp(args.host, port=args.port, **snmp_mod.cli_credentials(args))
     rawrec = None
     if args.record_raw:
         from onboardiq.replay import PollRecorder

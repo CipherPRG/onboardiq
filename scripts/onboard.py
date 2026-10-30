@@ -16,6 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from onboardiq import agent, health, mib, replay, report  # noqa: E402
+from onboardiq import snmp as snmp_mod  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 from onboardiq.config import MODEL  # noqa: E402
 
@@ -36,6 +37,7 @@ def main():
     ap.add_argument("--host", default="localhost")
     ap.add_argument("--port", type=int, default=None)
     ap.add_argument("--community", default="public")
+    snmp_mod.add_cli_args(ap)
     ap.add_argument("--lab", action="store_true", help="CPU/memory load experiments (local agent only)")
     ap.add_argument("--families", default="cpu,memory,temperature,fan")
     ap.add_argument("--effort", default="high")
@@ -53,7 +55,7 @@ def main():
     else:
         if not args.modules or not args.device:
             from onboardiq import discover
-            probe = Snmp(args.host, args.community, port=args.port)
+            probe = Snmp(args.host, port=args.port, **snmp_mod.cli_credentials(args))
             found = discover.discover(probe, Path(args.mib_dir).expanduser())
             if not found["modules"]:
                 raise SystemExit("discovery found no MIB module this device serves; pass --modules")
@@ -64,7 +66,7 @@ def main():
             raise SystemExit("lab experiments only run against this machine's own agent (--host localhost, default port);\n"
                              "a forwarded port is another device (VM/container): loading this machine proves nothing about it")
         cands = mib.candidates(Path(args.mib_dir).expanduser(), args.modules.split(","))
-        snmp = Snmp(args.host, args.community, port=args.port)
+        snmp = Snmp(args.host, port=args.port, **snmp_mod.cli_credentials(args))
         dev = replay.Recorder(snmp) if args.record else snmp
         verify_kw = {}
         lab = args.lab
@@ -113,7 +115,7 @@ def main():
     res = ROOT / "results" / f"onboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     res.parent.mkdir(exist_ok=True)
     # the SNMP community is a credential: it is never written to disk
-    res.write_text(json.dumps({"args": {k: v for k, v in vars(args).items() if k != "community"}, **out}, indent=2))
+    res.write_text(json.dumps({"args": {k: v for k, v in vars(args).items() if k not in ("community", "v3_user", "snmp_version")}, **out}, indent=2))
     print(f"  saved {res.relative_to(ROOT)}")
     if args.html:
         Path(args.html).write_text(report.render(out, title=f"OnboardIQ: {out.get('device')}"))

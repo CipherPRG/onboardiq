@@ -6,7 +6,9 @@
 html{background:var(--paper)}
 body{margin:0;color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,sans-serif;background:var(--paper)}
 main{max-width:1040px;margin:0 auto;padding:40px 24px 64px}
-button,select{font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:3px;padding:6px 12px;cursor:pointer}
+button,@media (max-width:640px){.snmp-auth,.snmp-auth .v3{grid-template-columns:1fr}}
+.snmp-auth select{width:100%}
+select{font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:3px;padding:6px 12px;cursor:pointer}
 button:disabled{opacity:.5;cursor:default}
 button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .top{padding-bottom:24px;border-bottom:2px solid var(--ink)}
@@ -71,6 +73,10 @@ form fieldset label{flex-direction:row;align-items:center;color:var(--ink);font-
 form legend{color:var(--soft);font-size:14px;padding:0 4px}
 input{font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:3px;padding:7px 9px}
 input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.snmp-auth{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px;align-items:end}
+.snmp-auth .v3{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px;align-items:end}
+.snmp-auth [hidden]{display:none}
+select{font:inherit;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:3px;padding:7px 9px}
 .actions{display:flex;gap:14px;align-items:center}
 #run{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
 .prompt{position:sticky;top:0;z-index:2;background:var(--sheet);border:2px solid var(--warn);border-radius:3px;

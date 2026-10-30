@@ -18,6 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from onboardiq import snmp as snmp_mod  # noqa: E402
 from onboardiq.snmp import Snmp  # noqa: E402
 from onboardiq.verify import Item, verify_item  # noqa: E402
 
@@ -46,6 +47,7 @@ def main():
     ap.add_argument("--host", default="localhost")
     ap.add_argument("--port", type=int, default=None)
     ap.add_argument("--community", default="public")
+    snmp_mod.add_cli_args(ap)
     ap.add_argument("--lab", action="store_true", help="run CPU/memory load experiments (local agent only)")
     ap.add_argument("--families", default=",".join(FAMILIES))
     args = ap.parse_args()
@@ -54,7 +56,7 @@ def main():
                          "a forwarded port is another device (VM/container): loading this machine proves nothing about it")
 
     spec = load_spec(args)
-    snmp = Snmp(args.host, args.community, port=args.port)
+    snmp = Snmp(args.host, port=args.port, **snmp_mod.cli_credentials(args))
     results = []
     for fam in args.families.split(","):
         pick = spec.get(fam)

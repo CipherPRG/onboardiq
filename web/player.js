@@ -14,6 +14,70 @@ const VERDICT = {
 };
 const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = (id) => document.getElementById(id);
+
+// SNMP credentials for the live forms: version 1, 2c (community) or 3 (user, authentication, privacy). Built here so
+// both forms share it; every password input is masked, and the values only go to this machine's own server.
+const AUTH_PROTOS = ["SHA", "SHA-256", "SHA-384", "SHA-512", "SHA-224", "MD5"];
+const PRIV_PROTOS = ["AES", "AES-192", "AES-256", "DES"];
+
+function snmpField(label, el) {
+  const l = document.createElement("label");
+  l.append(label + " ", el);
+  return l;
+}
+
+function snmpInput(name, type, extra = {}) {
+  const i = document.createElement("input");
+  i.name = name; i.type = type; i.maxLength = 128;
+  Object.assign(i, extra);
+  return i;
+}
+
+function snmpSelect(name, options) {
+  const s = document.createElement("select");
+  s.name = name;
+  for (const o of options) {
+    const opt = document.createElement("option");
+    opt.value = Array.isArray(o) ? o[0] : o; opt.textContent = Array.isArray(o) ? o[1] : o;
+    s.append(opt);
+  }
+  return s;
+}
+
+function buildSnmpAuth(box) {
+  const ver = snmpSelect("version", [["2c", "v2c (community)"], ["3", "v3 (user + passphrase)"], ["1", "v1 (community)"]]);
+  const comm = snmpInput("community", "password", { value: "public", maxLength: 64 });
+  const commLabel = snmpField("Community", comm);
+  const v3 = document.createElement("div");
+  v3.className = "v3"; v3.hidden = true;
+  const note = document.createElement("p");
+  note.className = "hint wide";
+  note.textContent = "SNMPv3 needs a user that already exists on the device; passphrases are at least 8 characters. " +
+    "Nothing here is stored or shown again.";
+  v3.append(
+    snmpField("User name", snmpInput("v3_user", "text", { maxLength: 64, autocomplete: "off" })),
+    snmpField("Authentication", snmpSelect("v3_auth_proto", AUTH_PROTOS)),
+    snmpField("Authentication passphrase", snmpInput("v3_auth_pass", "password", { autocomplete: "new-password" })),
+    snmpField("Privacy (encryption)", snmpSelect("v3_priv_proto", PRIV_PROTOS)),
+    snmpField("Privacy passphrase (blank = no encryption)", snmpInput("v3_priv_pass", "password", { autocomplete: "new-password" })),
+    note);
+  ver.addEventListener("change", () => {
+    const is3 = ver.value === "3";
+    v3.hidden = !is3; commLabel.hidden = is3;
+  });
+  box.append(snmpField("SNMP version", ver), commLabel, v3);
+}
+
+function snmpFields(fd) {
+  const version = fd.get("version") || "2c";
+  if (version !== "3") return { version, community: fd.get("community") };
+  return {
+    version, v3_user: fd.get("v3_user"), v3_auth_proto: fd.get("v3_auth_proto"), v3_auth_pass: fd.get("v3_auth_pass"),
+    v3_priv_proto: fd.get("v3_priv_proto"), v3_priv_pass: fd.get("v3_priv_pass"),
+  };
+}
+
+document.querySelectorAll("[data-snmp-auth]").forEach(buildSnmpAuth);
 const SVGNS = "http://www.w3.org/2000/svg";
 
 function el(tag, attrs = {}, text) {
@@ -488,8 +552,8 @@ async function startMonitor(form) {
     monButtons(true, false);
     const { id } = await post("/api/monitor", {
       onboarded: fd.get("onboarded"), host: fd.get("host"), port: fd.get("port") ? Number(fd.get("port")) : null,
-      community: fd.get("community"), interval: Number(fd.get("interval")) || 10,
-      explain: fd.get("explain") === "on", record: fd.get("record") === "on", alert: fd.get("alert") === "on", alert: fd.get("alert") === "on",
+      ...snmpFields(fd), interval: Number(fd.get("interval")) || 10,
+      explain: fd.get("explain") === "on", record: fd.get("record") === "on", alert: fd.get("alert") === "on", ...snmpFields(fd),
     });
     mon.id = id; mon.samples = []; mon.loadUntil = 0;
     mon.es = new EventSource(`/api/runs/${id}/events`);
@@ -649,7 +713,7 @@ async function startLive(form) {
   const mode = fd.get("mode");
   const body = {
     device: fd.get("device"), modules: String(fd.get("modules") || "").split(",").map((m) => m.trim()).filter(Boolean),
-    host: fd.get("host"), port: fd.get("port") ? Number(fd.get("port")) : null, community: fd.get("community"),
+    host: fd.get("host"), port: fd.get("port") ? Number(fd.get("port")) : null, ...snmpFields(fd),
     families: fd.getAll("families"), lab: mode === "lab", load_by_hand: mode === "hand" ? fd.get("hand") : null,
     record: true,
   };

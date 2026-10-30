@@ -166,3 +166,21 @@ class Snmp:
         # Scalars: walking <oid> may return nothing on some agents; try <oid>.0 directly.
         got = self.get(oid.lstrip(".").removesuffix(".0") + ".0")
         return [v for v in got if v.type != "missing"]
+
+
+def add_cli_args(ap):
+    """--snmp-version / --v3-* options. Passphrases are never taken from the command line (any local user could
+    read them with ps): set OIQ_V3_AUTH_PASS and OIQ_V3_PRIV_PASS in the environment instead."""
+    ap.add_argument("--snmp-version", choices=["1", "2c", "3"], default="2c")
+    ap.add_argument("--v3-user", help="SNMPv3 user name (passphrases: OIQ_V3_AUTH_PASS, OIQ_V3_PRIV_PASS)")
+    ap.add_argument("--v3-auth-proto", default="SHA", help=", ".join(sorted(V3_AUTH)))
+    ap.add_argument("--v3-priv-proto", default="AES", help=", ".join(sorted(V3_PRIV)))
+
+
+def cli_credentials(args) -> dict:
+    """Keyword arguments for Snmp() from the options above plus --community and the environment."""
+    return credentials({
+        "version": args.snmp_version, "community": getattr(args, "community", "public"),
+        "v3_user": args.v3_user, "v3_auth_proto": args.v3_auth_proto, "v3_priv_proto": args.v3_priv_proto,
+        "v3_auth_pass": os.environ.get("OIQ_V3_AUTH_PASS", ""), "v3_priv_pass": os.environ.get("OIQ_V3_PRIV_PASS", ""),
+    })

@@ -196,3 +196,44 @@ def test_missing_stress_ng_is_unproven_not_a_crash(monkeypatch):
     with pytest.raises(verify.NotInducible) as e:
         verify.default_load("cpu", 5)
     assert "stress-ng" in str(e.value)
+
+
+# --- SNMP credentials: versions 1 / 2c / 3 ---------------------------------------------------------------------------
+def _conf(**kw):
+    import glob
+    from onboardiq.snmp import Snmp
+    s = Snmp("127.0.0.1", runner=lambda cmd: "", **kw)
+    return open(glob.glob(s._conf_dir + "/snmp.conf")[0]).read()
+
+
+def test_snmp_conf_for_each_version():
+    assert "defVersion 1" in _conf(community="c1", version="1") and "defCommunity c1" in _conf(community="c1", version="1")
+    assert "defVersion 2c" in _conf(community="x")
+    v3 = {"user": "ops", "auth_proto": "SHA-256", "auth_pass": "authpassphrase", "priv_proto": "AES-256", "priv_pass": "privpassphrase"}
+    c = _conf(v3=v3)
+    assert "defVersion 3" in c and "defSecurityLevel authPriv" in c and "defAuthType SHA-256" in c and "defPrivType AES-256" in c
+    assert "authNoPriv" in _conf(v3={"user": "ops", "auth_pass": "authpassphrase"})
+
+
+def test_snmp_credentials_are_checked_before_they_reach_a_config_file():
+    from onboardiq.snmp import credentials
+    ok = {"version": "3", "v3_user": "ops", "v3_auth_pass": "authpassphrase"}
+    assert credentials(ok)["v3"]["user"] == "ops"
+    for bad in ({**ok, "v3_auth_proto": "ROT13"}, {**ok, "v3_auth_pass": "short"}, {**ok, "v3_user": ""},
+                {**ok, "v3_priv_pass": "privpassphrase", "v3_priv_proto": "XOR"}, {**ok, "v3_user": "a\nb"},
+                {**ok, "v3_auth_pass": "x" * 200}, {"version": "9"}, {"version": "1", "community": "a\nb"}):
+        with pytest.raises(ValueError):
+            credentials(bad)
+    assert credentials({"version": "2c"})["community"] == "public"
+
+
+def test_cli_passphrases_come_from_the_environment_never_the_command_line(monkeypatch):
+    import argparse
+    from onboardiq import snmp
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--community", default="public")
+    snmp.add_cli_args(ap)
+    assert not any("pass" in a for a in ap.format_help().split() if a.startswith("--"))
+    a = ap.parse_args(["--snmp-version", "3", "--v3-user", "ops"])
+    monkeypatch.setenv("OIQ_V3_AUTH_PASS", "authpassphrase")
+    assert snmp.cli_credentials(a)["v3"]["auth_pass"] == "authpassphrase"
