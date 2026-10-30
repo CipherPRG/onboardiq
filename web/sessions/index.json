@@ -1,5 +1,17 @@
 [
  {
+  "id": "mikrotik_chr_full",
+  "device": "MikroTik RouterOS 7 router (CHR)",
+  "highlight": "caught and corrected its memory pick",
+  "summary": {
+   "cpu": "proven-experiment",
+   "memory": "proven-experiment",
+   "temperature": "unproven",
+   "fan": "unproven"
+  },
+  "recorded": "2026-10-30 16:28 UTC"
+ },
+ {
   "id": "laptop_stress",
   "device": "Linux laptop (net-snmp agent), CPU stress test",
   "highlight": "health fell 100 \u2192 40 under load, then recovered",
@@ -16,15 +28,6 @@
    "memory": "proven-experiment"
   },
   "recorded": "2026-10-27 15:48 UTC"
- },
- {
-  "id": "mikrotik_chr_cpu",
-  "device": "MikroTik RouterOS 7 router (CHR)",
-  "highlight": "1 of 1 metrics proven on the device",
-  "summary": {
-   "cpu": "proven-experiment"
-  },
-  "recorded": "2026-10-27 15:02 UTC"
  },
  {
   "id": "laptop_full",
@@ -57,17 +60,5 @@
    "cpu": "proven-experiment"
   },
   "recorded": "2026-10-27 11:42 UTC"
- },
- {
-  "id": "mikrotik_chr",
-  "device": "MikroTik RouterOS 7 router (CHR)",
-  "highlight": "picks passed the static checks on a real device; no load applied, so CPU and memory stay unproven",
-  "summary": {
-   "cpu": "unproven",
-   "memory": "unproven",
-   "temperature": "unproven",
-   "fan": "unproven"
-  },
-  "recorded": null
  }
 ]
