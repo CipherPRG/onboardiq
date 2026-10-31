@@ -45,7 +45,9 @@ mode with explanations on, the provider also receives the readings being explain
 credentials and the target address are never sent. Use a provider and key you are allowed to send that data to.
 
 ## Supply chain
-Python dependencies are pinned to exact versions. The container's open MIB files come from a pinned net-snmp release
+Python dependencies are pinned to exact versions. The console's npm dependencies are pinned exactly in
+`console/package.json` and installed from `console/package-lock.json` with `npm ci`; the built page loads no
+outside scripts, and the same Content-Security-Policy is written into it at build time. The container's open MIB files come from a pinned net-snmp release
 and are checked against SHA-256 sums (`scripts/fetch_open_mibs.py`). Vendor MIBs are never bundled or fetched.
 `.dockerignore` and `.gcloudignore` keep `.env*`, private MIB folders and local results out of images and uploads.
 

@@ -1,0 +1,112 @@
+// What the console can do: replay a recording at its real pace (scaled), start a live run, monitor, stop, and export.
+import { dispatch, emptyRun, run, ui, type RunState } from "./store";
+import { getSession, post, sampleFromHealth, stream } from "./api";
+import type { HealthSample, HealthSession, OnboardingSession, RunEvent, Session } from "./types";
+
+let token = 0;                                         // a newer replay or live run cancels the old one
+let closeStream: (() => void) | null = null;
+const MAX_GAP_MS = 6000;                               // long silences in a recording are shortened, never skipped
+
+function reset(patch: Partial<RunState>) {
+  token++;
+  closeStream?.();
+  closeStream = null;
+  run.set({ ...emptyRun(), ...patch, started: Date.now() });
+  ui.set({ selected: null, paused: false });
+}
+
+const wait = (ms: number, mine: number) => new Promise<boolean>((resolve) => {
+  const step = (left: number) => {
+    if (mine !== token) return resolve(false);
+    if (ui.get().paused) return setTimeout(() => step(left), 120);
+    if (left <= 0) return resolve(true);
+    const slice = Math.min(left, 120);
+    setTimeout(() => step(left - slice), slice);
+  };
+  step(ms);
+});
+
+interface Step { t?: number; ev: RunEvent; sample?: HealthSample }
+
+/** A recording as steps with their recorded times (health polls are spaced by the poll interval). */
+function timeline(s: Session): Step[] {
+  if ("samples" in s) {
+    const h = s as HealthSession;
+    return h.samples.map((sample, i) => ({ t: i * h.interval, sample, ev: { ...sample, kind: "health", t: i * h.interval } }));
+  }
+  return (s as OnboardingSession).events.map((ev) => ({ t: ev.t, ev }));
+}
+
+export async function replay(id: string) {
+  const s = await getSession(id);
+  const health = "samples" in s;
+  reset({
+    origin: "replay", kind: health ? "health" : "onboarding", status: "running", device: s.device,
+    source: `Replay · recorded ${s.recorded}`,
+    ...(health
+      ? { interval: (s as HealthSession).interval, policy: (s as HealthSession).policy, notScored: (s as HealthSession).not_scored ?? [] }
+      : { model: (s as OnboardingSession).model, objects: (s as OnboardingSession).objects,
+          modules: (s as OnboardingSession).modules.split(","),
+          stats: { seconds: (s as OnboardingSession).seconds, snmp_calls: (s as OnboardingSession).snmp_calls } }),
+  });
+  const mine = token;
+  let last = 0;
+  for (const { t, ev, sample } of timeline(s)) {
+    const speed = ui.get().speed;
+    const gap = Math.max(0, (t ?? last) - last) * 1000;
+    last = t ?? last;
+    if (speed > 0 && !(await wait(Math.min(gap / speed, MAX_GAP_MS), mine))) return;
+    if (mine !== token) return;
+    if (sample) run.set((r) => ({ health: [...r.health, sample], events: [...r.events, { ...ev, seq: r.events.length }] }));
+    else dispatch(ev);
+  }
+  if (mine === token) run.set({ status: "done" });
+}
+
+function follow(id: string) {
+  run.set({ runId: id, connected: true });
+  closeStream = stream(id, (ev) => {
+    if (ev.kind === "health") {
+      const sample = { ...sampleFromHealth(ev), load: Date.now() < run.get().loadUntil };
+      run.set((r) => ({ health: [...r.health, sample], events: [...r.events, { ...ev, seq: r.events.length }],
+        notScored: r.health.length ? r.notScored : ((ev.excluded as RunState["notScored"]) ?? []) }));
+    } else dispatch(ev);
+  }, (dropped) => run.set((r) => ({ connected: false, status: r.status === "running" ? (dropped ? "error" : "done") : r.status,
+    message: dropped && r.status === "running" ? "The connection to the server dropped." : r.message })));
+}
+
+/** Start an onboarding run. On the hosted demo the server ignores the body and runs its fixed device. */
+export async function startRun(body: unknown, device: string) {
+  reset({ origin: "live", kind: "onboarding", status: "running", device, source: "Live" });
+  const { id } = await post<{ id: string }>("/api/runs", body);
+  follow(id);
+}
+
+export async function startMonitor(body: unknown, device: string) {
+  reset({ origin: "live", kind: "health", status: "running", device, source: "Live monitor" });
+  const { id } = await post<{ id: string }>("/api/monitor", body);
+  follow(id);
+}
+
+const runId = () => run.get().runId;
+export const stopRun = () => post(`/api/runs/${runId()}/stop`, {});
+export const loadCpu = () => post(`/api/runs/${runId()}/load`, { seconds: 120 });
+export async function confirmPrompt() {
+  run.set((r) => ({ prompt: r.prompt && { ...r.prompt, waiting: false } }));
+  await post(`/api/runs/${runId()}/confirm`, {});
+}
+
+export function stopReplay() { token++; run.set((r) => ({ status: r.status === "running" ? "done" : r.status })); }
+
+/** Download what was captured, as JSON, for debugging elsewhere. */
+export function exportJson() {
+  const r = run.get();
+  const doc = { exported_at: new Date().toISOString(), source: r.source, device: r.device, model: r.model,
+    modules: r.modules, stats: r.stats, finals: r.finals, events: r.events.map(({ seq: _seq, ...e }) => e) };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `onboardiq-${(r.device || "run").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}-${Date.now()}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

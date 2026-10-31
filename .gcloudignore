@@ -16,3 +16,5 @@ demo/*/
 .env.*
 !.env.example
 *.log
+console/node_modules
+web/console

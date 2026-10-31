@@ -187,3 +187,13 @@ def test_mib_upload_refuses_a_second_conversion_at_once(srv):
         assert req(srv, "POST", "/api/mibs", {"files": []}, h)[0] == 409
     finally:
         server.MIB_LOCK.release()
+
+
+def test_console_path_redirects_and_serves_its_index(srv):
+    code, _ = req(srv, "GET", "/console")
+    assert code == 301                                      # relative asset paths need the trailing slash
+    built = (server.WEB / "console" / "index.html").is_file()
+    code, page = req(srv, "GET", "/console/")
+    assert code == (200 if built else 404)
+    if built:
+        assert b"Content-Security-Policy" in page and b"OnboardIQ console" in page

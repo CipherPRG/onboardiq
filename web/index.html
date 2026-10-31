@@ -11,19 +11,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
-<a class="skip" href="#stage">Skip to the session player</a>
+<a class="skip" href="#story">Skip to how it works</a>
 
 <nav class="nav" aria-label="Page">
   <div class="wrap nav-row">
     <a class="brand" href="#top">OnboardIQ</a>
     <div class="nav-links">
       <a href="#story">How it works</a>
-      <a href="#sessions">Sessions</a>
-      <a href="#sandbox" id="to-live" hidden>Run it live</a>
+      <a href="console/">Console</a>
       <a href="https://github.com/CipherPRG/onboardiq#readme">GitHub</a>
     </div>
   </div>
@@ -37,8 +36,8 @@
         fan. Every pick is then tested on the device itself, under real load. A wrong pick goes back to the model with
         the evidence.</p>
       <div class="actions">
-        <a class="btn primary" href="#story">See one device, start to finish</a>
-        <button type="button" data-start="laptop_full">Play a recorded run</button>
+        <a class="btn primary" href="console/" id="open-console">Open the console</a>
+        <a class="btn" href="#story">See one device, start to finish</a>
       </div>
     </div>
     <div class="rig-wrap" aria-hidden="true">
@@ -76,108 +75,13 @@
 </section>
 
 <main class="wrap">
-  <section class="panel" id="sandbox" hidden aria-labelledby="sb-h">
-    <h2 id="sb-h">Run it live</h2>
-    <p class="hint">This is the real agent, running now. <span id="sb-model">Muse Spark</span> reads the MIB files of a Linux
-      host's net-snmp agent. Every pick is tested on that device, which runs read-only inside this container, and CPU and
-      memory are proven with a real load test. A run takes about 3 minutes and uses real model calls, so runs are
-      limited: one at a time, a pause between runs and a daily cap. Nothing you type is sent to the device.</p>
-    <div class="actions"><button type="button" class="primary" id="sb-run">Onboard the demo device</button>
-      <span id="sb-error" class="err" role="alert"></span></div>
-    <p class="hint" id="sb-left"></p>
-  </section>
-
-  <section class="panel sessions" id="sessions" aria-labelledby="sess-h">
-    <h2 id="sess-h">Recorded sessions</h2>
-    <p class="hint">Real runs on real devices. In a replay, every reading and model answer comes from the recording.</p>
-    <ul id="session-list"></ul>
-  </section>
-
-  <section class="panel" id="live" hidden aria-labelledby="live-h">
-    <h2 id="live-h">Onboard a device</h2>
-    <p class="hint">This page is connected to a local OnboardIQ server, so it can onboard a device now. The model reads
-      the MIB modules you choose, then every pick is tested on the device.</p>
-    <form id="live-form" autocomplete="off">
-      <label class="wide">What the device is
-        <input name="device" required maxlength="200" placeholder="e.g. MikroTik RouterOS router"></label>
-      <div class="wide drop" id="mib-drop">
-        <label class="drop-pick">Add MIB files <input type="file" id="mib-files" multiple></label>
-        <p class="drop-note">or drop them here. They are converted on this machine and are not sent anywhere else.
-          Add the modules they import too (the report below names any that are missing).</p>
-        <p class="drop-status" id="mib-status" role="status"></p>
-        <ul class="mib-report" id="mib-report"></ul>
-      </div>
-      <label class="wide">MIB modules (comma-separated)
-        <input name="modules" required list="module-list" placeholder="e.g. HOST-RESOURCES-MIB,UCD-SNMP-MIB">
-        <datalist id="module-list"></datalist></label>
-      <label class="span2">Host <input name="host" value="localhost" maxlength="253"></label>
-      <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
-      <div class="snmp-auth" data-snmp-auth></div>
-      <fieldset class="wide"><legend>Metrics</legend>
-        <label><input type="checkbox" name="families" value="cpu" checked> CPU</label>
-        <label><input type="checkbox" name="families" value="memory" checked> Memory</label>
-        <label><input type="checkbox" name="families" value="temperature" checked> Temperature</label>
-        <label><input type="checkbox" name="families" value="fan" checked> Fan</label>
-      </fieldset>
-      <fieldset class="wide"><legend>How to prove CPU and memory picks</legend>
-        <label><input type="radio" name="mode" value="read" checked> Read-only checks and a second object</label>
-        <label><input type="radio" name="mode" value="lab"> Load this machine (only for this machine's own agent)</label>
-        <label><input type="radio" name="mode" value="hand"> I will start CPU load on the device when asked</label>
-        <input name="hand" maxlength="300" placeholder="How to start the load, e.g. :while (true) do={}">
-      </fieldset>
-      <div class="wide actions"><button type="submit" class="primary" id="run">Onboard this device</button>
-        <span id="live-error" class="err" role="alert"></span></div>
-    </form>
-  </section>
-
-  <section class="panel" id="monitor" hidden aria-labelledby="mon-h">
-    <h2 id="mon-h">Monitor live</h2>
-    <p class="hint">Poll a device you have onboarded and score its health as it runs. Only proven picks are polled;
-      nothing is written to the device.</p>
-    <form id="monitor-form" autocomplete="off">
-      <label class="wide">Onboarded device <select name="onboarded" id="onboarded" required></select></label>
-      <label class="span2">Host <input name="host" value="localhost" maxlength="253"></label>
-      <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
-      <div class="snmp-auth" data-snmp-auth></div>
-      <label>Every (seconds) <input name="interval" inputmode="numeric" value="10" maxlength="3"></label>
-      <fieldset class="wide"><legend>Options</legend>
-        <label><input type="checkbox" name="explain" checked> Explain changes in plain English (Muse Spark)</label>
-        <label><input type="checkbox" name="alert" checked> Email an alert when the level changes (SMTP if set up, otherwise the outbox)</label>
-        <label><input type="checkbox" name="record" checked> Save as a replay</label>
-      </fieldset>
-      <div class="wide actions">
-        <button type="submit" class="primary" id="mon-start">Start monitoring</button>
-        <button type="button" id="mon-stop" hidden>Stop</button>
-        <button type="button" id="mon-load" hidden>Put CPU load on this machine (120 s)</button>
-        <span id="mon-error" class="err" role="alert"></span></div>
-    </form>
-  </section>
-
-  <div id="prompt" class="prompt" hidden role="alertdialog" aria-live="assertive" aria-label="Action needed on the device">
-    <p id="prompt-text"></p><p id="prompt-cmd" class="mono"></p>
-    <button type="button" id="prompt-ok" hidden>Done</button>
-  </div>
-
-  <section class="stage" id="stage" aria-labelledby="device">
-    <div class="stage-head">
-      <div>
-        <h2 id="device">Choose a session</h2>
-        <p id="status" class="status" role="status">Pick a recorded session above to play it here.</p>
-      </div>
-      <div class="controls" role="group" aria-label="Playback">
-        <button id="play" type="button" disabled>Play</button>
-        <button id="restart" type="button" disabled>Restart</button>
-        <label>Speed
-          <select id="speed">
-            <option value="1">1×</option>
-            <option value="2" selected>2×</option>
-            <option value="4">4×</option>
-          </select>
-        </label>
-      </div>
-    </div>
-    <ol class="strip" id="strip" aria-label="Progress" hidden></ol>
-    <div id="run-host"></div>
+  <section class="cta" aria-labelledby="cta-h">
+    <h2 id="cta-h">Open the console</h2>
+    <p class="hint" id="cta-text">Every recorded run in an operations console: the run graph, every pick with its
+      measurements, the health score and the raw event stream, exportable as JSON. Run the container to onboard your own
+      device from there.</p>
+    <div class="actions"><a class="btn primary" href="console/">Open the console</a>
+      <a class="btn" href="https://github.com/CipherPRG/onboardiq#readme">Run it yourself</a></div>
   </section>
 </main>
 

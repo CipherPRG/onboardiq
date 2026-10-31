@@ -109,12 +109,14 @@ from a session as text, never as HTML.
 ## Live mode (local server)
 
 ```bash
-python -m onboardiq.server --port 8766   # live mode: open http://127.0.0.1:8766 (stop the replay server first, or use another port)
+(cd console && npm ci && npm run build)  # once: builds the console into web/console (Docker does this for you)
+python -m onboardiq.server --port 8766   # live mode: open http://127.0.0.1:8766/console/
 ```
-The same page as the replays gains a **Run live** panel: choose the MIB modules, the device and how to prove
-CPU/memory picks (read-only plus a second object, load on this machine, or load you start on the device when
+The console (React, TypeScript, Vite; exact versions in `console/package-lock.json`) opens on a recorded run and,
+connected to a local server, gains **Onboard device** and **Monitor**: add MIB files (converted locally), choose
+the device, the modules and how to prove CPU/memory picks (read-only plus a second object, load on this machine, or load you start on the device when
 asked). Steps and measurements stream to the page as they happen; finished runs are recorded and appear in the
-session list. The server listens on 127.0.0.1 only, checks the Host header, refuses cross-site requests, keeps the
+recordings list; every event can be exported as JSON. The server listens on 127.0.0.1 only, checks the Host header, refuses cross-site requests, keeps the
 API key in the process and the SNMP community in memory for the run only, and serves files from `web/` only.
 
 **Monitor live.** Below it, a **Monitor live** panel polls a device you have onboarded (from this page or from

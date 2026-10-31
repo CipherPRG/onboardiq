@@ -11,3 +11,7 @@ results/
 !.env.example
 demo/*/
 outbox/
+
+# the console build output (built by Docker, CI and the Pages workflow from console/)
+web/console/
+console/node_modules/

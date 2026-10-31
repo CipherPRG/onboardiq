@@ -508,7 +508,15 @@ class Handler(BaseHTTPRequestHandler):
         return self._static(url.path)
 
     def _static(self, path):
-        rel = "index.html" if path in ("/", "") else path.lstrip("/")
+        if path == "/console":                      # relative asset paths need the trailing slash
+            self.send_response(301)
+            self.send_header("Location", "/console/")
+            self.send_header("Content-Length", "0")
+            self._security_headers()
+            self.end_headers()
+            return
+        rel = path.lstrip("/")
+        rel = rel + "index.html" if rel == "" or rel.endswith("/") else rel
         target = (WEB / rel).resolve()
         if WEB not in target.parents or not target.is_file():
             return self._send(404, b'{"error":"not found"}')
@@ -663,6 +671,8 @@ def main(port: int = 8765, bind: str = "127.0.0.1"):
     STATE["port"] = port
     srv = ThreadingHTTPServer((bind, port), Handler)
     print(f"OnboardIQ live: http://127.0.0.1:{port}  (localhost only; Ctrl+C to stop)")
+    if not (WEB / "console" / "index.html").is_file():
+        print("  console not built (the landing page still works): cd console && npm ci && npm run build")
     print(f"  model {MODEL}, effort {EFFORT}, MIB folder {STATE['mib_dir']}"
           + ("" if STATE["mib_dir"].is_dir() else "  (NOT FOUND)"))
     try:

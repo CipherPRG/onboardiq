@@ -1,7 +1,6 @@
 // Charts drawn as SVG, point by point. A trace chart shows one object's readings at baseline and under load;
 // the score chart shows a health score per poll.
 import { el, svg, fmt } from "./util.js";
-import { sleep } from "./clock.js";
 import { LEVEL_TONE } from "./model.js";
 
 const TRACE = { W: 480, H: 180, L: 62, R: 10, T: 14, B: 28 };
@@ -53,7 +52,7 @@ export function traceChart(series, unit, tone = "") {
   const showBand = () => { band.classList.add("on"); bandLabel.classList.add("on"); };
 
   let d = "";
-  async function draw(instant = false, wait = sleep) {
+  async function draw(instant = false, wait = (ms) => new Promise((r) => setTimeout(r, ms))) {
     for (let i = 0; i < pts.length; i++) {
       const [x, y] = pts[i];
       if (i === series.base.length) showBand();

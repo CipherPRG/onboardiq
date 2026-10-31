@@ -1,4 +1,14 @@
 # Judge mode: one command (docker compose up) gives the web page, a real SNMP agent to onboard, and the tests.
+
+# Stage 1: build the console (React) into web/console. Exact versions from console/package-lock.json.
+FROM node:22.12.0-slim AS console
+WORKDIR /build/console
+COPY console/package.json console/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY console/ ./
+RUN npm run build
+
+# Stage 2: the server, the agent and the monitored net-snmp agent.
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 OIQ_IN_CONTAINER=1 OIQ_MIB_DIR=/app/mibs_json PIP_NO_CACHE_DIR=1 \
     OIQ_LOCAL_SNMP_PORT=1161 SNMP_PERSISTENT_DIR=/tmp/snmp-persist
@@ -8,6 +18,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
+COPY --from=console /build/web/console /app/web/console
 # Only the open IETF / net-snmp MIBs are converted into the image (fetched here from a pinned net-snmp release;
 # Debian's package does not carry the host-resources module). Vendor MIBs are never bundled. The build fails if a
 # module the sandbox needs did not convert.

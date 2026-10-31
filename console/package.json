@@ -1,0 +1,29 @@
+{
+  "name": "onboardiq-console",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The OnboardIQ console: live and recorded onboarding runs, health monitoring and the raw event stream.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "8.21.3",
+    "@tanstack/react-virtual": "3.13.12",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "recharts": "3.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.7.0",
+    "autoprefixer": "10.4.21",
+    "postcss": "8.5.6",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.6.3",
+    "vite": "5.4.21"
+  }
+}

@@ -23,6 +23,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: npm
+          cache-dependency-path: console/package-lock.json
+      - name: Build the console into web/console
+        working-directory: console
+        run: npm ci --no-audit --no-fund && npm run build
       - name: Check the page has no secrets or local paths
         run: |
           ! grep -rEn '/home/|C:\\\\Users|sk-[A-Za-z0-9]{16,}' web/
