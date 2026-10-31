@@ -251,3 +251,29 @@ def test_mibfix_empty_objects_range_labels():
     assert "(1..16)" not in new
     new, _ = _fix('SYNTAX INTEGER { "0:00"(0), "1:00"(1) }', '"0:00"')
     assert "v0-00(0)" in new and "v1-00(1)" in new
+
+
+# ---- uploads from the local page ----
+def test_ingest_refuses_files_that_are_not_mibs(tmp_path):
+    with pytest.raises(ValueError, match="none of the files"):
+        intake.ingest([{"name": "notes.txt", "text": "hello"}], tmp_path / "out", tmp_path / "src")
+    with pytest.raises(ValueError, match="no files"):
+        intake.ingest([], tmp_path / "out", tmp_path / "src")
+    with pytest.raises(ValueError, match="at most"):
+        intake.ingest([{"name": "a", "text": GOOD}] * (intake.UPLOAD_FILES + 1), tmp_path / "out", tmp_path / "src")
+
+
+@needs_base
+def test_ingest_converts_reports_and_keeps_the_text_for_later_imports(tmp_path):
+    out, src = tmp_path / "out", tmp_path / "src"
+    r = intake.ingest([{"name": "../../vendor.my", "text": GOOD}, {"name": "readme.md", "text": "not a mib"}], out, src)
+    assert r["converted"] == ["DEMO-MIB"] and (out / "DEMO-MIB.json").is_file()
+    assert r["files"] == {"DEMO-MIB": "../../vendor.my"}               # the name is only echoed, never used as a path
+    assert r["skipped"][0]["file"] == "readme.md"
+    assert (src / "DEMO-MIB.mib").read_text() == GOOD and not (tmp_path.parent / "vendor.my").exists()
+    # a later upload that imports the first one finds it in the kept text
+    later = GOOD.replace("DEMO-MIB", "LATER-MIB").replace("FROM SNMPv2-SMI;", "FROM SNMPv2-SMI\n    demo FROM DEMO-MIB;") \
+        .replace("::= { enterprises 99999 }", "::= { demo 2 }").replace("demo MODULE-IDENTITY", "later MODULE-IDENTITY") \
+        .replace("::= { demo 1 }", "::= { later 1 }").replace("demoCpuLoad", "laterCpuLoad")
+    r2 = intake.ingest([{"name": "later.mib", "text": later}], out, src)
+    assert r2["converted"] == ["LATER-MIB"] and not r2["missing_imports"]

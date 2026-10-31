@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -100,6 +100,13 @@
     <form id="live-form" autocomplete="off">
       <label class="wide">What the device is
         <input name="device" required maxlength="200" placeholder="e.g. MikroTik RouterOS router"></label>
+      <div class="wide drop" id="mib-drop">
+        <label class="drop-pick">Add MIB files <input type="file" id="mib-files" multiple></label>
+        <p class="drop-note">or drop them here. They are converted on this machine and are not sent anywhere else.
+          Add the modules they import too (the report below names any that are missing).</p>
+        <p class="drop-status" id="mib-status" role="status"></p>
+        <ul class="mib-report" id="mib-report"></ul>
+      </div>
       <label class="wide">MIB modules (comma-separated)
         <input name="modules" required list="module-list" placeholder="e.g. HOST-RESOURCES-MIB,UCD-SNMP-MIB">
         <datalist id="module-list"></datalist></label>

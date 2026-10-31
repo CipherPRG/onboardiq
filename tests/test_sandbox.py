@@ -234,3 +234,11 @@ def test_run_ids_are_random_and_the_sandbox_hides_saved_results(sandbox_srv, mon
     c = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
     c.request("GET", "/api/outbox/alert-20260101-000000.html", headers={"Host": f"127.0.0.1:{port}"})
     assert c.getresponse().status == 404
+
+
+def test_the_hosted_demo_takes_no_mib_uploads(sandbox_srv):
+    port, _ = sandbox_srv
+    code, body = post(port, "/api/mibs", {"files": [{"name": "x.mib", "text": "X DEFINITIONS ::= BEGIN END"}]})
+    assert code == 404
+    code, _ = post(port, "/api/mibs", {"files": [{"name": "x", "text": "y" * 70_000}]})
+    assert code == 413                                      # the big-body allowance is local only

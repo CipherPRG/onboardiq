@@ -19,6 +19,10 @@ OnboardIQ reads devices over SNMP and calls a hosted model. This page says what 
 - State-changing requests need `POST`, JSON, a custom header and a same-origin `Origin`, so another website open in
   the same browser cannot start a run.
 - Bodies capped at 64 KB, every field validated, one run at a time, load tests only against the machine's own agent.
+- **MIB upload** (`/api/mibs`, local server only): at most 25 files of 4 MB, sent as JSON with the same checks as
+  every other request. File names are only echoed back, never used as paths; the text must define a MIB module. It is
+  converted locally with pysmi (no downloads, nothing executed) into the MIB folder, and kept in `mibs_src` next to it
+  so later uploads can import from it. Both folders stay on this machine and outside the repository.
 - Responses carry a strict Content-Security-Policy (own scripts only, no framing), `nosniff`, no referrer.
 - **Keep the port on 127.0.0.1.** `docker run -p 8765:8765` (without `127.0.0.1:`) publishes it to your network,
   where the `Host` check is not authentication: anyone on that network could start runs with your API key.

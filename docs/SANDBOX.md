@@ -12,7 +12,7 @@ Everything else (replays, tests) works without it. The sandbox is off unless `OI
 | Runs per visitor address per day (`OIQ_SANDBOX_PER_IP`, 3). The address is the one our own proxy appended to `X-Forwarded-For`, never the part the visitor writes; IPv6 is grouped by /64. | One person cannot use the whole budget. |
 | Dollar budget: `OIQ_DAILY_USD` stops a call that could break the cap, and a run does not start with less than `OIQ_SANDBOX_MIN_BUDGET` ($0.30) left. Per-run call cap `OIQ_MAX_CALLS_PER_RUN`. | A run is never started that cannot finish. |
 | Kill switch `OIQ_PAID=off`: no run starts and no model call is made; the page says the demo is paused and the recorded sessions still play. | Stops spending in seconds if anything looks wrong. |
-| No monitor mode, no saved results, no recordings, no outbox, no uploads. | Nothing a visitor does is stored, and nothing is left to read back. |
+| No monitor mode, no saved results, no recordings, no outbox, no MIB uploads (`/api/mibs` answers 404, and its larger body allowance is local only). | Nothing a visitor does is stored, and nothing is left to read back. |
 | Model called fresh every run (`OIQ_NO_CACHE=1`). | A run is a live run, never a cached answer. |
 | Run ids are random; at most 8 readers per run; requests time out after 30 s; bodies are capped at 64 KB; a bad `Content-Length` is refused. | Closes guessable ids and slow-client tricks. |
 | Headers on every response: a strict Content-Security-Policy (own scripts only, no framing, no outside connections), `X-Frame-Options: DENY`, `nosniff`, no referrer, HSTS, cross-origin isolation. | A bug in the page cannot load outside code, and the page cannot be embedded in another site. |

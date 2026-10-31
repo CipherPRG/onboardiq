@@ -24,8 +24,9 @@ RUN chmod 644 /etc/snmp/snmpd.conf
 RUN chmod +x docker/entrypoint.sh
 # Everything runs as an unprivileged user that can write only the few folders a run needs.
 RUN useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin oiq \
-    && mkdir -p /app/cache /app/results /app/outbox /app/demo /app/web/sessions /tmp/snmp-persist \
-    && chown -R oiq:oiq /app/cache /app/results /app/outbox /app/demo /app/web/sessions /tmp/snmp-persist
+    && mkdir -p /app/cache /app/results /app/outbox /app/demo /app/web/sessions /app/mibs_src /tmp/snmp-persist \
+    && chown -R oiq:oiq /app/cache /app/results /app/outbox /app/demo /app/web/sessions /app/mibs_json /app/mibs_src \
+         /tmp/snmp-persist
 USER oiq
 EXPOSE 8765
 ENTRYPOINT ["docker/entrypoint.sh"]

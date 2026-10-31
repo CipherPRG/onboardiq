@@ -6,6 +6,7 @@ import { post, stream } from "./api.js";
 import { onboardingRun } from "./onboarding.js";
 import { snmpFields } from "./snmp-auth.js";
 import { loadOnboarded } from "./monitor.js";
+import { wireMibUpload } from "./mib-upload.js";
 
 let runId = null;
 
@@ -96,4 +97,5 @@ export function wireLocal(onSaved) {
     try { await post(`/api/runs/${runId}/confirm`, {}); } catch (e) { ui.status(e.message); }
   });
   wireModuleSuggestions(form.elements.modules);
+  wireMibUpload(form);
 }

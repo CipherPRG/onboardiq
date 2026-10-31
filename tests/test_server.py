@@ -154,3 +154,36 @@ def test_outbox_serves_only_alert_files_with_a_locked_down_csp(srv, tmp_path):
         assert req(srv, "GET", "/api/outbox/alert-20261029-999999.html")[0] == 404
     finally:
         server.STATE.pop("outbox", None)
+
+
+def test_mib_upload_converts_into_the_mib_folder(srv, tmp_path, monkeypatch):
+    seen = {}
+
+    def fake_ingest(files, out_dir, src_dir):
+        seen.update(files=files, out=out_dir, src=src_dir)
+        return {"converted": ["UP-MIB"], "failed": {}, "missing_imports": {}, "incomplete": [], "repairs": {},
+                "files": {"UP-MIB": "up.mib"}, "skipped": []}
+    monkeypatch.setattr(server.intake, "ingest", fake_ingest)
+    monkeypatch.setitem(server.STATE, "mib_src", tmp_path / "src")
+    h = {"Content-Type": "application/json", "X-OnboardIQ": "1", "Origin": f"http://127.0.0.1:{srv}"}
+    code, body = req(srv, "POST", "/api/mibs", {"files": [{"name": "up.mib", "text": "x" * 100_000}]}, h)
+    assert code == 200 and json.loads(body)["converted"] == ["UP-MIB"]      # larger than a normal request: allowed here
+    assert seen["out"] == server.STATE["mib_dir"] and seen["src"] == tmp_path / "src"
+
+
+def test_mib_upload_needs_the_same_checks_and_reports_bad_files(srv):
+    h = {"Content-Type": "application/json", "X-OnboardIQ": "1", "Origin": f"http://127.0.0.1:{srv}"}
+    assert req(srv, "POST", "/api/mibs", {"files": []}, {**h, "Origin": "https://evil.example"})[0] == 403
+    code, body = req(srv, "POST", "/api/mibs", {"files": [{"name": "a.txt", "text": "hello"}]}, h)
+    assert code == 400 and b"none of the files" in body
+    code, _ = req(srv, "POST", "/api/mibs", {"files": "nope"}, h)
+    assert code == 400
+
+
+def test_mib_upload_refuses_a_second_conversion_at_once(srv):
+    h = {"Content-Type": "application/json", "X-OnboardIQ": "1", "Origin": f"http://127.0.0.1:{srv}"}
+    assert server.MIB_LOCK.acquire(blocking=False)
+    try:
+        assert req(srv, "POST", "/api/mibs", {"files": []}, h)[0] == 409
+    finally:
+        server.MIB_LOCK.release()

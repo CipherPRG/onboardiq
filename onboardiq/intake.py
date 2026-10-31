@@ -299,3 +299,46 @@ def summary(r):
             "failed_by_cause": dict(Counter(failure_kind(v) for v in r["failed"].values())),
             "most_missing_imports": Counter(i for v in r["missing_imports"].values() for i in v).most_common(10),
             "duplicate_modules": len(r.get("duplicates", {})), "repaired_files": len(r.get("repairs", {}))}
+
+
+# ---- uploads from the local web page ----
+UPLOAD_FILES = 25                                      # files per upload
+UPLOAD_FILE_BYTES = 4_000_000                          # per file (the largest vendor MIBs are about 2 MB)
+
+
+def ingest(files, out_dir, src_dir, extra_dirs=None, workers=4):
+    """Convert MIB files uploaded from the local page. `files` is a list of {"name", "text"}; names are shown
+    back to the user and never used as paths. Every file that defines a module is kept in src_dir (named after
+    its first module), so a later upload can import from it; the converted JSON goes to out_dir as with
+    convert(). Raises ValueError when nothing usable was sent."""
+    if not isinstance(files, list) or not files:
+        raise ValueError("no files sent")
+    if len(files) > UPLOAD_FILES:
+        raise ValueError(f"at most {UPLOAD_FILES} files at a time")
+    skipped, kept = [], []
+    for f in files:
+        name = str((f or {}).get("name") or "file")[:120] if isinstance(f, dict) else "file"
+        text = f.get("text") if isinstance(f, dict) else None
+        if not isinstance(text, str) or not text.strip():
+            skipped.append({"file": name, "reason": "empty"})
+        elif len(text.encode()) > UPLOAD_FILE_BYTES:
+            skipped.append({"file": name, "reason": f"larger than {UPLOAD_FILE_BYTES // 1_000_000} MB"})
+        elif not DEFINES.search(text):
+            skipped.append({"file": name, "reason": "no MIB module in it (no 'DEFINITIONS ::= BEGIN')"})
+        else:
+            kept.append((name, text))
+    if not kept:
+        raise ValueError("none of the files is a MIB module: " + "; ".join(f"{s['file']}: {s['reason']}" for s in skipped))
+    src_dir = Path(src_dir).expanduser()
+    src_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        for i, (_, text) in enumerate(kept):
+            Path(tmp, f"upload-{i}.mib").write_text(text, encoding="utf-8")
+        dirs = (extra_dirs if extra_dirs is not None else system_dirs()) + [str(src_dir)]
+        report = convert(tmp, out_dir, extra_dirs=dirs, workers=workers)
+    for _, text in kept:                               # keep the text for later imports (module names are safe file names)
+        (src_dir / f"{DEFINES.search(text).group(1)}.mib").write_text(text, encoding="utf-8")
+    files_of = {m: n for n, t in kept for m in DEFINES.findall(t)}
+    return {"converted": report["converted"], "failed": report["failed"], "missing_imports": report["missing_imports"],
+            "incomplete": report.get("incomplete", []), "repairs": report.get("repairs", {}),
+            "files": files_of, "skipped": skipped}

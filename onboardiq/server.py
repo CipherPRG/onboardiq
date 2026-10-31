@@ -35,7 +35,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import agent, mib, replay
+from . import agent, intake, mib, replay
 from .alerts import Alerter, OUTBOX
 from .monitor import Monitor, load_onboarding
 from .playback import export_all
@@ -49,6 +49,9 @@ RESULTS = ROOT / "results"
 ONBOARDED = re.compile(r"onboard_\d{8}_\d{6}")
 MAX_MONITOR_S = 30 * 60      # a live monitor stops by itself after 30 minutes
 MIB_DIR = Path(os.environ.get("OIQ_MIB_DIR", Path.home() / "data" / "mibs_json")).expanduser()
+# where uploaded MIB text is kept, so later uploads can import from it (local server only; stays on this machine)
+MIB_SRC = Path(os.environ.get("OIQ_MIB_SRC", MIB_DIR.parent / "mibs_src")).expanduser()
+MIB_LOCK = threading.Lock()                            # one conversion at a time
 EFFORT = os.environ.get("OIQ_EFFORT", "high")
 LOCAL = {"localhost", "127.0.0.1", "::1"}
 FAMILIES = ("cpu", "memory", "temperature", "fan")
@@ -56,6 +59,7 @@ TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=u
          ".css": "text/css; charset=utf-8", ".json": "application/json", ".png": "image/png",
          ".svg": "image/svg+xml"}
 MAX_BODY = 64 * 1024
+MAX_UPLOAD = 32 * 1024 * 1024                          # /api/mibs only (local server): MIB text sent as JSON
 
 SANDBOX = os.environ.get("OIQ_SANDBOX") == "1"
 # hosts the public demo answers to (comma-separated); empty = any *.run.app name (Cloud Run's front end checks it)
@@ -205,7 +209,8 @@ class Run:
             self.cond.notify_all()
 
 
-STATE = {"sandbox": {"runs": 0, "last_end": 0.0}, "run": None, "lock": threading.Lock(), "port": 8765, "mib_dir": MIB_DIR}
+STATE = {"sandbox": {"runs": 0, "last_end": 0.0}, "run": None, "lock": threading.Lock(), "port": 8765, "mib_dir": MIB_DIR,
+         "mib_src": MIB_SRC}
 
 
 def _clean_text(x, n=200):
@@ -545,6 +550,22 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             run.viewers -= 1
 
+    def _upload(self, body):
+        """Convert uploaded MIB files into the MIB folder (local server only: the hosted demo's modules are fixed)."""
+        if SANDBOX:
+            return self._json(404, {"error": "uploads are not available in the hosted demo"})
+        if not MIB_LOCK.acquire(blocking=False):
+            return self._json(409, {"error": "another upload is still converting"})
+        try:
+            report = intake.ingest((body or {}).get("files"), STATE["mib_dir"], STATE["mib_src"])
+        except ValueError as e:
+            return self._json(400, {"error": str(e)})
+        except OSError as e:
+            return self._json(500, {"error": f"could not write the MIB folder ({e.strerror})"})
+        finally:
+            MIB_LOCK.release()
+        return self._json(200, report)
+
     def do_POST(self):
         if not self._host_ok():
             return self._send(403, b'{"error":"bad host"}')
@@ -560,13 +581,16 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, b'{"error":"bad length"}')
         if length < 0:
             return self._send(400, b'{"error":"bad length"}')
-        if length > MAX_BODY:
+        url = urlparse(self.path).path
+        upload = url == "/api/mibs" and not SANDBOX
+        if length > (MAX_UPLOAD if upload else MAX_BODY):
             return self._send(413, b'{"error":"too large"}')
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
         except ValueError:
             return self._send(400, b'{"error":"bad json"}')
-        url = urlparse(self.path).path
+        if url == "/api/mibs":
+            return self._upload(body)
         if url == "/api/runs":
             with STATE["lock"]:
                 if STATE["run"] and not STATE["run"].finished:
@@ -656,4 +680,6 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.mib_dir:
         STATE["mib_dir"] = Path(a.mib_dir).expanduser()
+        if not os.environ.get("OIQ_MIB_SRC"):
+            STATE["mib_src"] = STATE["mib_dir"].parent / "mibs_src"
     main(a.port, a.bind)
