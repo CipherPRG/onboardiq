@@ -5,56 +5,71 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
-<title>OnboardIQ replays</title>
+<meta name="description" content="An agent that reads a device's MIB files, picks what to monitor, and checks every pick on the device before trusting it.">
+<title>OnboardIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script type="module" src="js/main.js"></script>
 </head>
 <body>
-<main>
-  <header class="top">
-    <p class="brand">OnboardIQ</p>
-    <h1>Watch the agent read a device manual, test its picks on the device, and correct itself.</h1>
-    <p class="lede" id="lede">These are replays of recorded live sessions. Every reading and every model answer comes from the
-      recording; the verifier recomputes each check as you watch.</p>
-  </header>
+<a class="skip" href="#stage">Skip to the session</a>
 
-  <section class="start" aria-label="Start here">
-    <h2>Start here</h2>
-    <ol>
-      <li><span class="what">1. Watch it correct itself</span>
-        <span class="why">Onboards a device from its manual, tests each pick on the device, fixes a wrong one.</span>
-        <button type="button" data-start="laptop_full">Play this session</button></li>
-      <li><span class="what">2. Watch a health score react</span>
-        <span class="why">CPU stress on a real machine: the score falls 100 → 40, then recovers, with a plain-English explanation.</span>
-        <button type="button" data-start="laptop_stress">Play this session</button></li>
-      <li><span class="what">3. Run it yourself</span>
-        <span class="why">Point it at your own device from a clone of the repo; setup steps are in the README.</span>
-        <a href="https://github.com/CipherPRG/onboardiq#readme">Open the README</a></li>
+<header class="hero" data-hero="laptop_full">
+  <div class="wrap">
+    <p class="brand">OnboardIQ</p>
+    <h1>It reads the manual. The device checks its answers.</h1>
+    <p class="lede" id="lede">Give Muse Spark a device's MIB files and it picks the objects to monitor for CPU, memory,
+      temperature and fan. Every pick is then tested on the live device, and a wrong one goes back to the model with the
+      evidence. This page replays recorded sessions of real devices.</p>
+    <div class="actions">
+      <button type="button" class="primary" data-start="laptop_full">Watch it correct a wrong pick</button>
+      <button type="button" data-start="laptop_stress">Watch a health score react</button>
+      <a class="btn primary" id="to-live" href="#sandbox" hidden>Run it live</a>
+      <a class="link" href="https://github.com/CipherPRG/onboardiq#readme">Read the README</a>
+    </div>
+    <div class="evidence" id="evidence" aria-label="A recorded correction"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <ol class="flow">
+      <li><strong>Identify</strong><p>Reads the device's own description to find which MIB files apply.</p>
+        <p class="where">Command line only</p></li>
+      <li class="here"><strong>Read</strong><p>Muse Spark reads the MIB text and picks one object per metric.</p>
+        <p class="where">Shown in the sessions</p></li>
+      <li class="here"><strong>Test</strong><p>The agent reads the object on the device, applies a real load and checks that it moves.</p>
+        <p class="where">Shown in the sessions</p></li>
+      <li class="here"><strong>Correct</strong><p>A pick that fails goes back to the model with the evidence for another try.</p>
+        <p class="where">Shown in the sessions</p></li>
+      <li class="here"><strong>Score</strong><p>Proven picks are polled and turned into a health score with a plain-English explanation.</p>
+        <p class="where">Shown in the health session</p></li>
     </ol>
   </section>
 
-  <nav class="sessions" aria-label="Recorded sessions">
-    <h2>Recorded sessions</h2>
-    <ul id="session-list"></ul>
-  </nav>
-
-  <section class="live" id="sandbox" hidden>
-    <h2>Run it live</h2>
-    <p class="hint" id="sb-hint">This runs the real agent now: <span id="sb-model">Muse Spark</span> reads the MIB text of a
-      Linux host's net-snmp agent, every pick is tested on that device (inside this container, read-only), and CPU and
-      memory are proven with a real load test. It takes about 3 minutes and costs real model calls, so it is limited:
-      one run at a time, a pause between runs, and a daily cap. Nothing you type is sent to the device.</p>
-    <div class="actions"><button type="button" id="sb-run">Onboard the demo device</button>
-      <span id="sb-error" class="bad" role="alert"></span></div>
+  <section class="panel" id="sandbox" hidden aria-labelledby="sb-h">
+    <h2 id="sb-h">Run it live</h2>
+    <p class="hint">The real agent runs now. <span id="sb-model">Muse Spark</span> reads the MIB text of a Linux host's
+      net-snmp agent, every pick is tested on that device (inside this container, read-only), and CPU and memory are
+      proven with a real load test. It takes about 3 minutes and uses real model calls, so it is limited: one run at a
+      time, a pause between runs and a daily cap. Nothing you type is sent to the device.</p>
+    <div class="actions"><button type="button" class="primary" id="sb-run">Onboard the demo device</button>
+      <span id="sb-error" class="err" role="alert"></span></div>
     <p class="hint" id="sb-left"></p>
   </section>
 
-  <section class="live" id="live" hidden>
-    <h2>Run live</h2>
-    <p class="hint">This page is connected to a local OnboardIQ server, so it can onboard a device now. The
-      model reads the MIB modules you choose, then every pick is tested on the device.</p>
+  <section class="panel sessions" aria-labelledby="sess-h">
+    <h2 id="sess-h">Recorded sessions</h2>
+    <ul id="session-list"></ul>
+  </section>
+
+  <section class="panel" id="live" hidden aria-labelledby="live-h">
+    <h2 id="live-h">Run live</h2>
+    <p class="hint">This page is connected to a local OnboardIQ server, so it can onboard a device now. The model reads
+      the MIB modules you choose, then every pick is tested on the device.</p>
     <form id="live-form" autocomplete="off">
       <label class="wide">What the device is
         <input name="device" required maxlength="200" placeholder="e.g. MikroTik RouterOS router"></label>
@@ -63,7 +78,7 @@
         <datalist id="module-list"></datalist></label>
       <label>Host <input name="host" value="localhost" maxlength="253"></label>
       <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
-      <div class="snmp-auth wide" data-snmp-auth></div>
+      <div class="snmp-auth" data-snmp-auth></div>
       <fieldset><legend>Metrics</legend>
         <label><input type="checkbox" name="families" value="cpu" checked> CPU</label>
         <label><input type="checkbox" name="families" value="memory" checked> Memory</label>
@@ -76,45 +91,44 @@
         <label><input type="radio" name="mode" value="hand"> I will start CPU load on the device when asked</label>
         <input name="hand" maxlength="300" placeholder="How to start the load, e.g. :while (true) do={}">
       </fieldset>
-      <div class="wide actions"><button type="submit" id="run">Onboard this device</button>
-        <span id="live-error" class="bad" role="alert"></span></div>
+      <div class="wide actions"><button type="submit" class="primary" id="run">Onboard this device</button>
+        <span id="live-error" class="err" role="alert"></span></div>
     </form>
   </section>
 
-  <section class="live" id="monitor" hidden>
-    <h2>Monitor live</h2>
+  <section class="panel" id="monitor" hidden aria-labelledby="mon-h">
+    <h2 id="mon-h">Monitor live</h2>
     <p class="hint">Poll a device you have onboarded and score its health as it runs. Only the picks that were proven
       are polled; nothing is written to the device.</p>
     <form id="monitor-form" autocomplete="off">
-      <label class="wide">Onboarded device
-        <select name="onboarded" id="onboarded" required></select></label>
+      <label class="wide">Onboarded device <select name="onboarded" id="onboarded" required></select></label>
       <label>Host <input name="host" value="localhost" maxlength="253"></label>
       <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
-      <div class="snmp-auth wide" data-snmp-auth></div>
+      <div class="snmp-auth" data-snmp-auth></div>
       <label>Every (seconds) <input name="interval" inputmode="numeric" value="10" maxlength="3"></label>
       <fieldset class="wide"><legend>Options</legend>
         <label><input type="checkbox" name="explain" checked> Explain changes in plain English (Muse Spark)</label>
-        <label><input type="checkbox" name="alert" checked> Alert email when the level changes (SMTP if set up, otherwise the outbox)</label>
+        <label><input type="checkbox" name="alert" checked> Email an alert when the level changes (SMTP if set up, otherwise the outbox)</label>
         <label><input type="checkbox" name="record" checked> Save as a replay</label>
       </fieldset>
       <div class="wide actions">
-        <button type="submit" id="mon-start">Start monitoring</button>
+        <button type="submit" class="primary" id="mon-start">Start monitoring</button>
         <button type="button" id="mon-stop" hidden>Stop</button>
         <button type="button" id="mon-load" hidden>Put CPU load on this machine (120 s)</button>
-        <span id="mon-error" class="bad" role="alert"></span></div>
+        <span id="mon-error" class="err" role="alert"></span></div>
     </form>
   </section>
 
-  <div id="prompt" class="prompt" hidden role="alertdialog" aria-live="assertive">
-    <p id="prompt-text"></p><p id="prompt-cmd" class="oid"></p>
+  <div id="prompt" class="prompt" hidden role="alertdialog" aria-live="assertive" aria-label="Action needed on the device">
+    <p id="prompt-text"></p><p id="prompt-cmd" class="mono"></p>
     <button type="button" id="prompt-ok" hidden>Done</button>
   </div>
 
-  <section class="stage" aria-live="polite">
+  <section class="stage" id="stage" aria-labelledby="device">
     <div class="stage-head">
       <div>
         <h2 id="device">Choose a session</h2>
-        <p id="status" class="status">Pick a recorded session above to play it.</p>
+        <p id="status" class="status" role="status">Pick a recorded session above to play it.</p>
       </div>
       <div class="controls" role="group" aria-label="Playback">
         <button id="play" type="button" disabled>Play</button>
@@ -128,15 +142,15 @@
         </label>
       </div>
     </div>
-    <div id="families"></div>
+    <ol class="strip" id="strip" aria-label="Progress" hidden></ol>
+    <div id="run-host"></div>
   </section>
 
   <footer>
-    <p>Verdicts come from measurements on the device, not from the model. "Proven by experiment" means the value
-      moved the way the model predicted when load was applied; "proven by a second object" means an independent
-      object reported the same quantity.</p>
+    <p>Verdicts come from measurements on the device, not from the model. "Proven by experiment" means the value moved
+      the way the model predicted when load was applied; "proven by a second object" means an independent object
+      reported the same quantity.</p>
   </footer>
 </main>
-<script src="player.js"></script>
 </body>
 </html>
