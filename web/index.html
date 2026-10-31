@@ -29,27 +29,12 @@
       <a class="btn primary" id="to-live" href="#sandbox" hidden>Run it live</a>
       <a class="link" href="https://github.com/CipherPRG/onboardiq#readme">Read the README</a>
     </div>
+    <ol class="pipe" id="pipe" aria-label="How a device is onboarded"></ol>
     <div class="evidence" id="evidence" aria-label="A recorded correction"></div>
   </div>
 </header>
 
 <main class="wrap">
-  <section class="how" aria-labelledby="how-h">
-    <h2 id="how-h">How it works</h2>
-    <ol class="flow">
-      <li><strong>Identify</strong><p>Reads the device's own description to find which MIB files apply.</p>
-        <p class="where">Command line only</p></li>
-      <li class="here"><strong>Read</strong><p>Muse Spark reads the MIB text and picks one object per metric.</p>
-        <p class="where">Shown in the sessions</p></li>
-      <li class="here"><strong>Test</strong><p>The agent reads the object on the device, applies a real load and checks that it moves.</p>
-        <p class="where">Shown in the sessions</p></li>
-      <li class="here"><strong>Correct</strong><p>A pick that fails goes back to the model with the evidence for another try.</p>
-        <p class="where">Shown in the sessions</p></li>
-      <li class="here"><strong>Score</strong><p>Proven picks are polled and turned into a health score with a plain-English explanation.</p>
-        <p class="where">Shown in the health session</p></li>
-    </ol>
-  </section>
-
   <section class="panel" id="sandbox" hidden aria-labelledby="sb-h">
     <h2 id="sb-h">Run it live</h2>
     <p class="hint">The real agent runs now. <span id="sb-model">Muse Spark</span> reads the MIB text of a Linux host's

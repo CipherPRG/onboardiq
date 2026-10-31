@@ -37,10 +37,29 @@ function tilt(node) {
   node.addEventListener("pointerleave", () => { node.style.removeProperty("--rx"); node.style.removeProperty("--ry"); });
 }
 
+/** The five stages of one real recorded correction, as numbers from the session itself. */
+function pipeline(session, [bad, good]) {
+  const test = (ev) => ((ev.evidence || []).find((c) => c.check === "experiment") || {}).detail || "";
+  const rate = /counter rate ([\d.]+\/s -> [\d.]+\/s)/;
+  const steps = [
+    ["Device", session.device.split(" running")[0], "answers SNMP queries", ""],
+    ["Read", `${session.objects} objects`, `from ${session.modules.split(",").length} MIB files`, ""],
+    ["Pick", bad.object, `${session.model} chooses it for ${bad.family.toUpperCase()}`, ""],
+    ["Test", (test(bad).match(rate) || [, "failed"])[1].replace("->", "→"), "under real CPU load", "bad"],
+    ["Correct", good.object, "the model tries again; proven", "ok"],
+  ];
+  $("pipe").replaceChildren(...steps.map(([step, title, detail, tone], i) => {
+    const li = el("li", { class: tone }, el("span", { class: "step" }, step), el("strong", null, title), el("span", { class: "detail" }, detail));
+    li.style.setProperty("--i", i);
+    return li;
+  }));
+}
+
 export async function renderEvidence(session) {
   const pair = correction(session.events);
   const root = $("evidence");
   if (!pair) return;
+  pipeline(session, pair);
   const [bad, good] = pair.map(proof);
   root.append(bad.node, good.node,
     el("p", { class: "evidence-note" }, `Recorded on ${session.device}. The model's first CPU pick looked right in the manual. ` +
