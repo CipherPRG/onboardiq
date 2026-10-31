@@ -73,3 +73,28 @@ def test_report_escapes_model_and_mib_text():
     assert "<script>" not in page and "onerror=alert" not in page.replace("onerror=alert(2)&gt;", "")
     assert "&lt;script&gt;" in page
     assert "Content-Security-Policy" in page and "script-src" not in page   # default-src 'none': no scripts at all
+
+
+# ---- build and upload hygiene --------------------------------------------------------------------------------
+
+def _lines(name):
+    from pathlib import Path
+    return {x.strip() for x in (Path(__file__).resolve().parent.parent / name).read_text().splitlines()}
+
+
+def test_images_and_cloud_uploads_never_carry_keys_or_private_mibs():
+    for name in (".dockerignore", ".gcloudignore"):
+        lines = _lines(name)
+        for must in (".env", ".env.*", "mibs", "data", "results", "cache", "demo/*/"):
+            assert must in lines, f"{name} must exclude {must}"
+
+
+def test_every_fetched_open_mib_has_a_pinned_checksum():
+    import importlib.util
+    from pathlib import Path
+    p = Path(__file__).resolve().parent.parent / "scripts" / "fetch_open_mibs.py"
+    spec = importlib.util.spec_from_file_location("fetch_open_mibs", p)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    assert set(m.FILES) == set(m.SHA256) and all(len(h) == 64 for h in m.SHA256.values())
+    assert m.TAG.startswith("v")                      # a release tag, never a branch

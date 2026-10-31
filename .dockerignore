@@ -1,9 +1,16 @@
 .git
+.github
 .venv
+.pytest_cache
 results
 cache
 outbox
 __pycache__
 *.pyc
 data
+mibs
+demo/*/
 .env
+.env.*
+!.env.example
+*.log

@@ -1,0 +1,18 @@
+# What `gcloud run deploy --source .` may upload. Keys, private MIBs and local results never leave the machine.
+.git
+.gitignore
+.github
+.venv
+.pytest_cache
+results
+cache
+outbox
+__pycache__
+*.pyc
+data
+mibs
+demo/*/
+.env
+.env.*
+!.env.example
+*.log
