@@ -30,7 +30,8 @@ def test_hosts_and_origins():
     assert not server.origin_allowed("https://demo.run.app", "demo.run.app", 8765, sandbox=False)
 
 
-def test_gate_enforces_cooldown_and_run_limit():
+def test_gate_enforces_cooldown_and_run_limit(monkeypatch):
+    monkeypatch.setenv("OIQ_PAID", "on")
     st = {"runs": 0, "last_end": 100.0}
     assert server.sandbox_gate(st, now=100.0 + 61, cooldown=60, max_runs=3) is None
     msg, wait = server.sandbox_gate(st, now=100.0 + 10, cooldown=60, max_runs=3)
@@ -47,6 +48,7 @@ def sandbox_srv(monkeypatch, tmp_path):
     started = []
     monkeypatch.setattr(server, "execute", lambda run, opts: started.append(opts) or setattr(run, "finished", True))
     monkeypatch.setattr(server, "budget_left", lambda: 5.0)
+    monkeypatch.setenv("OIQ_PAID", "on")       # CI runs with OIQ_PAID=off (the kill switch); these tests need runs to start
     server.STATE["sandbox"].clear()
     server.STATE["sandbox"].update(runs=0, last_end=0.0)
     server.STATE["run"] = None
