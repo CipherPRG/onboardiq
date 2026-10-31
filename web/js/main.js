@@ -2,16 +2,21 @@
 import { $ } from "./util.js";
 import { mountSnmpAuth } from "./snmp-auth.js";
 import { loadList, wireControls, open, has } from "./sessions.js";
-import { renderEvidence } from "./hero.js";
+import { mountRig } from "./hero.js";
+import { mountStory } from "./story.js";
 import { wireSandbox, wireLocal } from "./live.js";
 import { wireMonitor } from "./monitor.js";
 
+const STORY = ["laptop_full", "laptop_stress"];   // the onboarding run and the health run the story is built from
+
 const LEDE = {
-  sandbox: "Play recorded sessions, or run the real agent live on a demo device. In a replay, every reading and model answer " +
-    "comes from the recording; in a live run they come from the device and the model.",
-  local: "Replay recorded sessions, or onboard a device live from this machine. In a replay, every reading and model answer " +
-    "comes from the recording; in a live run they come from the device and the model.",
+  sandbox: "Muse Spark reads a device's MIB files and picks what to monitor. Every pick is tested on the device under " +
+    "real load, and a wrong one goes back to the model with the evidence. Watch a recording, or run it live below.",
+  local: "Muse Spark reads a device's MIB files and picks what to monitor. Every pick is tested on the device under real " +
+    "load. This page is connected to your local server, so you can onboard and monitor a device from here.",
 };
+
+const json = (id) => fetch(`sessions/${id}.json`).then((r) => r.json());
 
 async function serverStatus() {
   try {
@@ -21,18 +26,16 @@ async function serverStatus() {
 }
 
 async function main() {
+  mountRig();
   document.querySelectorAll("[data-snmp-auth]").forEach(mountSnmpAuth);
   wireControls();
   const refresh = () => loadList().catch(() => {});
+  Promise.all(STORY.map(json)).then(([run, health]) => mountStory(run, health)).catch(() => { $("story").hidden = true; });
   await loadList();
-
   document.querySelectorAll("[data-start]").forEach((b) => {
     const id = b.dataset.start;
     if (has(id)) b.addEventListener("click", () => open(id)); else b.hidden = true;
   });
-
-  const hero = document.querySelector("[data-hero]").dataset.hero;
-  fetch(`sessions/${hero}.json`).then((r) => r.json()).then(renderEvidence).catch(() => {});
 
   const status = await serverStatus();
   if (!status?.live) return;

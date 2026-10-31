@@ -6,53 +6,95 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="An agent that reads a device's MIB files, picks what to monitor, and checks every pick on the device before trusting it.">
+<meta name="color-scheme" content="dark">
 <title>OnboardIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=5">
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
-<a class="skip" href="#stage">Skip to the session</a>
+<a class="skip" href="#stage">Skip to the session player</a>
 
-<header class="hero" data-hero="laptop_full">
-  <div class="wrap">
-    <p class="brand">OnboardIQ</p>
-    <h1>It reads the manual. The device checks its answers.</h1>
-    <p class="lede" id="lede">Give Muse Spark a device's MIB files and it picks the objects to monitor for CPU, memory,
-      temperature and fan. Every pick is then tested on the live device, and a wrong one goes back to the model with the
-      evidence. This page replays recorded sessions of real devices.</p>
-    <div class="actions">
-      <button type="button" class="primary" data-start="laptop_full">Watch it correct a wrong pick</button>
-      <button type="button" data-start="laptop_stress">Watch a health score react</button>
-      <a class="btn primary" id="to-live" href="#sandbox" hidden>Run it live</a>
-      <a class="link" href="https://github.com/CipherPRG/onboardiq#readme">Read the README</a>
+<nav class="nav" aria-label="Page">
+  <div class="wrap nav-row">
+    <a class="brand" href="#top">OnboardIQ</a>
+    <div class="nav-links">
+      <a href="#story">How it works</a>
+      <a href="#sessions">Sessions</a>
+      <a href="#sandbox" id="to-live" hidden>Run it live</a>
+      <a href="https://github.com/CipherPRG/onboardiq#readme">GitHub</a>
     </div>
-    <ol class="pipe" id="pipe" aria-label="How a device is onboarded"></ol>
-    <div class="evidence" id="evidence" aria-label="A recorded correction"></div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <h1>It reads the manual. The device checks its answers.</h1>
+      <p class="lede" id="lede">Give Muse Spark a device's MIB files and it picks what to monitor: CPU, memory, temperature,
+        fan. Every pick is then tested on the device itself, under real load. A wrong pick goes back to the model with
+        the evidence.</p>
+      <div class="actions">
+        <a class="btn primary" href="#story">See one device, start to finish</a>
+        <button type="button" data-start="laptop_full">Play a recorded run</button>
+      </div>
+    </div>
+    <div class="rig-wrap" aria-hidden="true">
+      <div class="rig" id="rig">
+        <div class="sheet s1"><b>UCD-SNMP-MIB</b><i>ssCpuRawUser</i><i>ssCpuRawIdle</i><i>memAvailReal</i><i>memTotalReal</i><i>laLoad</i></div>
+        <div class="sheet s2"><b>HOST-RESOURCES-MIB</b><i>hrProcessorLoad</i><i>hrStorageUsed</i><i>hrStorageSize</i><i>hrSystemUptime</i></div>
+        <div class="sheet s3"><b>LM-SENSORS-MIB</b><i>lmTempSensorsValue</i><i>lmFanSensorsValue</i><i>lmVoltSensorsValue</i></div>
+        <div class="box">
+          <div class="face top"><span class="label">udp/161 · read-only</span></div>
+          <div class="face front"><span class="ports" id="ports"></span></div>
+          <div class="face side"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
+
+<section class="story" id="story" aria-label="One device, start to finish">
+  <div class="pin" id="pin">
+    <div class="wrap pin-grid">
+      <ol class="steps" id="steps">
+        <li>Ask the device</li><li>Read the manual</li><li>Pick</li><li>Test under load</li><li>Correct</li><li>Score</li>
+      </ol>
+      <div class="copy" id="copy">
+        <div data-scene="0"><h2>Ask the device what it is.</h2><p>One read-only SNMP query. The answer names the system and its agent, which decides which MIB files apply.</p></div>
+        <div data-scene="1"><h2>Read its manual.</h2><p>The MIB files describe every object the device can report. OnboardIQ reduces them to the lines that matter and hands them to Muse Spark.</p></div>
+        <div data-scene="2"><h2>The model picks one object per metric.</h2><p>It quotes the MIB line it relied on and predicts how the value should move under load. A prediction can be tested.</p></div>
+        <div data-scene="3"><h2>The device tests the pick.</h2><p>Baseline first, then real CPU load. This counter was meant to rise. It fell, so the pick is rejected.</p></div>
+        <div data-scene="4"><h2>Wrong pick, back to the model.</h2><p>The model re-reads the manual with the measured evidence and picks again. The new pick rises under load: proven.</p></div>
+        <div data-scene="5"><h2>Only proven picks are scored.</h2><p>Polled every 10 seconds into a health score with a plain-English explanation. Under a stress test it fell to 40, then recovered.</p></div>
+      </div>
+      <div class="scene" id="scene" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
 
 <main class="wrap">
   <section class="panel" id="sandbox" hidden aria-labelledby="sb-h">
     <h2 id="sb-h">Run it live</h2>
-    <p class="hint">The real agent runs now. <span id="sb-model">Muse Spark</span> reads the MIB text of a Linux host's
-      net-snmp agent, every pick is tested on that device (inside this container, read-only), and CPU and memory are
-      proven with a real load test. It takes about 3 minutes and uses real model calls, so it is limited: one run at a
-      time, a pause between runs and a daily cap. Nothing you type is sent to the device.</p>
+    <p class="hint">This is the real agent, running now. <span id="sb-model">Muse Spark</span> reads the MIB files of a Linux
+      host's net-snmp agent. Every pick is tested on that device, which runs read-only inside this container, and CPU and
+      memory are proven with a real load test. A run takes about 3 minutes and uses real model calls, so runs are
+      limited: one at a time, a pause between runs and a daily cap. Nothing you type is sent to the device.</p>
     <div class="actions"><button type="button" class="primary" id="sb-run">Onboard the demo device</button>
       <span id="sb-error" class="err" role="alert"></span></div>
     <p class="hint" id="sb-left"></p>
   </section>
 
-  <section class="panel sessions" aria-labelledby="sess-h">
+  <section class="panel sessions" id="sessions" aria-labelledby="sess-h">
     <h2 id="sess-h">Recorded sessions</h2>
+    <p class="hint">Real runs on real devices. In a replay, every reading and model answer comes from the recording.</p>
     <ul id="session-list"></ul>
   </section>
 
   <section class="panel" id="live" hidden aria-labelledby="live-h">
-    <h2 id="live-h">Run live</h2>
+    <h2 id="live-h">Onboard a device</h2>
     <p class="hint">This page is connected to a local OnboardIQ server, so it can onboard a device now. The model reads
       the MIB modules you choose, then every pick is tested on the device.</p>
     <form id="live-form" autocomplete="off">
@@ -61,10 +103,10 @@
       <label class="wide">MIB modules (comma-separated)
         <input name="modules" required list="module-list" placeholder="e.g. HOST-RESOURCES-MIB,UCD-SNMP-MIB">
         <datalist id="module-list"></datalist></label>
-      <label>Host <input name="host" value="localhost" maxlength="253"></label>
+      <label class="span2">Host <input name="host" value="localhost" maxlength="253"></label>
       <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
       <div class="snmp-auth" data-snmp-auth></div>
-      <fieldset><legend>Metrics</legend>
+      <fieldset class="wide"><legend>Metrics</legend>
         <label><input type="checkbox" name="families" value="cpu" checked> CPU</label>
         <label><input type="checkbox" name="families" value="memory" checked> Memory</label>
         <label><input type="checkbox" name="families" value="temperature" checked> Temperature</label>
@@ -83,11 +125,11 @@
 
   <section class="panel" id="monitor" hidden aria-labelledby="mon-h">
     <h2 id="mon-h">Monitor live</h2>
-    <p class="hint">Poll a device you have onboarded and score its health as it runs. Only the picks that were proven
-      are polled; nothing is written to the device.</p>
+    <p class="hint">Poll a device you have onboarded and score its health as it runs. Only proven picks are polled;
+      nothing is written to the device.</p>
     <form id="monitor-form" autocomplete="off">
       <label class="wide">Onboarded device <select name="onboarded" id="onboarded" required></select></label>
-      <label>Host <input name="host" value="localhost" maxlength="253"></label>
+      <label class="span2">Host <input name="host" value="localhost" maxlength="253"></label>
       <label>Port <input name="port" inputmode="numeric" placeholder="161" maxlength="5"></label>
       <div class="snmp-auth" data-snmp-auth></div>
       <label>Every (seconds) <input name="interval" inputmode="numeric" value="10" maxlength="3"></label>
@@ -113,7 +155,7 @@
     <div class="stage-head">
       <div>
         <h2 id="device">Choose a session</h2>
-        <p id="status" class="status" role="status">Pick a recorded session above to play it.</p>
+        <p id="status" class="status" role="status">Pick a recorded session above to play it here.</p>
       </div>
       <div class="controls" role="group" aria-label="Playback">
         <button id="play" type="button" disabled>Play</button>
@@ -130,12 +172,12 @@
     <ol class="strip" id="strip" aria-label="Progress" hidden></ol>
     <div id="run-host"></div>
   </section>
-
-  <footer>
-    <p>Verdicts come from measurements on the device, not from the model. "Proven by experiment" means the value moved
-      the way the model predicted when load was applied; "proven by a second object" means an independent object
-      reported the same quantity.</p>
-  </footer>
 </main>
+
+<footer class="wrap">
+  <p>Verdicts come from measurements on the device, not from the model. "Proven by experiment" means the value moved the
+    way the model predicted when load was applied; "proven by a second object" means an independent object reported the
+    same quantity. Runtime model: Muse Spark. Open source under Apache-2.0.</p>
+</footer>
 </body>
 </html>
