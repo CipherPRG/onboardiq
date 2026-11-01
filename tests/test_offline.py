@@ -266,3 +266,14 @@ def test_a_load_generator_that_dies_at_once_is_unproven_not_load_applied(monkeyp
     p = verify.default_load("cpu", 5)
     assert p.poll() is None
     p.terminate()
+
+
+def test_a_replay_is_not_slowed_by_the_load_of_an_earlier_replay():
+    # the verifier waits for a previous load to wear off; that wait must never carry over between recordings
+    from pathlib import Path
+    from onboardiq import replay
+    demo = Path(__file__).resolve().parent.parent / "demo"
+    alone = replay.replay(demo / "laptop_witness.json", log=lambda *a: None)["replay"]["virtual_seconds"]
+    replay.replay(demo / "laptop_full.json", log=lambda *a: None)          # an earlier replay ends with a load
+    after = replay.replay(demo / "laptop_witness.json", log=lambda *a: None)["replay"]["virtual_seconds"]
+    assert after == alone

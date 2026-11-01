@@ -192,9 +192,11 @@ def replay(session_path, log=print, on_event=None):
             raise RuntimeError("replay diverged from the recording: more model calls than recorded")
         return {**answers.pop(0), "cached": True}
 
-    saved = (llm.chat, verify.time, agent.time, verify._meminfo_kb)
+    saved = (llm.chat, verify.time, agent.time, verify._meminfo_kb, verify._LOAD_STATE["end"])
     llm.chat, verify.time, agent.time = recorded_chat, clock, clock
     verify._meminfo_kb = lambda key="MemTotal": session.get("mem_total_kb")
+    # each replay starts cool: a load from an earlier replay (or a live run in this process) is not this session's
+    verify._LOAD_STATE["end"] = float("-inf")
     try:
         a = session["args"]
         out = agent.onboard(a["device"], session["cands"], Replayer(session, clock), lab=a["lab"],
@@ -204,7 +206,7 @@ def replay(session_path, log=print, on_event=None):
         out["replay"] = {"virtual_seconds": round(clock.now, 1), "unused_answers": len(answers)}
         return out
     finally:
-        llm.chat, verify.time, agent.time, verify._meminfo_kb = saved
+        llm.chat, verify.time, agent.time, verify._meminfo_kb, verify._LOAD_STATE["end"] = saved
 
 
 # ---- health monitoring: raw readings in, the same scoring code out ---------------------------------------------
