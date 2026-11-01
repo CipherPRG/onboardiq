@@ -57,14 +57,17 @@ class Monitor:
     and (when asked) explain a change worth explaining: the level moved, or something unusual appeared while the device is not healthy.
     At most one explanation a minute and `max_explain` a run, so a noisy device cannot run up model calls."""
 
+    EXPLAIN_RULE = 2   # 1: every explanation at most once a minute; 2: a level change is always explained
+
     def __init__(self, snmp, saved, mods, mib_dir, policy=None, explain_on=False, max_explain=20, alerter=None,
-                 cands=None, clock=time.time):
+                 cands=None, clock=time.time, explain_rule=EXPLAIN_RULE):
         self.snmp, self.spec, self.mods, self.clock = snmp, saved["spec"], mods, clock
         self.cands = cands if cands is not None else mib.candidates(Path(mib_dir).expanduser(), mods)
         self.pol = health.load_policy(policy) if not isinstance(policy, dict) else policy
         self.base = health.Baseline()
         self.history = deque(maxlen=12)
         self.explain_on, self.max_explain, self.alerter = explain_on, max_explain, alerter
+        self.explain_rule = explain_rule      # a replay follows the rule its recording was made under
         self.last_level, self.last_explained, self.explained = None, 0.0, 0
         self.uptime, self.uptime_at = None, None
 
@@ -90,7 +93,11 @@ class Monitor:
         self.history.append((res["at"][11:], res["score"]))
         moved = res["level"] != self.last_level and self.last_level is not None
         # a level change is always explained (it may send an email); other notes at most once a minute
-        worth = moved or ((events or (res["anomalies"] and res["level"] != "ok")) and now - self.last_explained >= 60)
+        noted = events or (res["anomalies"] and res["level"] != "ok")
+        if self.explain_rule >= 2:
+            worth = moved or (noted and now - self.last_explained >= 60)
+        else:
+            worth = (moved or noted) and now - self.last_explained >= 60
         ev = None
         if self.explain_on and res["score"] is not None and self.explained < self.max_explain and worth:
             ev = explain.evidence(res, res["anomalies"], prof.get("provenance"), self.history, res["at"][11:])
@@ -98,7 +105,7 @@ class Monitor:
                 ev["events"] = events
             res["explanation"] = (explain_now or explain.explain)(ev)
             self.last_explained, self.explained = now, self.explained + 1
-        elif moved and self.alerter and res["score"] is not None:
+        elif moved and self.alerter and res["score"] is not None and self.explain_rule >= 2:
             # no model this time (explanations off, or this run's allowance used): the alert still says what and why
             ev = explain.evidence(res, res["anomalies"], prof.get("provenance"), self.history, res["at"][11:])
             res["explanation"] = explain.template_explanation(ev)

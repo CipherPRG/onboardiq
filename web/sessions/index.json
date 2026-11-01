@@ -22,7 +22,7 @@
  {
   "id": "laptop_witness",
   "device": "Linux server running the net-snmp agent",
-  "highlight": "memory proven by experiment and by a second object",
+  "highlight": "CPU and memory proven by experiment (memory also by a second object)",
   "summary": {
    "cpu": "proven-experiment",
    "memory": "proven-experiment"
@@ -44,7 +44,7 @@
  {
   "id": "laptop_ucd_hr",
   "device": "Linux server running the net-snmp agent",
-  "highlight": "2 of 2 metrics proven on the device",
+  "highlight": "CPU and memory proven by experiment",
   "summary": {
    "cpu": "proven-experiment",
    "memory": "proven-experiment"

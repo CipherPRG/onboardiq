@@ -299,7 +299,8 @@ def replay_health(path):
     try:
         snmp = PollReplayer(d["polls"])
         mon = monitor.Monitor(snmp, {"spec": d["spec"]}, d["modules"], None, policy=d["policy"],
-                              explain_on=d.get("explain", False), cands=d["cands"], clock=clock.time)
+                              explain_on=d.get("explain", False), cands=d["cands"], clock=clock.time,
+                              explain_rule=d.get("explain_rule", 1))      # recordings before the field: rule 1
         out = []
         for i, p in enumerate(d["polls"]):
             snmp.begin(i)

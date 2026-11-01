@@ -151,3 +151,11 @@ def test_every_level_change_is_explained_and_an_alert_never_goes_out_bare(tmp_pa
     r = mon.poll()
     card = r["explanation"]
     assert r.get("alert") and card["source"] == "template" and card["what_happened"] and card["why"] and card["check"]
+
+
+def test_a_recording_replays_under_the_explanation_rule_it_was_made_with():
+    # laptop_stress was recorded when explanations came at most once a minute; its two recorded model answers
+    # must land on the same two readings as live, not on a reading the newer rule would also explain
+    out = replay.replay_health(ROOT / "demo" / "laptop_stress.raw.json")
+    explained = [r["at"][11:] for r in out if (r.get("explanation") or {}).get("source", "template") != "template"]
+    assert explained == ["16:57:30", "16:58:37"]

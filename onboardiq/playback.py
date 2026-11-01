@@ -22,9 +22,13 @@ def highlight(events, summary, args) -> str:
         return "caught and corrected its " + " and ".join(FAMILY.get(f, f) for f in corrected) + " pick"
     witnessed = [e["family"] for e in events if e["kind"] == "verify" and any(
         c["check"] == "witness" and c["ok"] for c in e.get("evidence", []))]
+    proven = [f for f, v in summary.items() if v.startswith("proven")]
+    if proven and all(summary[f] == "proven-experiment" for f in proven):     # name every proven metric
+        line = " and ".join(FAMILY.get(f, f) for f in proven) + " proven by experiment"
+        also = [FAMILY.get(f, f) for f in witnessed if f in proven]
+        return line + (f" ({' and '.join(also)} also by a second object)" if also else "")
     if witnessed:
         return " and ".join(FAMILY.get(f, f) for f in witnessed) + " proven by experiment and by a second object"
-    proven = [f for f, v in summary.items() if v.startswith("proven")]
     if not proven:
         picked = {e["family"] for e in events if e["kind"] == "verify" and e.get("verdict") == "unproven"}
         if picked:

@@ -97,7 +97,7 @@ def main():
         res = mon.poll()
         if rawrec:
             rawrec.save(args.record_raw, device=device, spec=mon.spec, modules=mon.mods, cands=mon.cands,
-                        policy=mon.pol, explain=args.explain, interval=args.interval)
+                        policy=mon.pol, explain=args.explain, interval=args.interval, explain_rule=mon.explain_rule)
         if args.record:
             with open(args.record, "a") as fh:
                 fh.write(json.dumps(res) + "\n")
