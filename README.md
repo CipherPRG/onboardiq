@@ -30,6 +30,7 @@ The container holds the web page and console, the agent, the tests and a real ne
 That agent is the device you can onboard and monitor straight away: in **Onboard device…** keep host `localhost`,
 modules `HOST-RESOURCES-MIB,UCD-SNMP-MIB` and choose "Load this machine". Only the open IETF/net-snmp MIBs are bundled;
 for any other device, add its MIB files in the dialog (converted locally, never uploaded anywhere else).
+Onboarded devices are kept in a Docker volume, so they survive a rebuild; `docker compose down -v` clears them.
 
 ## How a device is onboarded
 
