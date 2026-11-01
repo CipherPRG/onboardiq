@@ -110,3 +110,20 @@ def test_exporting_no_recordings_keeps_the_existing_list(tmp_path, monkeypatch):
     (tmp_path / "index.json").write_text(json.dumps([{"id": "kept"}]))
     assert playback.export_all(dest=tmp_path) == [{"id": "kept"}]
     assert json.loads((tmp_path / "index.json").read_text()) == [{"id": "kept"}]
+
+
+def test_recordings_made_by_live_runs_are_exported_with_the_bundled_ones(tmp_path, monkeypatch):
+    import json
+    from onboardiq import playback
+    demo, mine, dest = tmp_path / "demo", tmp_path / "recordings", tmp_path / "sessions"
+    demo.mkdir(), mine.mkdir()
+    seen = []
+    monkeypatch.setattr(playback, "ROOT", tmp_path)
+    monkeypatch.setattr(playback, "RECORDINGS", mine)
+    monkeypatch.setattr(playback, "export", lambda f: seen.append(f.name) or
+                        {"id": f.stem, "device": "d", "highlight": "h", "summary": {}, "recorded": f.stem})
+    (demo / "bundled.json").write_text("{}")
+    (mine / "mine.json").write_text("{}")
+    index = playback.export_all(dest=dest)
+    assert sorted(seen) == ["bundled.json", "mine.json"]
+    assert {x["id"] for x in index} == {"bundled", "mine"} and (dest / "mine.json").exists()

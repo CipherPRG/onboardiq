@@ -28,6 +28,7 @@ if "SSL_CERT_FILE" not in os.environ and os.path.exists(_SYSTEM_CA):
 API_BASE = os.environ.get("OIQ_API_BASE", "https://api.meta.ai/v1")
 MODEL = os.environ.get("OIQ_MODEL", "muse-spark-1.3")
 CACHE_DIR = Path(os.environ.get("OIQ_CACHE_DIR", ROOT / "cache"))
+RECORDINGS = Path(os.environ.get("OIQ_RECORDINGS", ROOT / "recordings"))   # recordings made by live runs here
 
 # Providers, chosen by model name: "meta-models/..." runs on Baseten
 # (open-weights Muse Spark), everything else on the Meta Model API.

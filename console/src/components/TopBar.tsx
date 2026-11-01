@@ -55,6 +55,8 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
             <Button onClick={() => loadNow("cpu").catch(showError)} disabled={Date.now() < loadUntil}>CPU load 120 s</Button>
             <Button onClick={() => loadNow("memory").catch(showError)} disabled={Date.now() < loadUntil}
               title="Holds about 90% of this machine's memory for 120 s; refused when there is not enough room">Memory load 120 s</Button>
+            <Button onClick={() => loadNow("both").catch(showError)} disabled={Date.now() < loadUntil}
+              title="CPU and memory load together, for 120 s">CPU + memory 120 s</Button>
           </>
         )}
         {liveRunning && kind === "health" && <Button variant="danger" onClick={() => stopRun()}>Stop</Button>}

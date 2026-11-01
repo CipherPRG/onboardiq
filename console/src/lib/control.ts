@@ -1,6 +1,6 @@
 // What the console can do: replay a recording at its real pace (scaled), start a live run, monitor, stop, and export.
-import { dispatch, emptyRun, run, ui, type RunState } from "./store";
-import { getSession, getStatus, post, sampleFromHealth, stream } from "./api";
+import { app, dispatch, emptyRun, run, ui, type RunState } from "./store";
+import { getIndex, getSession, getStatus, post, sampleFromHealth, stream } from "./api";
 import type { HealthSample, HealthSession, OnboardingSession, RunEvent, Session } from "./types";
 
 let token = 0;                                         // a newer replay or live run cancels the old one
@@ -71,8 +71,11 @@ function follow(id: string) {
       run.set((r) => ({ health: [...r.health, sample], events: [...r.events, { ...ev, seq: r.events.length }],
         notScored: r.health.length ? r.notScored : ((ev.excluded as RunState["notScored"]) ?? []) }));
     } else dispatch(ev);
-  }, (dropped) => run.set((r) => ({ connected: false, status: r.status === "running" ? (dropped ? "error" : "done") : r.status,
-    message: dropped && r.status === "running" ? "The connection to the server dropped." : r.message })));
+  }, (dropped) => {
+    getIndex().then((index) => app.set({ index })).catch(() => {});    // the run just saved a recording: list it
+    run.set((r) => ({ connected: false, status: r.status === "running" ? (dropped ? "error" : "done") : r.status,
+    message: dropped && r.status === "running" ? "The connection to the server dropped." : r.message }));
+  });
 }
 
 /** Start an onboarding run. On the hosted demo the server ignores the body and runs its fixed device. */
@@ -108,7 +111,7 @@ export class Rejoined extends Error { constructor() { super("rejoined the run in
 
 const runId = () => run.get().runId;
 export const stopRun = () => post(`/api/runs/${runId()}/stop`, {});
-export const loadNow = (kind: "cpu" | "memory") => post(`/api/runs/${runId()}/load`, { kind, seconds: 120 });
+export const loadNow = (kind: "cpu" | "memory" | "both") => post(`/api/runs/${runId()}/load`, { kind, seconds: 120 });
 export async function confirmPrompt() {
   run.set((r) => ({ prompt: r.prompt && { ...r.prompt, waiting: false } }));
   await post(`/api/runs/${runId()}/confirm`, {});

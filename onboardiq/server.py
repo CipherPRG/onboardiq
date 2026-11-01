@@ -39,7 +39,7 @@ from . import agent, intake, mib, replay
 from .alerts import Alerter, OUTBOX, mail_configured, parse_recipients, smtp_settings
 from .monitor import Monitor, load_onboarding
 from .playback import export_all
-from .config import MODEL, ROOT
+from .config import MODEL, RECORDINGS, ROOT
 from .snmp import Snmp, credentials
 from .verify import NotInducible, default_load, prompt_load, stress_cmd
 
@@ -362,7 +362,8 @@ def watch(run: Run, opts: dict):
                                       settings=smtp_settings(to=opts["alert_to"]) if opts["alert_to"] else None)
                       if opts.get("alert") else None)
         if opts["record"]:
-            rec = DEMO / f"{slug(device)}-health-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
+            RECORDINGS.mkdir(parents=True, exist_ok=True)
+            rec = RECORDINGS / f"{slug(device)}-health-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
         run.emit({"kind": "monitor-start", "device": device, "interval": opts["interval"],
                   "policy": f"{mon.pol['name']} ({mon.pol['source']})", "local": opts["local"],
                   "explain": opts["explain"], "record": bool(rec)})
@@ -430,11 +431,12 @@ def execute(run: Run, opts: dict):
         saved = None
         if opts["record"]:
             name = f"{slug(opts['device'])}-{time.strftime('%Y%m%d-%H%M%S')}"
-            path = DEMO / f"{name}.json"
+            RECORDINGS.mkdir(parents=True, exist_ok=True)
+            path = RECORDINGS / f"{name}.json"
             keep = {"device": opts["device"], "modules": ",".join(opts["modules"]), "lab": lab,
                     "families": ",".join(opts["families"]), "effort": EFFORT, "model": MODEL, "max_attempts": 3}
             dev.save(path, args=keep, cands=cands, result={f: v["verdict"] for f, v in out["spec"].items()})
-            export_all()
+            export_all([path])
             saved = name
         # saved like a terminal onboarding, so the live monitor can pick it up; no community is stored
         ob = None
@@ -681,18 +683,22 @@ class Handler(BaseHTTPRequestHandler):
             if not 10 <= secs <= 300:
                 return self._json(400, {"error": "load seconds must be 10 to 300"})
             kind = str(body.get("kind") or "cpu")
-            if kind not in ("cpu", "memory"):
-                return self._json(400, {"error": "load kind must be cpu or memory"})
-            if kind == "memory":
-                size = memory_load_bytes()
-                if size is None:
-                    return self._json(409, {"error": "not enough free memory on this machine for a safe memory load"})
-                try:
-                    run.load = [default_load("memory", secs, size)]
-                except NotInducible as why:
-                    return self._json(500, {"error": str(why)})
-            else:
-                run.load = start_cpu_load(secs)
+            if kind not in ("cpu", "memory", "both"):
+                return self._json(400, {"error": "load kind must be cpu, memory or both"})
+            procs = []
+            try:
+                if kind in ("memory", "both"):
+                    size = memory_load_bytes()
+                    if size is None:
+                        return self._json(409, {"error": "not enough free memory on this machine for a safe memory load"})
+                    procs.append(default_load("memory", secs, size))
+                if kind in ("cpu", "both"):
+                    procs += start_cpu_load(secs)
+            except NotInducible as why:
+                for p in procs:
+                    p.terminate()
+                return self._json(500, {"error": str(why)})
+            run.load = procs
             run.emit({"kind": "load", "what": kind, "seconds": secs, "at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())})
             return self._json(200, {"ok": True, "seconds": secs, "kind": kind})
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/confirm", url)

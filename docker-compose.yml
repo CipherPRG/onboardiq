@@ -20,6 +20,8 @@ services:
     security_opt: ["no-new-privileges:true"]
     volumes:
       - oiq-results:/app/results   # onboarded devices survive a rebuild (docker compose down -v clears them)
+      - oiq-recordings:/app/recordings   # so do the recordings your own runs make
 
 volumes:
   oiq-results:
+  oiq-recordings:

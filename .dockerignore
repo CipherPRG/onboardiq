@@ -3,6 +3,7 @@
 .venv
 .pytest_cache
 results
+recordings
 cache
 outbox
 __pycache__

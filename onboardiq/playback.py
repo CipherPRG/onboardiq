@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 from . import replay
-from .config import ROOT
+from .config import RECORDINGS, ROOT
 
 KEEP = ("read", "verify-start", "verify", "repick", "no-pick", "final", "done")
 FAMILY = {"cpu": "CPU", "memory": "memory", "temperature": "temperature", "fan": "fan"}
@@ -133,8 +133,8 @@ def _health_session(stem, lines) -> dict:
 
 
 def export_all(files=None, dest=None) -> list:
-    files = [Path(f) for f in files] if files else sorted((ROOT / "demo").glob("*.json")) + \
-        sorted((ROOT / "demo").glob("*.jsonl"))
+    files = [Path(f) for f in files] if files else sorted(
+        f for d in (ROOT / "demo", RECORDINGS) for pat in ("*.json", "*.jsonl") for f in d.glob(pat))
     # a raw recording replaces the score-only recording of the same run (the raw one is recomputed on export)
     raw = {f.name.removesuffix(".raw.json") for f in files if f.name.endswith(".raw.json")}
     files = [f for f in files if not (f.suffix == ".jsonl" and f.stem in raw)]
