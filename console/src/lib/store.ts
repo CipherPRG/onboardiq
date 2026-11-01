@@ -14,7 +14,7 @@ export type Origin = "replay" | "live";
 
 export interface RunState {
   runId: string | null; origin: Origin | null; kind: "onboarding" | "health" | null; source: string;
-  device: string; model?: string; modules: string[]; objects?: number;
+  device: string; model?: string; modules: string[]; objects?: number; planned: string[];
   events: Stamped[]; attempts: Attempt[]; finals: Record<string, { verdict: Verdict; attempts?: number }>; noPick: string[];
   health: HealthSample[]; interval?: number; policy?: string; notScored: { family: string; row?: string; reason: string }[];
   status: "idle" | "running" | "done" | "error"; message?: string;
@@ -24,7 +24,7 @@ export interface RunState {
 }
 
 export const emptyRun = (): RunState => ({
-  runId: null, origin: null, kind: null, source: "", device: "", modules: [], events: [], attempts: [], finals: {}, noPick: [],
+  runId: null, origin: null, kind: null, source: "", device: "", modules: [], planned: [], events: [], attempts: [], finals: {}, noPick: [],
   health: [], notScored: [], status: "idle", stats: {}, prompt: null, loadUntil: 0, connected: false, started: 0,
 });
 
@@ -87,7 +87,8 @@ export function reduce(s: RunState, ev: RunEvent): Partial<RunState> {
   switch (ev.kind) {
     case "start":
       return { events, device: String(ev.device ?? s.device), model: ev.model as string, objects: ev.objects as number,
-        modules: String(ev.modules ?? "").split(",").filter(Boolean) };
+        modules: String(ev.modules ?? "").split(",").filter(Boolean),
+        planned: Array.isArray(ev.families) ? (ev.families as string[]) : s.planned };
     case "read":
       return { events, objects: (ev.objects as number) ?? s.objects };
     case "verify-start": {

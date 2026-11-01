@@ -424,7 +424,8 @@ def execute(run: Run, opts: dict):
             verify_kw["load"] = prompt_load({"cpu": opts["load_by_hand"]}, ask=ask, say=say)
             lab = True
         run.emit({"kind": "start", "device": opts["device"], "objects": len(cands),
-                  "modules": ",".join(opts["modules"]), "model": MODEL, "live": True})
+                  "modules": ",".join(opts["modules"]), "model": MODEL, "live": True,
+                  "families": list(opts["families"])})
         extra = {"max_attempts": SANDBOX_ATTEMPTS} if SANDBOX else {}
         out = agent.onboard(opts["device"], cands, dev, lab=lab, families=opts["families"],
                             effort=SANDBOX_EFFORT if SANDBOX else EFFORT, log=lambda m: None, on_event=run.emit,
