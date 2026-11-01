@@ -29,7 +29,8 @@ SYSTEM = (
     'it was compared with). '
     "If the device is healthy, say so plainly. No markdown, no lists. "
     "Write for someone who is not a network specialist: say CPU, memory, disk, temperature or fan, and never use "
-    "the words families, rows, served, coverage or full marks."
+    "the words families, rows, served, coverage or full marks. The time you are given is UTC: whenever you "
+    "write a clock time, put UTC after it."
 )
 FIELDS = ("headline", "what_happened", "why")
 LABEL = {"cpu": "CPU", "cpu_load": "CPU load", "memory": "Memory", "disk": "Disk", "temperature": "Temperature",

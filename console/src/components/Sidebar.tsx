@@ -2,6 +2,7 @@
 import { app, run, ui, useStore } from "../lib/store";
 import { replay } from "../lib/control";
 import { verdictLabel } from "../lib/format";
+import { localStamp } from "../lib/time";
 import { Dot, PanelHeader, cn } from "./ui";
 import type { Onboarded } from "../lib/types";
 
@@ -35,10 +36,10 @@ export function Sidebar({ current, onPick }: { current: string | null; onPick: (
                 <span className="block text-2xs text-muted truncate">{own && <span className="text-accent">your run · </span>}{s.device}</span>
                 <span className="flex items-center gap-1 mt-1">
                   {s.kind === "health"
-                    ? <span className="text-2xs text-faint font-mono">monitor run · {own ? s.recorded?.slice(0, 16) : s.recorded?.slice(0, 10)}</span>
+                    ? <span className="text-2xs text-faint font-mono">monitor run · {own ? localStamp(s.recorded) : s.recorded?.slice(0, 10)}</span>
                     : <>
                         {verdicts.map((v, i) => <Dot key={i} tone={verdictLabel(v)[1]} />)}
-                        <span className="text-2xs text-faint font-mono ml-1">onboarding · {own ? s.recorded?.slice(0, 16) : s.recorded?.slice(0, 10)}</span>
+                        <span className="text-2xs text-faint font-mono ml-1">onboarding · {own ? localStamp(s.recorded) : s.recorded?.slice(0, 10)}</span>
                       </>}
                 </span>
               </button>

@@ -1,6 +1,7 @@
 // A health run (recorded or live): the score per poll, each metric's sub-score, and the model's explanation.
 import { run, useStore } from "../lib/store";
 import { FAMILY_LABEL, levelTone, type Tone } from "../lib/format";
+import { localClock } from "../lib/time";
 import type { FamilyScore } from "../lib/types";
 import { ScoreChart } from "./Charts";
 import { PanelHeader, cn, toneText } from "./ui";
@@ -89,7 +90,7 @@ export function HealthMain() {
           <div className="ml-auto text-right shrink-0">
             <p className="text-2xs text-muted">health score</p>
             <p className="font-mono text-sm tabular-nums"><span className={toneText(levelTone(x?.level))}>{x?.score ?? "–"}</span><span className="text-faint">/100</span></p>
-            <p className="text-2xs text-faint font-mono">{x?.at ? `${x.at.slice(11, 19)} UTC` : ""}</p>
+            <p className="text-2xs text-faint font-mono">{localClock(x?.at)}</p>
           </div>
         </div>
 
@@ -131,7 +132,7 @@ export function HealthSide() {
   const e = told?.explanation;
   return (
     <aside className="flex flex-col min-h-0 h-full bg-panel" aria-label="Explanation">
-      <PanelHeader title="What changed, in plain English">{told?.at && <span className="text-2xs text-faint font-mono">{told.at.slice(11, 19)} UTC</span>}</PanelHeader>
+      <PanelHeader title="What changed, in plain English">{told?.at && <span className="text-2xs text-faint font-mono">{localClock(told.at)}</span>}</PanelHeader>
       <div className="overflow-auto p-3 space-y-3 text-xs">
         {!e && <p className="text-muted">The model explains here when the level changes or something unusual appears.</p>}
         {e && (
@@ -141,7 +142,7 @@ export function HealthSide() {
             {e.why && <p className="text-muted">{e.why}</p>}
             {!e.headline && e.text && <p>{e.text}</p>}
             {e.check && <p className="border-l border-accent pl-2"><span className="text-muted">What to check: </span>{e.check}</p>}
-            <p className="text-2xs text-faint">{told?.at?.slice(11, 19)} UTC · {e.source === "template" ? "written from the measured readings (template)" : `written by ${e.source ?? "the model"}; every number is checked against the readings`}</p>
+            <p className="text-2xs text-faint">{localClock(told?.at)} · {e.source === "template" ? "written from the measured readings (template)" : `written by ${e.source ?? "the model"}; every number is checked against the readings`}</p>
           </div>
         )}
         {x && ((x.anomalies?.length ?? 0) + (x.events?.length ?? 0)) > 0 && (
@@ -159,7 +160,7 @@ export function HealthSide() {
             <ul className="space-y-1.5">
               {alerts.map((a, i) => (
                 <li key={i} className="border border-border rounded-sm bg-bg px-2 py-1.5">
-                  <p className="text-2xs text-muted">{a.at ? `${a.at.slice(11, 19)} UTC · ` : ""}{a.alert!.via === "smtp" ? "emailed"
+                  <p className="text-2xs text-muted">{a.at ? `${localClock(a.at)} · ` : ""}{a.alert!.via === "smtp" ? "emailed"
                     : a.alert!.smtp_error ? `sending failed (${a.alert!.smtp_error}); saved as a file instead` : "not emailed: no mail account set up"}</p>
                   <p>{a.alert!.subject}</p>
                   {a.alert!.file && origin === "live" && <a className="text-2xs" href={`/api/outbox/${a.alert!.file}`} target="_blank" rel="noreferrer">Open the email as it would be sent</a>}
