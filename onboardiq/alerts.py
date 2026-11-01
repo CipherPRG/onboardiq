@@ -25,6 +25,7 @@ from .config import ROOT
 
 OUTBOX = ROOT / "outbox"
 SEVERITY = {"ok": 0, "warning": 1, "critical": 2}
+WORD = {"ok": "Healthy", "warning": "Under strain", "critical": "In trouble"}      # the words the console uses
 COLOR = {"ok": "#0E7A6B", "warning": "#A86A10", "critical": "#B8202E"}
 ADDR = re.compile(r"[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+")
 FAMILY = {"cpu": "CPU", "cpu_load": "CPU load", "memory": "Memory", "disk": "Disk",
@@ -75,7 +76,7 @@ def subject_for(device, res, recovered=False):
     if recovered:
         return f"[OnboardIQ] {device}: recovered, health {s}/100"
     head = card.get("headline") or (res.get("summary") or "")
-    return f"[OnboardIQ] {device}: health {s}/100 {res.get('level')}" + (f" ({head})" if head else "")
+    return f"[OnboardIQ] {device}: {WORD.get(res.get('level'), res.get('level'))}, health {s}/100" + (f" ({head})" if head else "")
 
 
 def _rows(res):
@@ -100,7 +101,8 @@ def render(device, res, recovered=False, previous=None):
     foot = (f"Written by {src}; every number is checked against the readings." if src and src != "template"
             else "Written from the measured readings (template).")
     rows = _rows(res)
-    moved = f"{previous} to {level}" if previous and previous != level else str(level)
+    moved = (f"{WORD.get(previous, previous)} → {WORD.get(level, level)}" if previous and previous != level
+             else WORD.get(level, str(level)))
 
     text = [subject, "", f"{head}", f"Health {score}/100 ({moved}) at {when} UTC", ""]
     for line in (what, why):
@@ -108,7 +110,7 @@ def render(device, res, recovered=False, previous=None):
             text.append(line)
     if check:
         text += ["", f"What to check: {check}"]
-    text += ["", "Per family:"] + [f"  {n:<12} {sc:>5.0f}/100  {w}: {why_}" for n, sc, w, why_ in rows]
+    text += ["", "Per metric:"] + [f"  {n:<12} {sc:>5.0f}/100  {w}: {why_}" for n, sc, w, why_ in rows]
     for a in (res.get("anomalies") or [])[:5]:
         text.append(f"  unusual: {a}")
     text += ["", foot]
@@ -133,7 +135,7 @@ def render(device, res, recovered=False, previous=None):
         + (f"<p style='margin:14px 0 0;padding:10px 12px;background:#F3F6F8;border-left:3px solid {color}'>"
            f"<b>What to check:</b> {esc(check)}</p>" if check else "")
         + "<table style='width:100%;border-collapse:collapse;margin-top:16px;font-size:14px'>"
-          "<tr style='text-align:left;color:#5A6B7B'><th>Family</th><th style='text-align:right'>Score</th>"
+          "<tr style='text-align:left;color:#5A6B7B'><th>Metric</th><th style='text-align:right'>Score</th>"
           "<th>Worst row</th><th>Reading</th></tr>" + trs + "</table>"
         + (f"<ul style='color:#A86A10;font-size:14px'>{an}</ul>" if an else "")
         + f"<p style='color:#5A6B7B;font-size:12px;margin:16px 0 0'>{esc(foot)}</p>"

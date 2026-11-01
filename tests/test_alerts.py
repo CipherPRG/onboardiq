@@ -18,8 +18,8 @@ def level(res, lv, score):
 
 def test_email_has_subject_card_table_and_check():
     subject, text, page = alerts.render("Linux laptop", RES, previous="ok")
-    assert subject == "[OnboardIQ] Linux laptop: health 40/100 critical (CPU load critical on core #1)"
-    assert "ok to critical" in text and "What to check: Find the process" in text and "CPU load" in text
+    assert subject == "[OnboardIQ] Linux laptop: In trouble, health 40/100 (CPU load critical on core #1)"
+    assert "Healthy → In trouble" in text and "What to check: Find the process" in text and "CPU load" in text
     assert "<table" in page and "Muse Spark" not in subject and "muse-spark-open" in page
 
 
