@@ -163,10 +163,12 @@ export function MonitorDialog() {
   const [chosen, setChosen] = useState(onboarded[0]?.name ?? "");
   const pick = onboarded.find((o) => o.name === chosen);
   const close = () => ui.set({ dialog: null });
+  const mail = useStore(app, (s) => !!s.status?.mail);
   useEffect(() => { getOnboarded().then((list) => app.set({ onboarded: list })).catch(() => {}); }, []);
   const { error, busy, onSubmit } = useSubmit(async (fd) => {
     await startMonitor({ onboarded: chosen, host: fd.get("host"), port: portOf(fd), ...snmpFields(fd), interval: Number(fd.get("interval")) || 10,
-      explain: fd.get("explain") === "on", alert: fd.get("alert") === "on", record: fd.get("record") === "on" }, pick?.device ?? chosen);
+      explain: fd.get("explain") === "on", alert: fd.get("alert") === "on", alert_to: String(fd.get("alert_to") ?? ""),
+      record: fd.get("record") === "on" }, pick?.device ?? chosen);
   });
   return (
     <Dialog title="Monitor an onboarded device" onClose={close}>
@@ -182,7 +184,13 @@ export function MonitorDialog() {
         <Field label="Every (seconds)"><input name="interval" inputMode="numeric" defaultValue="10" maxLength={3} /></Field>
         <fieldset className="col-span-3 grid gap-1 border border-border rounded-sm px-2 py-1.5 text-xs"><legend className="text-2xs text-muted px-1">Options</legend>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="explain" defaultChecked /> Explain changes in plain English (Muse Spark)</label>
-          <label className="flex items-center gap-1.5"><input type="checkbox" name="alert" defaultChecked /> Email an alert when the level changes (SMTP if set up, otherwise the outbox)</label>
+          <label className="flex items-center gap-1.5"><input type="checkbox" name="alert" defaultChecked /> Send an alert when the level changes, and when it recovers</label>
+          <Field label="Send the alert email to (up to 3, comma-separated)">
+            <input name="alert_to" type="text" inputMode="email" maxLength={200} placeholder="you@example.com" />
+          </Field>
+          <p className="text-2xs text-muted">{mail
+            ? "This server has a mail account set up, so the alert is emailed. Leave the box empty to use the address in its settings."
+            : "No mail account is set up on this server, so alerts appear in the console and are saved as a file. To get real email, add SMTP settings to .env (see the README)."}</p>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="record" defaultChecked /> Save as a recording</label>
         </fieldset>
         <div className="col-span-3 flex items-center gap-2 pt-1">

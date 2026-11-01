@@ -39,7 +39,7 @@ export interface Explanation { headline?: string; what_happened?: string; why?: 
 export interface HealthSample {
   at?: string; score: number | null; level?: Level; capped_by?: string; summary?: string; note?: string; coverage?: string;
   families?: Record<string, FamilyScore>; anomalies?: string[]; events?: string[]; explanation?: Explanation;
-  alert?: { via: string; subject: string; file?: string }; load?: boolean;
+  alert?: { via: string; subject: string; file?: string; smtp_error?: string }; load?: boolean;
 }
 
 export interface SessionIndexEntry {
@@ -58,7 +58,7 @@ export type Session = OnboardingSession | HealthSession;
 export type Mode = "static" | "sandbox" | "local";
 export interface ServerStatus {
   live?: boolean; sandbox?: boolean; model?: string; runs_left?: number; per_visitor?: number; cooldown_s?: number;
-  paused?: boolean; mib_dir_found?: boolean; running?: boolean;
+  paused?: boolean; mib_dir_found?: boolean; running?: boolean; mail?: boolean;
   run?: { id: string; kind: "onboard" | "monitor"; device?: string | null };   // local server: the run in progress
 }
 export interface Onboarded { name: string; device?: string; modules?: string; host?: string; port?: number | null; summary: Record<string, Verdict> }

@@ -69,3 +69,23 @@ def test_smtp_failure_falls_back_to_the_outbox(tmp_path, monkeypatch):
     cfg = {"host": "h", "port": 587, "user": "", "password": "", "from": "a@example.com", "to": ["b@example.com"]}
     out = alerts.deliver("s", "t", "<p>x</p>", settings=cfg, outbox=tmp_path)
     assert out["via"] == "outbox" and out["smtp_error"] == "OSError"
+
+
+def test_recipients_from_the_dialog_are_checked_and_limited():
+    import pytest
+    from onboardiq import alerts
+    assert alerts.parse_recipients("a@x.org, b@y.com") == ["a@x.org", "b@y.com"]
+    assert alerts.parse_recipients("") == []
+    for bad in ("not-an-address", "a@x.org\r\nBcc: v@z.com", "a@b.co,c@d.co,e@f.co,g@h.co"):
+        with pytest.raises(ValueError):
+            alerts.parse_recipients(bad)
+
+
+def test_the_dialog_recipient_replaces_alert_to_but_never_the_account():
+    from onboardiq import alerts
+    env = {"OIQ_SMTP_HOST": "smtp.example.com", "OIQ_SMTP_USER": "me@example.com", "OIQ_SMTP_PASS": "pw"}
+    assert alerts.mail_configured(env)                                     # an account, no default recipient
+    assert alerts.smtp_settings(env) is None                               # nobody to send to yet
+    cfg = alerts.smtp_settings(env, to=["you@example.org"])
+    assert cfg["to"] == ["you@example.org"] and cfg["user"] == "me@example.com" and cfg["password"] == "pw"
+    assert not alerts.mail_configured({"OIQ_ALERT_TO": "you@example.org"})   # a recipient alone is not an account

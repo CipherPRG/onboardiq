@@ -1,10 +1,11 @@
 // The top bar: where you are (mode and source), the filter, playback for recordings and the run actions.
 import { app, run, ui, useStore } from "../lib/store";
-import { attach, loadCpu, replay, startRun, stopReplay, stopRun } from "../lib/control";
+import { attach, loadNow, replay, startRun, stopReplay, stopRun } from "../lib/control";
 import { CommandBar } from "./CommandBar";
 import { Button, Dot, Pill } from "./ui";
 
 const MODE = { static: ["Replay only", "muted"], sandbox: ["Hosted demo", "info"], local: ["Local server", "ok"] } as const;
+const showError = (e: Error) => run.set({ message: e.message });
 const SPEEDS: [number, string][] = [[1, "1×"], [4, "4×"], [16, "16×"], [0, "instant"]];
 
 export function TopBar({ lastReplay }: { lastReplay: string | null }) {
@@ -50,7 +51,11 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
         )}
         {liveRunning && kind === "onboarding" && <span className="text-2xs text-muted">Live onboarding · ends by itself</span>}
         {liveRunning && kind === "health" && mode === "local" && (
-          <Button onClick={() => loadCpu()} disabled={Date.now() < loadUntil}>CPU load 120 s</Button>
+          <>
+            <Button onClick={() => loadNow("cpu").catch(showError)} disabled={Date.now() < loadUntil}>CPU load 120 s</Button>
+            <Button onClick={() => loadNow("memory").catch(showError)} disabled={Date.now() < loadUntil}
+              title="Holds about 90% of this machine's memory for 120 s; refused when there is not enough room">Memory load 120 s</Button>
+          </>
         )}
         {liveRunning && kind === "health" && <Button variant="danger" onClick={() => stopRun()}>Stop</Button>}
         {mode === "local" && (

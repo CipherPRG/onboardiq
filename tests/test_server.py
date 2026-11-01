@@ -214,3 +214,29 @@ def test_the_saved_port_of_the_containers_own_agent_counts_as_this_machine(tmp_p
     monkeypatch.setitem(server.STATE, "mib_dir", tmp_path)
     onb = server.validate({"device": "box", "modules": ["UCD-SNMP-MIB"], "host": "localhost", "port": 1161, "lab": True})
     assert onb["lab"] and onb["port"] == 1161
+
+
+def test_memory_load_is_sized_from_the_machines_own_numbers_and_refuses_a_squeeze(tmp_path):
+    gb = 1024 * 1024                                   # kB per GB
+    def info(total, avail):
+        p = tmp_path / f"mi{total}_{avail}"
+        p.write_text(f"MemTotal: {total * gb} kB\nMemFree: 1 kB\nMemAvailable: {avail * gb} kB\n")
+        return p
+    # 16 GB total, 12 GB free: hold enough to reach 90% used, leaving 10% (1.6 GB) of the total free
+    assert abs(server.memory_load_bytes(info(16, 12)) - (12 - 1.6) * gb * 1024) < 1024
+    assert server.memory_load_bytes(info(16, 1.5)) is None             # already above 90% used: refuse
+    assert server.memory_load_bytes(info(16, 2.2)) is None             # under 5% of the total to add: refuse
+    assert server.memory_load_bytes(tmp_path / "missing") is None
+
+
+def test_monitor_takes_up_to_three_valid_recipients_and_load_kinds(srv, tmp_path, monkeypatch):
+    monkeypatch.setattr(server, "RESULTS", tmp_path)
+    (tmp_path / "onboard_20261101_122356.json").write_text("{}")
+    ok = server.validate_monitor({"onboarded": "onboard_20261101_122356", "alert_to": "a@x.org, b@y.com"})
+    assert ok["alert_to"] == ["a@x.org", "b@y.com"]
+    assert server.validate_monitor({"onboarded": "onboard_20261101_122356"})["alert_to"] == []
+    import pytest
+    with pytest.raises(ValueError):
+        server.validate_monitor({"onboarded": "onboard_20261101_122356", "alert_to": "x@y.com\nBcc: v@z.com"})
+    status = json.loads(req(srv, "GET", "/api/status")[1])
+    assert "mail" in status                                             # the console shows what the server can do

@@ -7,6 +7,14 @@ services:
     environment:
       MODEL_API_KEY: ${MODEL_API_KEY:-}      # optional: without it, recorded sessions still replay
       BASETEN_API_KEY: ${BASETEN_API_KEY:-}
+      FIREWORKS_API_KEY: ${FIREWORKS_API_KEY:-}
+      # optional: a mail account to send alert emails from (without it, alerts show in the console)
+      OIQ_SMTP_HOST: ${OIQ_SMTP_HOST:-}
+      OIQ_SMTP_PORT: ${OIQ_SMTP_PORT:-}
+      OIQ_SMTP_USER: ${OIQ_SMTP_USER:-}
+      OIQ_SMTP_PASS: ${OIQ_SMTP_PASS:-}
+      OIQ_ALERT_FROM: ${OIQ_ALERT_FROM:-}
+      OIQ_ALERT_TO: ${OIQ_ALERT_TO:-}
     cap_drop: [ALL]
     pids_limit: 512
     security_opt: ["no-new-privileges:true"]

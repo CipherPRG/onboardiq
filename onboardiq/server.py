@@ -36,12 +36,12 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import agent, intake, mib, replay
-from .alerts import Alerter, OUTBOX
+from .alerts import Alerter, OUTBOX, mail_configured, parse_recipients, smtp_settings
 from .monitor import Monitor, load_onboarding
 from .playback import export_all
 from .config import MODEL, ROOT
 from .snmp import Snmp, credentials
-from .verify import prompt_load, stress_cmd
+from .verify import NotInducible, default_load, prompt_load, stress_cmd
 
 WEB = (ROOT / "web").resolve()
 DEMO = ROOT / "demo"
@@ -311,7 +311,7 @@ def validate_monitor(body: dict) -> dict:
         port = LOCAL_SNMP_PORT
     return {"onboarded": name, "host": host, "port": port, "snmp": creds, "interval": interval,
             "explain": bool(body.get("explain")), "record": bool(body.get("record", True)),
-            "alert": bool(body.get("alert", True)),
+            "alert": bool(body.get("alert", True)), "alert_to": parse_recipients(body.get("alert_to")),
             "local": local}
 
 
@@ -324,6 +324,23 @@ def start_cpu_load(seconds: int) -> list:
     else:
         cmd = [["timeout", str(seconds), "yes"]] * n
     return [subprocess.Popen(c, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) for c in cmd]
+
+
+def memory_load_bytes(meminfo="/proc/meminfo", target=0.90, floor=0.05):
+    """How much memory to hold so that used memory reaches `target` of the total, or None when that would
+    leave the machine too little room (under `floor` of the total to add): a refusal, never a squeeze."""
+    kb = {}
+    try:
+        for line in Path(meminfo).read_text().splitlines():
+            k, _, v = line.partition(":")
+            if k in ("MemTotal", "MemAvailable"):
+                kb[k] = int(v.split()[0]) * 1024
+    except (OSError, ValueError):
+        return None
+    if len(kb) != 2:
+        return None
+    need = kb["MemAvailable"] - int((1 - target) * kb["MemTotal"])
+    return need if need >= floor * kb["MemTotal"] else None
 
 
 def stop_load(run):
@@ -341,7 +358,9 @@ def watch(run: Run, opts: dict):
         device = str(saved.get("device") or saved.get("args", {}).get("device") or "device")[:200]
         snmp = Snmp(opts["host"], port=opts["port"], **opts["snmp"])
         mon = Monitor(snmp, saved, mods, STATE["mib_dir"], explain_on=opts["explain"],
-                      alerter=Alerter(device, outbox=STATE.get("outbox")) if opts.get("alert") else None)
+                      alerter=Alerter(device, outbox=STATE.get("outbox"),
+                                      settings=smtp_settings(to=opts["alert_to"]) if opts["alert_to"] else None)
+                      if opts.get("alert") else None)
         if opts["record"]:
             rec = DEMO / f"{slug(device)}-health-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
         run.emit({"kind": "monitor-start", "device": device, "interval": opts["interval"],
@@ -484,6 +503,8 @@ class Handler(BaseHTTPRequestHandler):
             run = STATE["run"]
             out = {"live": True, "running": bool(run and not run.finished),
                    "mib_dir_found": STATE["mib_dir"].is_dir()}
+            if not SANDBOX:
+                out["mail"] = mail_configured()             # local only: can this server send email at all?
             if run and not run.finished and not SANDBOX:    # local only: a reopened page can follow the run again
                 out["run"] = {"id": run.id, "kind": run.kind, "device": run.opts.get("device")}
             if SANDBOX:
@@ -659,9 +680,21 @@ class Handler(BaseHTTPRequestHandler):
             secs = int(body.get("seconds") or 120)
             if not 10 <= secs <= 300:
                 return self._json(400, {"error": "load seconds must be 10 to 300"})
-            run.load = start_cpu_load(secs)
-            run.emit({"kind": "load", "seconds": secs, "at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())})
-            return self._json(200, {"ok": True, "seconds": secs})
+            kind = str(body.get("kind") or "cpu")
+            if kind not in ("cpu", "memory"):
+                return self._json(400, {"error": "load kind must be cpu or memory"})
+            if kind == "memory":
+                size = memory_load_bytes()
+                if size is None:
+                    return self._json(409, {"error": "not enough free memory on this machine for a safe memory load"})
+                try:
+                    run.load = [default_load("memory", secs, size)]
+                except NotInducible as why:
+                    return self._json(500, {"error": str(why)})
+            else:
+                run.load = start_cpu_load(secs)
+            run.emit({"kind": "load", "what": kind, "seconds": secs, "at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())})
+            return self._json(200, {"ok": True, "seconds": secs, "kind": kind})
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/confirm", url)
         if m:
             run = STATE["run"]

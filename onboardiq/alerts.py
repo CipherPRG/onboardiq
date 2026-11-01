@@ -31,10 +31,29 @@ FAMILY = {"cpu": "CPU", "cpu_load": "CPU load", "memory": "Memory", "disk": "Dis
           "temperature": "Temperature", "fan": "Fan"}
 
 
-def smtp_settings(env=None):
-    """The SMTP settings from the environment, or None when email is not configured."""
+def parse_recipients(text, limit=3):
+    """The addresses in a comma-separated string. Raises ValueError for a bad address or more than `limit`."""
+    out = [a for a in re.split(r"[,;]\s*", str(text or "").strip()) if a]
+    if len(out) > limit:
+        raise ValueError(f"at most {limit} email addresses")
+    if not all(ADDR.fullmatch(a) and len(a) <= 254 for a in out):
+        raise ValueError("that does not look like an email address")
+    return out
+
+
+def mail_configured(env=None):
+    """True when this server has a mail account to send from (the recipient can then come from the monitor dialog)."""
+    e = dict(env if env is not None else os.environ)
+    e["OIQ_ALERT_TO"] = e.get("OIQ_ALERT_TO") or "someone@example.com"
+    return smtp_settings(e) is not None
+
+
+def smtp_settings(env=None, to=None):
+    """The SMTP settings from the environment, or None when email is not configured. `to` replaces the
+    recipients from OIQ_ALERT_TO (the account and its password still come only from the environment)."""
     e = env if env is not None else os.environ
-    host, to = e.get("OIQ_SMTP_HOST"), [a for a in re.split(r"[,;]\s*", e.get("OIQ_ALERT_TO", "")) if a]
+    host = e.get("OIQ_SMTP_HOST")
+    to = list(to) if to else [a for a in re.split(r"[,;]\s*", e.get("OIQ_ALERT_TO", "")) if a]
     if not host or not to or not all(ADDR.fullmatch(a) for a in to):
         return None
     user = e.get("OIQ_SMTP_USER", "")

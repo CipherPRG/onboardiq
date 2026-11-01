@@ -124,9 +124,10 @@ export function HealthMain() {
 }
 
 export function HealthSide() {
-  const { health, notScored } = useStore(run, (s) => ({ health: s.health, notScored: s.notScored }));
+  const { health, notScored, origin } = useStore(run, (s) => ({ health: s.health, notScored: s.notScored, origin: s.origin }));
   const told = [...health].reverse().find((s) => s.explanation);
   const x = health[health.length - 1];
+  const alerts = health.filter((s) => s.alert);
   const e = told?.explanation;
   return (
     <aside className="flex flex-col min-h-0 h-full bg-panel" aria-label="Explanation">
@@ -152,7 +153,21 @@ export function HealthSide() {
             </ul>
           </section>
         )}
-        {x?.alert && <p className="text-2xs text-muted">{x.alert.via === "smtp" ? "Alert emailed" : "Alert written to the outbox"}: {x.alert.subject}</p>}
+        {alerts.length > 0 && (
+          <section>
+            <h3 className="text-2xs text-muted mb-1">Alerts ({alerts.length})</h3>
+            <ul className="space-y-1.5">
+              {alerts.map((a, i) => (
+                <li key={i} className="border border-border rounded-sm bg-bg px-2 py-1.5">
+                  <p className="text-2xs text-muted">{a.at ? `${a.at.slice(11, 19)} UTC · ` : ""}{a.alert!.via === "smtp" ? "emailed"
+                    : a.alert!.smtp_error ? `sending failed (${a.alert!.smtp_error}); saved as a file instead` : "not emailed: no mail account set up"}</p>
+                  <p>{a.alert!.subject}</p>
+                  {a.alert!.file && origin === "live" && <a className="text-2xs" href={`/api/outbox/${a.alert!.file}`} target="_blank" rel="noreferrer">Open the email as it would be sent</a>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {notScored.length > 0 && (
           <details>
             <summary className="text-2xs text-muted cursor-pointer">Not scored ({notScored.length})</summary>

@@ -108,9 +108,20 @@ Command line: `scripts/onboard.py` (onboard, `--record`, `--replay`), `scripts/m
 
 ## Alerts
 
-When a device's level changes, the monitor sends one email (and one when it recovers) with the score, the per-metric
-table, the explanation and what to check. SMTP settings come from the environment only (`OIQ_SMTP_HOST`,
-`OIQ_SMTP_PORT`, `OIQ_SMTP_USER`, `OIQ_SMTP_PASS`, `OIQ_ALERT_TO`); without them, each alert is written to `outbox/`.
+When a device's level changes, the monitor writes one alert (and one when it recovers) with the score, the per-metric
+table, the explanation and what to check. The Monitor dialog has a **Send the alert email to** box.
+
+- **Without a mail account** (the default): alerts appear in the console's right panel, labelled "not emailed", with
+  a link to the email exactly as it would be sent. Nothing leaves your machine.
+- **With a mail account:** add SMTP settings to `.env` (never in the web page) and the same alert is emailed:
+  ```
+  OIQ_SMTP_HOST=smtp.gmail.com
+  OIQ_SMTP_PORT=587
+  OIQ_SMTP_USER=you@gmail.com
+  OIQ_SMTP_PASS=...        # for Gmail, an app password you create yourself
+  OIQ_ALERT_TO=you@gmail.com
+  ```
+  Then `docker compose up` again. At most 3 recipients per monitor, and the hosted demo never sends email.
 
 ## Repository
 

@@ -108,7 +108,7 @@ export class Rejoined extends Error { constructor() { super("rejoined the run in
 
 const runId = () => run.get().runId;
 export const stopRun = () => post(`/api/runs/${runId()}/stop`, {});
-export const loadCpu = () => post(`/api/runs/${runId()}/load`, { seconds: 120 });
+export const loadNow = (kind: "cpu" | "memory") => post(`/api/runs/${runId()}/load`, { kind, seconds: 120 });
 export async function confirmPrompt() {
   run.set((r) => ({ prompt: r.prompt && { ...r.prompt, waiting: false } }));
   await post(`/api/runs/${runId()}/confirm`, {});
