@@ -98,9 +98,9 @@ export async function startRun(body: unknown, device: string) {
 }
 
 export async function startMonitor(body: unknown, device: string) {
-  const { id } = await post<{ id: string }>("/api/monitor", body).catch(rejoinOr);
+  const { id, owner } = await post<{ id: string; owner?: string }>("/api/monitor", body).catch(rejoinOr) as { id: string; owner?: string };
   reset({ origin: "live", kind: "health", status: "running", device, source: "Live monitor" });
-  rememberRun({ id, kind: "monitor", device });
+  rememberRun({ id, kind: "monitor", device, owner });
   follow(id);
 }
 
@@ -124,7 +124,10 @@ export class Rejoined extends Error { constructor() { super("Someone else's run 
 
 const runId = () => run.get().runId;
 export const stopRun = () => post(`/api/runs/${runId()}/stop`, {});
-export const loadNow = (kind: "cpu" | "memory" | "both") => post(`/api/runs/${runId()}/load`, { kind, seconds: 120 });
+export const loadNow = (kind: "cpu" | "memory" | "both") => {
+  const own = app.get().ownRun;                     // the hosted monitor takes load only from the page that started it
+  return post(`/api/runs/${runId()}/load`, { kind, seconds: 120, ...(own?.id === runId() && own.owner ? { owner: own.owner } : {}) });
+};
 export async function confirmPrompt() {
   run.set((r) => ({ prompt: r.prompt && { ...r.prompt, waiting: false } }));
   await post(`/api/runs/${runId()}/confirm`, {});

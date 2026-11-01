@@ -20,6 +20,9 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
   const { speed, uiPaused } = useStore(ui, (s) => ({ speed: s.speed, uiPaused: s.paused }));
   const [label, tone] = MODE[mode];
   const liveRunning = origin === "live" && status === "running";
+  const own = useStore(app, (s) => s.ownRun);
+  const currentRun = useStore(run, (s) => s.runId);
+  const mineLive = !!own?.owner && own.id === currentRun;          // the hosted monitor this page started
 
   return (
     <header className="flex items-center gap-3 h-9 px-3 border-b border-border bg-panel">
@@ -53,16 +56,17 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
           </Button>
         )}
         {liveRunning && kind === "onboarding" && <span className="text-2xs text-muted">Live onboarding · ends by itself</span>}
-        {liveRunning && kind === "health" && mode === "local" && (
+        {liveRunning && kind === "health" && (mode === "local" || mineLive) && (
           <>
             <Button onClick={() => loadNow("cpu").catch(showError)} disabled={Date.now() < loadUntil}>CPU load 120 s</Button>
             <Button onClick={() => loadNow("memory").catch(showError)} disabled={Date.now() < loadUntil}
-              title="Holds about 90% of this machine's memory for 120 s; refused when there is not enough room">Memory load 120 s</Button>
+              title={mode === "sandbox" ? "Fills memory up to 70% of this small server for safety: the memory reading moves, and the score drops under CPU load" : "Holds about 90% of this machine's memory for 120 s; refused when there is not enough room"}>Memory load 120 s</Button>
             <Button onClick={() => loadNow("both").catch(showError)} disabled={Date.now() < loadUntil}
               title="CPU and memory load together, for 120 s">CPU + memory 120 s</Button>
           </>
         )}
-        {liveRunning && kind === "health" && mode === "sandbox" && <span className="text-2xs text-muted">Live monitor · CPU and memory load at 40 s · ends by itself after 4 min</span>}
+        {liveRunning && kind === "health" && mode === "sandbox" && <span className="text-2xs text-muted">
+          {mineLive ? "Your monitor · pick a load (up to 2) · ends by itself after 4 min" : "Watching · ends by itself after 4 min"}</span>}
         {liveRunning && kind === "health" && mode !== "sandbox" && <Button variant="danger" onClick={() => stopRun()}>Stop</Button>}
         {mode === "local" && (
           <>

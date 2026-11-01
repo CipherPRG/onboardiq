@@ -54,7 +54,7 @@ export const ui = create<UiState>({
 export interface AppState {
   mode: Mode; status: ServerStatus | null; index: SessionIndexEntry[]; onboarded: Onboarded[]; error: string;
   /** The live run this page started. The hosted demo never lists runs, so the page keeps its own to return to. */
-  ownRun: { id: string; kind: "onboard" | "monitor"; device?: string | null } | null;
+  ownRun: { id: string; kind: "onboard" | "monitor"; device?: string | null; owner?: string } | null;
 }
 /** A short message shown over the page (a refused click, a failed load), then dismissed. */
 export const toast = create<{ text: string; title: string; id: number }>({ text: "", title: "", id: 0 });

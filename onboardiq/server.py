@@ -132,8 +132,9 @@ def sandbox_options():
             "snmp": credentials({}), "record": False}
 
 
-# The hosted monitor is a fixed four-minute show: quiet, then CPU and memory load together, then recovery.
-DEMO_MONITOR = {"interval": 10.0, "load_at": 40, "load_s": 120, "end_at": 240, "memory_target": 0.70}
+# The hosted monitor runs four minutes. The visitor who started it chooses the load (CPU, memory or both) and when,
+# up to two loads of at most 120 s; if they choose none by 90 s, CPU and memory load start by themselves.
+DEMO_MONITOR = {"interval": 10.0, "auto_at": 90, "load_s": 120, "end_at": 240, "memory_target": 0.70, "max_loads": 2}
 
 
 def sandbox_monitor_options():
@@ -222,6 +223,8 @@ class Run:
         self.cond, self.finished = threading.Condition(), False
         self.kind, self.stop, self.opts, self.load = kind, threading.Event(), {}, []
         self.viewers = 0
+        self.owner = None                 # hosted monitor: a secret only the starter's page holds (anyone may watch)
+        self.loads = 0
 
     def emit(self, ev):
         with self.cond:
@@ -396,11 +399,13 @@ def watch(run: Run, opts: dict):
                   "policy": f"{mon.pol['name']} ({mon.pol['source']})", "local": opts["local"],
                   "explain": opts["explain"], "record": bool(rec)})
         began, fails, first = time.time(), 0, True
+        run.began = began
         limit = script["end_at"] if script else MAX_MONITOR_S
         while not run.stop.is_set() and time.time() - began < limit:
             t0 = time.time()
-            if script and not loaded and t0 - began >= script["load_at"]:
-                loaded = True                     # the scripted load: CPU and memory together, ends by itself
+            if script and not loaded and not run.loads and t0 - began >= script["auto_at"]:
+                loaded = True                     # nobody chose a load: CPU and memory together, ends by itself
+                run.loads += 1
                 procs = start_cpu_load(script["load_s"])
                 size = memory_load_bytes(target=script["memory_target"])
                 if size is not None:
@@ -720,16 +725,28 @@ class Handler(BaseHTTPRequestHandler):
                         return self._json(400, {"error": str(e)})
                 run = Run(secrets.token_hex(6), kind="monitor")
                 run.opts = opts
+                if SANDBOX:
+                    run.owner = secrets.token_hex(16)
                 STATE["run"] = run
             threading.Thread(target=watch, args=(run, opts), daemon=True).start()
-            return self._json(202, {"id": run.id})
+            return self._json(202, {"id": run.id, **({"owner": run.owner} if run.owner else {})})
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/(stop|load)", url)
         if m:
             run = STATE["run"]
-            if SANDBOX:
-                return self._json(404, {"error": "the hosted monitor runs its fixed four minutes"})
             if not run or run.id != m.group(1) or run.finished or run.kind != "monitor":
                 return self._json(404, {"error": "no such monitor"})
+            if SANDBOX:
+                if m.group(2) == "stop":
+                    return self._json(403, {"error": "the hosted monitor ends by itself after four minutes"})
+                if not run.owner or not secrets.compare_digest(str(body.get("owner") or ""), run.owner):
+                    return self._json(403, {"error": "only the visitor who started this monitor can add load"})
+                script = run.opts["script"]
+                if run.loads >= script["max_loads"]:
+                    return self._json(409, {"error": f"this monitor has had its {script['max_loads']} loads"})
+                left = script["end_at"] - (time.time() - getattr(run, "began", time.time())) - 20
+                if left < 30:
+                    return self._json(409, {"error": "too close to the end of the monitor to start a load"})
+                body = {**body, "seconds": int(min(script["load_s"], left))}
             if m.group(2) == "stop":
                 run.stop.set()
                 return self._json(200, {"ok": True})
@@ -746,7 +763,7 @@ class Handler(BaseHTTPRequestHandler):
             procs = []
             try:
                 if kind in ("memory", "both"):
-                    size = memory_load_bytes()
+                    size = memory_load_bytes(**({"target": run.opts["script"]["memory_target"]} if SANDBOX else {}))
                     if size is None:
                         return self._json(409, {"error": "not enough free memory on this machine for a safe memory load"})
                     procs.append(default_load("memory", secs, size))
@@ -757,6 +774,7 @@ class Handler(BaseHTTPRequestHandler):
                     p.terminate()
                 return self._json(500, {"error": str(why)})
             run.load = procs
+            run.loads += 1
             run.emit({"kind": "load", "what": kind, "seconds": secs, "at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())})
             return self._json(200, {"ok": True, "seconds": secs, "kind": kind})
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/confirm", url)

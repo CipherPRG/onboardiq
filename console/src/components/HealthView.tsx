@@ -1,5 +1,5 @@
 // A health run (recorded or live): the score per poll, each metric's sub-score, and the model's explanation.
-import { run, useStore } from "../lib/store";
+import { app, run, useStore } from "../lib/store";
 import { FAMILY_LABEL, levelTone, type Tone } from "../lib/format";
 import { utcClock } from "../lib/time";
 import type { FamilyScore } from "../lib/types";
@@ -130,6 +130,7 @@ export function HealthSide() {
   const x = health[health.length - 1];
   const alerts = health.filter((s) => s.alert);
   const e = told?.explanation;
+  const hosted = useStore(app, (s) => s.mode === "sandbox");
   return (
     <aside className="flex flex-col min-h-0 h-full bg-panel" aria-label="Explanation">
       <PanelHeader title="What changed, in plain English">{told?.at && <span className="text-2xs text-faint font-mono">{utcClock(told.at)}</span>}</PanelHeader>
@@ -167,6 +168,13 @@ export function HealthSide() {
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+        {hosted && origin === "live" && (
+          <section className="border border-border rounded-sm bg-bg px-2 py-1.5">
+            <h3 className="text-2xs text-muted mb-1">Alerts</h3>
+            <p><b>Email alerts are off on the hosted demo.</b> In your own copy (<code>docker compose up</code>, as in the
+              video) you enter an address in Monitor and get an email when the level changes, and another when it recovers.</p>
           </section>
         )}
         {notScored.length > 0 && (

@@ -95,7 +95,31 @@ def test_hosted_monitor_needs_a_proven_onboarding_and_ignores_the_request(sandbo
     o = watched[0]
     assert o["host"] == "localhost" and not o["alert"] and not o["record"] and o["alert_to"] == []
     assert o["script"]["end_at"] <= 300 and o["script"]["load_s"] <= 120     # short, and it ends by itself
+    assert "owner" in out and len(out["owner"]) == 32                        # only the starter's page gets the key
     server.STATE.pop("proven", None)
+
+
+def test_hosted_monitor_load_only_from_its_starter_and_capped(sandbox_srv, monkeypatch):
+    port, _ = sandbox_srv
+    started = []
+    monkeypatch.setattr(server, "start_cpu_load", lambda secs: started.append(secs) or [])
+    run = server.Run("abcdefabcdef", kind="monitor")
+    run.opts, run.owner, run.began = server.sandbox_monitor_options(), "k" * 32, server.time.time()
+    server.STATE["run"] = run
+    path = "/api/runs/abcdefabcdef/load"
+    assert post(port, path, {"kind": "cpu"})[0] == 403                       # a watcher has no key
+    assert post(port, path, {"kind": "cpu", "owner": "x" * 32})[0] == 403
+    assert post(port, "/api/runs/abcdefabcdef/stop", {"owner": "k" * 32})[0] == 403   # nobody stops it
+    code, out = post(port, path, {"kind": "cpu", "seconds": 300, "owner": "k" * 32})
+    assert code == 200 and out["seconds"] <= 120 and started == [out["seconds"]]       # capped
+    code, _ = post(port, path, {"kind": "cpu", "owner": "k" * 32})
+    assert code == 200 and run.loads == 2
+    code, out = post(port, path, {"kind": "cpu", "owner": "k" * 32})
+    assert code == 409 and "2 loads" in out["error"]
+    run.loads, run.began = 0, server.time.time() - 230                        # 10 s before the end
+    code, out = post(port, path, {"kind": "cpu", "owner": "k" * 32})
+    assert code == 409 and "too close" in out["error"]
+    server.STATE["run"] = None
 
 
 def test_status_reports_the_sandbox(sandbox_srv):

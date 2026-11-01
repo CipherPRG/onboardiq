@@ -86,7 +86,7 @@ export function Sidebar({ current, onPick }: { current: string | null; onPick: (
       <div className="border-t border-border p-2 text-2xs text-muted leading-4">
         {mode === "static" && "Static hosting: recordings of real runs only. Run the container to onboard your own device."}
         {mode === "sandbox" && (status?.paused ? "The live demo is paused by its owner. Recordings still play."
-          : `Live runs left on this server: ${status?.runs_left ?? "–"}. ${status?.per_visitor ?? "–"} per visitor per day, ${status?.cooldown_s ?? "–"} s between runs. The target and MIB files are fixed. Monitor works after an onboarding: four minutes of live health with a CPU and memory load in the middle.`)}
+          : `Live runs left on this server: ${status?.runs_left ?? "–"}. ${status?.per_visitor ?? "–"} per visitor per day, ${status?.cooldown_s ?? "–"} s between runs. The target and MIB files are fixed. Monitor works after an onboarding: four minutes of live health; the visitor who starts it picks the load. No email here; your own copy sends real alerts. To see a wrong pick caught and corrected, play "caught and corrected its CPU pick".`)}
         {mode === "local" && "Connected to your local server: any device you can reach, your MIB files, live monitoring."}
       </div>
     </aside>
