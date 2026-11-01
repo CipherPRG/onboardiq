@@ -9,7 +9,10 @@ __pycache__
 *.pyc
 data
 mibs
-demo/*/
+# Docker drops a pattern's trailing slash, so "demo/*/" would exclude the committed recordings too:
+# keep the top-level demo/*.json recordings, exclude everything else in demo/ (private runs in subfolders)
+demo/*
+!demo/*.json
 .env
 .env.*
 !.env.example

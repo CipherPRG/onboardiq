@@ -85,8 +85,11 @@ def _lines(name):
 def test_images_and_cloud_uploads_never_carry_keys_or_private_mibs():
     for name in (".dockerignore", ".gcloudignore"):
         lines = _lines(name)
-        for must in (".env", ".env.*", "mibs", "data", "results", "cache", "demo/*/"):
+        for must in (".env", ".env.*", "mibs", "data", "results", "cache"):
             assert must in lines, f"{name} must exclude {must}"
+    assert "demo/*/" in _lines(".gcloudignore")             # gitignore rules: a trailing slash means folders only
+    docker = _lines(".dockerignore")                        # Docker drops the slash, so it needs an explicit re-include
+    assert "demo/*/" not in docker and {"demo/*", "!demo/*.json"} <= docker
 
 
 def test_every_fetched_open_mib_has_a_pinned_checksum():
@@ -98,3 +101,12 @@ def test_every_fetched_open_mib_has_a_pinned_checksum():
     spec.loader.exec_module(m)
     assert set(m.FILES) == set(m.SHA256) and all(len(h) == 64 for h in m.SHA256.values())
     assert m.TAG.startswith("v")                      # a release tag, never a branch
+
+
+def test_exporting_no_recordings_keeps_the_existing_list(tmp_path, monkeypatch):
+    import json
+    from onboardiq import playback
+    monkeypatch.setattr(playback, "ROOT", tmp_path)            # an image without demo/ recordings
+    (tmp_path / "index.json").write_text(json.dumps([{"id": "kept"}]))
+    assert playback.export_all(dest=tmp_path) == [{"id": "kept"}]
+    assert json.loads((tmp_path / "index.json").read_text()) == [{"id": "kept"}]

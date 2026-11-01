@@ -140,6 +140,9 @@ def export_all(files=None, dest=None) -> list:
     files = [f for f in files if not (f.suffix == ".jsonl" and f.stem in raw)]
     dest = Path(dest or ROOT / "web" / "sessions")
     dest.mkdir(parents=True, exist_ok=True)
+    if not files:                       # nothing to export: never replace a good list with an empty one
+        old = dest / "index.json"
+        return json.loads(old.read_text()) if old.exists() else []
     # Exporting some files updates their entries and keeps the rest of the list.
     old = dest / "index.json"
     index = json.loads(old.read_text()) if files and old.exists() else []
