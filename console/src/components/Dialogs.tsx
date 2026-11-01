@@ -177,7 +177,7 @@ export function MonitorDialog() {
             {onboarded.map((o) => <option key={o.name} value={o.name}>{o.device || o.modules} · {o.name.slice(8)}</option>)}
           </select></Field>
         <Field label="Host or IP" className="col-span-2"><input name="host" defaultValue={pick?.host ?? "localhost"} maxLength={253} /></Field>
-        <Field label="Port"><input name="port" inputMode="numeric" defaultValue={pick?.port ?? ""} placeholder="161" maxLength={5} /></Field>
+        <Field label="Port"><input name="port" inputMode="numeric" defaultValue={pick?.port && !["localhost", "127.0.0.1"].includes(pick.host ?? "") ? pick.port : ""} placeholder="161" maxLength={5} /></Field>
         <SnmpAuth />
         <Field label="Every (seconds)"><input name="interval" inputMode="numeric" defaultValue="10" maxLength={3} /></Field>
         <fieldset className="col-span-3 grid gap-1 border border-border rounded-sm px-2 py-1.5 text-xs"><legend className="text-2xs text-muted px-1">Options</legend>

@@ -199,3 +199,18 @@ def test_console_path_redirects_and_serves_its_index(srv):
     assert code == (200 if built else 404)
     if built:
         assert b"Content-Security-Policy" in page and b"OnboardIQ console" in page
+
+
+def test_the_saved_port_of_the_containers_own_agent_counts_as_this_machine(tmp_path, monkeypatch):
+    # an onboarding of the container's agent is saved with its real port (1161); monitoring it again with that port
+    # must still allow the CPU load button, and onboarding with it must still allow the load experiment
+    monkeypatch.setattr(server, "LOCAL_SNMP_PORT", 1161)
+    monkeypatch.setattr(server, "RESULTS", tmp_path)
+    (tmp_path / "onboard_20261101_122356.json").write_text("{}")
+    opts = server.validate_monitor({"onboarded": "onboard_20261101_122356", "host": "localhost", "port": 1161})
+    assert opts["local"] and opts["port"] == 1161
+    assert not server.validate_monitor({"onboarded": "onboard_20261101_122356", "host": "10.0.0.9", "port": 1161})["local"]
+    (tmp_path / "UCD-SNMP-MIB.json").write_text("{}")
+    monkeypatch.setitem(server.STATE, "mib_dir", tmp_path)
+    onb = server.validate({"device": "box", "modules": ["UCD-SNMP-MIB"], "host": "localhost", "port": 1161, "lab": True})
+    assert onb["lab"] and onb["port"] == 1161

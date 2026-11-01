@@ -254,6 +254,8 @@ def validate(body: dict) -> dict:
     port = None if port in (None, "", 161) else int(port)
     if port is not None and not 1 <= port <= 65535:
         raise ValueError("bad port")
+    if host in LOCAL and LOCAL_SNMP_PORT and port == LOCAL_SNMP_PORT:   # the saved port of this container's agent
+        port = None
     families = [f for f in (body.get("families") or FAMILIES) if f in FAMILIES] or list(FAMILIES)
     lab = bool(body.get("lab"))
     if lab and (host not in LOCAL or port is not None):
@@ -298,6 +300,8 @@ def validate_monitor(body: dict) -> dict:
     port = None if port in (None, "", 161) else int(port)
     if port is not None and not 1 <= port <= 65535:
         raise ValueError("bad port")
+    if host in LOCAL and LOCAL_SNMP_PORT and port == LOCAL_SNMP_PORT:   # the saved port of this container's agent
+        port = None
     creds = credentials(body)
     interval = float(body.get("interval") or 10)
     if not 5 <= interval <= 300:
