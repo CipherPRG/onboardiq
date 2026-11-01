@@ -57,5 +57,5 @@ Open a private security advisory on the GitHub repository (Security tab, "Report
 ## Alert email
 The mail account (host, user, password) comes only from the environment, never from the web page or a file in the
 repository. The Monitor dialog can only choose recipients: up to 3 addresses, each checked against a strict pattern, and
-only on a local server (the hosted demo has no monitor and sends no email). A server with no mail account sends nothing:
+only on a local server (the hosted demo's fixed monitor sends no email). A server with no mail account sends nothing:
 alerts are shown in the console and saved as a file. Headers are built with `email.message`, which refuses line breaks.

@@ -71,7 +71,7 @@ their recorded timing (1×, 4×, 16× or instantly). Nothing is simulated.
   are UTC.
 
 The same console runs everywhere and shows what the server behind it allows: recordings only (static hosting), one
-fixed live run (hosted demo), or the full onboard, upload and monitor tools (your own server).
+fixed live run plus a fixed four-minute monitor with its own CPU and memory load (hosted demo; one run at a time, others watch it live), or the full onboard, upload and monitor tools (your own server).
 
 ## What has been shown, and what has not
 
