@@ -3,6 +3,16 @@ import { app, run, ui, useStore } from "../lib/store";
 import { replay } from "../lib/control";
 import { verdictLabel } from "../lib/format";
 import { Dot, PanelHeader, cn } from "./ui";
+import type { Onboarded } from "../lib/types";
+
+const OWN = /-(\d{8})-(\d{6})$/;            // recordings your own runs saved carry their start time in the name
+
+/** The recording an onboarding saved: named in the result, or (older results) the one with the same start time. */
+function recordingOf(o: Onboarded, ids: string[]) {
+  if (o.recording && ids.includes(o.recording)) return o.recording;
+  const stamp = o.name.replace(/^onboard_/, "").replace("_", "-");
+  return ids.find((id) => id.endsWith(stamp)) ?? null;
+}
 
 export function Sidebar({ current, onPick }: { current: string | null; onPick: (id: string) => void }) {
   const { mode, index, onboarded, status } = useStore(app, (s) => ({ mode: s.mode, index: s.index, onboarded: s.onboarded, status: s.status }));
@@ -14,6 +24,7 @@ export function Sidebar({ current, onPick }: { current: string | null; onPick: (
       <ul className="overflow-auto min-h-0 flex-1">
         {index.map((s) => {
           const verdicts = Object.values(s.summary ?? {});
+          const own = OWN.test(s.id);
           const active = origin === "replay" && current === s.id;
           return (
             <li key={s.id}>
@@ -21,13 +32,13 @@ export function Sidebar({ current, onPick }: { current: string | null; onPick: (
                 className={cn("w-full text-left px-2 py-1.5 border-b border-border/60 hover:bg-hover block",
                   active && "bg-raise shadow-[inset_2px_0_0_#4c8dff]")}>
                 <span className="block text-xs text-fg leading-4">{s.highlight ?? s.id}</span>
-                <span className="block text-2xs text-muted truncate">{s.device}</span>
+                <span className="block text-2xs text-muted truncate">{own && <span className="text-accent">your run · </span>}{s.device}</span>
                 <span className="flex items-center gap-1 mt-1">
                   {s.kind === "health"
-                    ? <span className="text-2xs text-faint font-mono">health · {s.recorded?.slice(0, 10)}</span>
+                    ? <span className="text-2xs text-faint font-mono">health · {own ? s.recorded?.slice(0, 16) : s.recorded?.slice(0, 10)}</span>
                     : <>
                         {verdicts.map((v, i) => <Dot key={i} tone={verdictLabel(v)[1]} />)}
-                        <span className="text-2xs text-faint font-mono ml-1">{s.recorded?.slice(0, 10)}</span>
+                        <span className="text-2xs text-faint font-mono ml-1">{own ? s.recorded?.slice(0, 16) : s.recorded?.slice(0, 10)}</span>
                       </>}
                 </span>
               </button>
@@ -43,13 +54,17 @@ export function Sidebar({ current, onPick }: { current: string | null; onPick: (
             {onboarded.length === 0 && <li className="px-2 py-2 text-2xs text-muted">None yet. Onboard a device to monitor it.</li>}
             {onboarded.map((o) => {
               const proven = Object.values(o.summary).filter((v) => String(v).startsWith("proven")).length;
+              const rec = recordingOf(o, index.map((s) => s.id));
               return (
-                <li key={o.name}>
-                  <button className="w-full text-left px-2 py-1.5 border-b border-border/60 hover:bg-hover"
-                    onClick={() => ui.set({ dialog: "monitor" })}>
-                    <span className="block text-xs truncate">{o.device || o.modules}</span>
-                    <span className="block text-2xs text-muted font-mono">{o.host ?? "localhost"} · {proven}/{Object.keys(o.summary).length} proven</span>
-                  </button>
+                <li key={o.name} className="px-2 py-1.5 border-b border-border/60">
+                  <span className="block text-xs truncate">{o.device || o.modules}</span>
+                  <span className="block text-2xs text-muted font-mono">{o.host ?? "localhost"} · {proven}/{Object.keys(o.summary).length} proven · {o.name.slice(8, 16)} {o.name.slice(17, 19)}:{o.name.slice(19, 21)}</span>
+                  <span className="flex gap-1 mt-1">
+                    {rec && <button className="h-5 px-1.5 text-2xs rounded-sm border border-border hover:bg-hover"
+                      onClick={() => { onPick(rec); void replay(rec); }}>Replay onboarding</button>}
+                    <button className="h-5 px-1.5 text-2xs rounded-sm border border-border hover:bg-hover"
+                      onClick={() => ui.set({ dialog: "monitor" })}>Monitor</button>
+                  </span>
                 </li>
               );
             })}

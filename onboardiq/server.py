@@ -287,7 +287,8 @@ def onboarded_list():
         out.append({"name": p.stem, "device": str(d.get("device") or a.get("device") or "")[:200],
                     "modules": a["modules"] if isinstance(a["modules"], str) else ",".join(a["modules"]),
                     "host": a.get("host") or "localhost", "port": a.get("port"),
-                    "summary": {f: v.get("verdict") for f, v in d["spec"].items()}})
+                    "summary": {f: v.get("verdict") for f, v in d["spec"].items()},
+                    "recording": d["recording"] if re.fullmatch(r"[a-z0-9_-]{1,120}", str(d.get("recording") or "")) else None})
     return out
 
 
@@ -445,7 +446,7 @@ def execute(run: Run, opts: dict):
             ob = f"onboard_{time.strftime('%Y%m%d_%H%M%S')}"
             args = {"device": opts["device"], "modules": ",".join(opts["modules"]), "host": opts["host"],
                     "port": opts["port"], "lab": lab, "families": ",".join(opts["families"])}
-            (RESULTS / f"{ob}.json").write_text(json.dumps({"args": args, **out}, indent=2, default=str))
+            (RESULTS / f"{ob}.json").write_text(json.dumps({"args": args, "recording": saved, **out}, indent=2, default=str))
         run.emit({"kind": "end", "onboarded": ob, "summary": {f: v["verdict"] for f, v in out["spec"].items()},
                   "cost_usd": out["cost_usd"], "seconds": out["seconds"], "snmp_calls": out["snmp_calls"],
                   "saved": saved})

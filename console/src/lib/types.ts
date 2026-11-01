@@ -61,4 +61,4 @@ export interface ServerStatus {
   paused?: boolean; mib_dir_found?: boolean; running?: boolean; mail?: boolean;
   run?: { id: string; kind: "onboard" | "monitor"; device?: string | null };   // local server: the run in progress
 }
-export interface Onboarded { name: string; device?: string; modules?: string; host?: string; port?: number | null; summary: Record<string, Verdict> }
+export interface Onboarded { name: string; device?: string; modules?: string; host?: string; port?: number | null; summary: Record<string, Verdict>; recording?: string | null }
