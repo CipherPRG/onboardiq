@@ -8,8 +8,8 @@ the repo and never from the web page:
     OIQ_SMTP_PORT   587 (STARTTLS)            OIQ_ALERT_FROM  defaults to OIQ_SMTP_USER
     OIQ_SMTP_USER / OIQ_SMTP_PASS  (for Gmail: an app password you create yourself)
 
-Rules: send when the level changes (ok / warning / critical) and when it returns to ok; a cooldown (default
-5 minutes) stops a flapping device from filling an inbox, except a move to a worse level is always sent.
+Rules: send when the level gets worse and when it returns to healthy, always; an improvement that is not yet
+healthy (critical to warning) waits for a cooldown (default 5 minutes) so a flapping device cannot fill an inbox.
 The email carries the score, the per-family table, the explanation card and what to check next. Every value is
 HTML-escaped and headers are built with email.message, which refuses line breaks.
 """
@@ -215,9 +215,10 @@ class Alerter:
             return None
         worse = SEVERITY[level] > SEVERITY.get(prev, 0)
         now = self.clock()
-        if not worse and self.last_at is not None and now - self.last_at < self.cooldown:
-            return None
         recovered = level == "ok"
+        # worse: always sent; back to healthy: always sent (the all-clear); in between: not within the cooldown
+        if not worse and not recovered and self.last_at is not None and now - self.last_at < self.cooldown:
+            return None
         subject, text, page = render(self.device, res, recovered=recovered, previous=prev)
         out = deliver(subject, text, page, settings=self.settings, outbox=self.outbox, now=now)
         self.last_at, self.last_level = now, level

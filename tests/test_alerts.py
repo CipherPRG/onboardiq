@@ -37,19 +37,19 @@ def test_outbox_file_is_written_without_smtp(tmp_path, monkeypatch):
     assert sent["via"] == "outbox" and (tmp_path / sent["file"]).read_text().startswith("<!doctype html>")
 
 
-def test_cooldown_stops_flapping_but_worse_levels_always_send(tmp_path, monkeypatch):
+def test_worse_and_recovered_always_send_and_in_between_waits_for_the_cooldown(tmp_path, monkeypatch):
     monkeypatch.delenv("OIQ_SMTP_HOST", raising=False)
     t = [1000.0]
     a = alerts.Alerter("box", cooldown=300, settings=None, outbox=tmp_path, clock=lambda: t[0])
     a.consider(level(RES, "ok", 100))
-    assert a.consider(level(RES, "warning", 70))                         # worse: sent
+    assert a.consider(level(RES, "critical", 40))                        # worse: sent
     t[0] += 30
-    assert a.consider(level(RES, "ok", 100)) is None                     # recovery inside the cooldown: held back
+    assert a.consider(level(RES, "warning", 70)) is None                 # better but not healthy, inside the cooldown
+    t[0] += 30
+    r = a.consider(level(RES, "ok", 100))
+    assert r and "recovered" in r["subject"]                             # the all-clear: always sent
     t[0] += 30
     assert a.consider(level(RES, "critical", 40))                        # worse again: always sent
-    t[0] += 400
-    r = a.consider(level(RES, "ok", 100))
-    assert r and "recovered" in r["subject"]                             # recovery after the cooldown
 
 
 def test_smtp_settings_need_valid_addresses_and_come_from_the_environment():
