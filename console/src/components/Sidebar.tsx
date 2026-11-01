@@ -76,6 +76,12 @@ export function Sidebar({ current, onPick }: { current: string | null; onPick: (
                     <button className="h-5 px-1.5 text-2xs rounded-sm border border-border hover:bg-hover"
                       onClick={() => ui.set({ dialog: "monitor" })}>Monitor</button>
                   </span>
+                  <span className="flex flex-wrap items-center gap-x-2 mt-1 text-2xs text-muted">
+                    Export:
+                    <a href={`/api/onboarded/${o.name}/export/snmp.yml`} download title="snmp_exporter config with the proven objects">Prometheus</a>
+                    <a href={`/api/onboarded/${o.name}/export/onboardiq.rules.yml`} download title="Prometheus alert rules at the health score's own limits">alert rules</a>
+                    <a href={`/api/onboarded/${o.name}/export/zabbix_template.yaml`} download title="Zabbix 6.0+ template: items, discovery, triggers">Zabbix</a>
+                  </span>
                 </li>
               );
             })}

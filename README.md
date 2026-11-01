@@ -129,6 +129,23 @@ table, the explanation and what to check. The Monitor dialog has a **Send the al
   ```
   Then `docker compose up` again. At most 3 recipients per monitor, and the hosted demo never sends email.
 
+## Export to Prometheus and Zabbix
+
+An onboarding can be handed to the monitoring a team already runs. In the console, each onboarded device has
+**Export: Prometheus · alert rules · Zabbix**; on the command line, `python scripts/export.py results/onboard_*.json`.
+
+| File | What it is |
+|---|---|
+| `snmp.yml` | A ready [snmp_exporter](https://github.com/prometheus/snmp_exporter) config: one module with the proven objects (scale, row names, per-core and per-disk rows). No MIBs or generator needed. |
+| `onboardiq.rules.yml` | Prometheus alert rules on the rows the onboarding kept (RAM only, real disks) |
+| `zabbix_template.yaml` | A Zabbix template (6.0 format, imports into 6.0 and later): items, discovery for tables, calculated "used %", triggers and macros |
+
+Only proven objects and the standard ones the health score uses are exported. The alert limits are not new
+numbers: they are the readings at which OnboardIQ's own health score turns "Under strain" or "In trouble"
+(CPU 80% and 92%, memory and disk 86.25% and 95%, temperature about 69 °C and 81 °C under the default policy), so
+Prometheus, Zabbix and the console agree. Exports have been checked for shape by tests; import them into your
+own tools to confirm on your versions.
+
 ## Repository
 
 | Path | What |
