@@ -39,7 +39,7 @@ from . import agent, intake, mib, replay
 from .alerts import Alerter, OUTBOX, mail_configured, parse_recipients, smtp_settings
 from .monitor import Monitor, load_onboarding
 from .playback import export_all
-from .config import MODEL, RECORDINGS, ROOT
+from .config import MODEL, PROVIDERS, RECORDINGS, ROOT
 from .snmp import Snmp, credentials
 from .verify import NotInducible, default_load, prompt_load, stress_cmd
 
@@ -102,6 +102,15 @@ def origin_allowed(origin, host, port, sandbox=None):
         return True
     sandbox = SANDBOX if sandbox is None else sandbox
     return bool(sandbox and host and origin == f"https://{host.lower()}")
+
+
+NO_KEY = ("No Meta API key on this server, so live runs cannot start. Put MODEL_API_KEY in .env (copy .env.example) "
+          "and restart with docker compose up. The example runs play without a key.")
+
+
+def key_missing():
+    """True when the reader model's key is not set: a live run would fail at its first model call."""
+    return not os.environ.get(PROVIDERS["meta"]["key_env"])
 
 
 def public_error(e):
@@ -648,6 +657,8 @@ class Handler(BaseHTTPRequestHandler):
                         opts = validate(body)
                     except (ValueError, TypeError) as e:
                         return self._json(400, {"error": str(e)})
+                    if key_missing():                  # say so now, not as a stack trace from the first model call
+                        return self._json(503, {"error": NO_KEY})
                 run = Run(secrets.token_hex(6))
                 run.opts = {"device": opts.get("device")}
                 STATE["run"] = run

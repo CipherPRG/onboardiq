@@ -240,3 +240,11 @@ def test_monitor_takes_up_to_three_valid_recipients_and_load_kinds(srv, tmp_path
         server.validate_monitor({"onboarded": "onboard_20261101_122356", "alert_to": "x@y.com\nBcc: v@z.com"})
     status = json.loads(req(srv, "GET", "/api/status")[1])
     assert "mail" in status                                             # the console shows what the server can do
+
+
+def test_live_run_refused_with_a_plain_message_when_no_key(monkeypatch):
+    monkeypatch.delenv(server.PROVIDERS["meta"]["key_env"], raising=False)
+    assert server.key_missing()
+    assert "MODEL_API_KEY" in server.NO_KEY and "example runs" in server.NO_KEY
+    monkeypatch.setenv(server.PROVIDERS["meta"]["key_env"], "x")
+    assert not server.key_missing()
