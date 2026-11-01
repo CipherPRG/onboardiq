@@ -120,7 +120,7 @@ async function rejoinOr(err: Error): Promise<{ id: string }> {
   attach(s.run);
   throw new Rejoined();
 }
-export class Rejoined extends Error { constructor() { super("rejoined the run in progress"); } }
+export class Rejoined extends Error { constructor() { super("A run is already going, so you are watching it live. Start your own when it ends."); } }
 
 const runId = () => run.get().runId;
 export const stopRun = () => post(`/api/runs/${runId()}/stop`, {});

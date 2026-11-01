@@ -517,7 +517,7 @@ class Handler(BaseHTTPRequestHandler):
                    "mib_dir_found": STATE["mib_dir"].is_dir()}
             if not SANDBOX:
                 out["mail"] = mail_configured()             # local only: can this server send email at all?
-            if run and not run.finished and not SANDBOX:    # local only: a reopened page can follow the run again
+            if run and not run.finished:    # anyone can watch the run in progress (the hosted demo's device is fixed)
                 out["run"] = {"id": run.id, "kind": run.kind, "device": run.opts.get("device")}
             if SANDBOX:
                 sb = STATE["sandbox"]

@@ -29,7 +29,7 @@ OnboardIQ reads devices over SNMP and calls a hosted model. This page says what 
 
 ## The hosted sandbox (`OIQ_SANDBOX=1`)
 Ignores the request body: target, MIB modules and load are fixed in code. Per-visitor daily limit, cooldown, run cap,
-dollar budget with a pre-check, kill switch (`OIQ_PAID=off`), nothing saved to disk, random run ids, request timeouts,
+dollar budget with a pre-check, kill switch (`OIQ_PAID=off`), nothing saved to disk, random run ids (anyone may watch the run in progress, which offers no controls), request timeouts,
 unprivileged container user. Details and the known limits: [docs/SANDBOX.md](docs/SANDBOX.md).
 
 ## Spending
