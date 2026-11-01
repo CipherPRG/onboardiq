@@ -12,7 +12,8 @@ const SPEEDS: [number, string][] = [[1, "1×"], [4, "4×"], [16, "16×"], [0, "i
 export function TopBar({ lastReplay }: { lastReplay: string | null }) {
   const mode = useStore(app, (s) => s.mode);
   const paused = useStore(app, (s) => s.status?.paused);
-  const serverRun = useStore(app, (s) => s.status?.run);
+  // The run to go back to: the one the server lists (local), or the one this page started while it is still going.
+  const serverRun = useStore(app, (s) => s.status?.run ?? (s.ownRun && s.status?.running ? s.ownRun : undefined));
   const { origin, status, kind, loadUntil, recorded } = useStore(run, (s) => ({ origin: s.origin, status: s.status, kind: s.kind,
     loadUntil: s.loadUntil, recorded: s.source.startsWith("Replay") ? s.source.replace(/^Replay · recorded /, "") : "" }));
   const { speed, uiPaused } = useStore(ui, (s) => ({ speed: s.speed, uiPaused: s.paused }));
@@ -47,7 +48,7 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
         )}
         {serverRun && !liveRunning && (
           <Button variant="primary" onClick={() => attach(serverRun)}>
-            Watch live {serverRun.kind === "monitor" ? "monitor" : "run"}
+            Back to live {serverRun.kind === "monitor" ? "monitor" : "run"}
           </Button>
         )}
         {liveRunning && kind === "onboarding" && <span className="text-2xs text-muted">Live onboarding · ends by itself</span>}

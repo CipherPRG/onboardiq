@@ -53,12 +53,21 @@ export const ui = create<UiState>({
 
 export interface AppState {
   mode: Mode; status: ServerStatus | null; index: SessionIndexEntry[]; onboarded: Onboarded[]; error: string;
+  /** The live run this page started. The hosted demo never lists runs, so the page keeps its own to return to. */
+  ownRun: { id: string; kind: "onboard" | "monitor"; device?: string | null } | null;
 }
 /** A short message shown over the page (a refused click, a failed load), then dismissed. */
-export const toast = create<{ text: string; id: number }>({ text: "", id: 0 });
-export const notify = (text: string) => toast.set((s) => ({ text, id: s.id + 1 }));
+export const toast = create<{ text: string; title: string; id: number }>({ text: "", title: "", id: 0 });
+export const notify = (text: string, title = "Refused") => toast.set((s) => ({ text, title, id: s.id + 1 }));
 
-export const app = create<AppState>({ mode: "static", status: null, index: [], onboarded: [], error: "" });
+function savedRun(): AppState["ownRun"] {
+  try { return JSON.parse(sessionStorage.getItem("oiq.ownRun") || "null"); } catch { return null; }
+}
+export const app = create<AppState>({ mode: "static", status: null, index: [], onboarded: [], error: "", ownRun: savedRun() });
+export function rememberRun(r: AppState["ownRun"]) {
+  app.set({ ownRun: r });
+  try { if (r) sessionStorage.setItem("oiq.ownRun", JSON.stringify(r)); else sessionStorage.removeItem("oiq.ownRun"); } catch { /* storage may be blocked */ }
+}
 
 function shallowEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;

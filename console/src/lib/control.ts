@@ -1,5 +1,5 @@
 // What the console can do: replay a recording at its real pace (scaled), start a live run, monitor, stop, and export.
-import { app, dispatch, emptyRun, run, ui, type RunState } from "./store";
+import { app, dispatch, emptyRun, notify, rememberRun, run, ui, type RunState } from "./store";
 import { getIndex, getSession, getStatus, post, sampleFromHealth, stream } from "./api";
 import type { HealthSample, HealthSession, OnboardingSession, RunEvent, Session } from "./types";
 
@@ -71,7 +71,12 @@ function follow(id: string) {
       run.set((r) => ({ health: [...r.health, sample], events: [...r.events, { ...ev, seq: r.events.length }],
         notScored: r.health.length ? r.notScored : ((ev.excluded as RunState["notScored"]) ?? []) }));
     } else dispatch(ev);
+    if ((ev.kind === "end" || ev.kind === "error") && app.get().ownRun?.id === id) rememberRun(null);   // finished: nothing to go back to
   }, (dropped) => {
+    if (dropped && !run.get().events.length && app.get().ownRun?.id === id) {      // the server no longer has it
+      rememberRun(null);
+      notify("That run has already ended.", "Ended");
+    }
     getIndex().then((index) => app.set({ index })).catch(() => {});    // the run just saved a recording: list it
     run.set((r) => ({ connected: false, status: r.status === "running" ? (dropped ? "error" : "done") : r.status,
     message: dropped && r.status === "running" ? "The connection to the server dropped." : r.message }));
@@ -87,6 +92,7 @@ export async function startRun(body: unknown, device: string) {
     // Ask first: a refused start must leave what is on screen (a finished run) untouched.
     const { id } = await post<{ id: string }>("/api/runs", body).catch(rejoinOr);
     reset({ origin: "live", kind: "onboarding", status: "running", device, source: "Live" });
+    rememberRun({ id, kind: "onboard", device });
     follow(id);
   } finally { starting = false; }
 }
@@ -94,6 +100,7 @@ export async function startRun(body: unknown, device: string) {
 export async function startMonitor(body: unknown, device: string) {
   const { id } = await post<{ id: string }>("/api/monitor", body).catch(rejoinOr);
   reset({ origin: "live", kind: "health", status: "running", device, source: "Live monitor" });
+  rememberRun({ id, kind: "monitor", device });
   follow(id);
 }
 
