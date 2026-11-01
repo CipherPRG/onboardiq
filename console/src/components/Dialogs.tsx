@@ -1,7 +1,7 @@
 // Local server only: onboard any device you can reach (with your own MIB files) and monitor an onboarded one.
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { app, run, ui, useStore } from "../lib/store";
-import { startMonitor, startRun } from "../lib/control";
+import { Rejoined, startMonitor, startRun } from "../lib/control";
 import { getModules, getOnboarded, uploadMibs, type UploadReport } from "../lib/api";
 import { Button, Field, toneText } from "./ui";
 
@@ -102,7 +102,11 @@ function useSubmit(start: (fd: FormData) => Promise<void>) {
     e.preventDefault();
     setError(""); setBusy(true);
     try { await start(new FormData(e.currentTarget)); ui.set({ dialog: null }); }
-    catch (err) { setError((err as Error).message); run.set({ status: "idle" }); }
+    catch (err) {
+      if (err instanceof Rejoined) { ui.set({ dialog: null }); return; }     // already showing the run in progress
+      const message = (err as Error).message;
+      setError(message); run.set({ status: "idle", message });             // also on the status line, if the dialog is closed
+    }
     finally { setBusy(false); }
   };
   return { error, busy, onSubmit };

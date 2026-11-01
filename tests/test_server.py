@@ -125,6 +125,8 @@ def test_live_monitor_streams_readings_and_stops(srv, tmp_path, monkeypatch):
                                                    "record": False, "host": "10.0.0.9"}, _h(srv))
     assert code == 202
     rid = json.loads(body)["id"]
+    status = json.loads(req(srv, "GET", "/api/status")[1])
+    assert status["run"]["id"] == rid and status["run"]["kind"] == "monitor"   # a reopened page can follow it
     _t.sleep(0.5)
     run = server.STATE["run"]
     assert [e["kind"] for e in run.events][:2] == ["monitor-start", "health"]

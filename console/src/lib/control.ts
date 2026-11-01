@@ -1,6 +1,6 @@
 // What the console can do: replay a recording at its real pace (scaled), start a live run, monitor, stop, and export.
 import { dispatch, emptyRun, run, ui, type RunState } from "./store";
-import { getSession, post, sampleFromHealth, stream } from "./api";
+import { getSession, getStatus, post, sampleFromHealth, stream } from "./api";
 import type { HealthSample, HealthSession, OnboardingSession, RunEvent, Session } from "./types";
 
 let token = 0;                                         // a newer replay or live run cancels the old one
@@ -78,15 +78,33 @@ function follow(id: string) {
 /** Start an onboarding run. On the hosted demo the server ignores the body and runs its fixed device. */
 export async function startRun(body: unknown, device: string) {
   reset({ origin: "live", kind: "onboarding", status: "running", device, source: "Live" });
-  const { id } = await post<{ id: string }>("/api/runs", body);
+  const { id } = await post<{ id: string }>("/api/runs", body).catch(rejoinOr);
   follow(id);
 }
 
 export async function startMonitor(body: unknown, device: string) {
   reset({ origin: "live", kind: "health", status: "running", device, source: "Live monitor" });
-  const { id } = await post<{ id: string }>("/api/monitor", body);
+  const { id } = await post<{ id: string }>("/api/monitor", body).catch(rejoinOr);
   follow(id);
 }
+
+/** Follow a run that is already going on the server (the page was reloaded, or another tab started it).
+ *  The server sends its events from the beginning, so the view is complete. */
+export function attach(r: { id: string; kind: "onboard" | "monitor"; device?: string | null }) {
+  const health = r.kind === "monitor";
+  reset({ origin: "live", kind: health ? "health" : "onboarding", status: "running", device: r.device || "",
+    source: health ? "Live monitor" : "Live" });
+  follow(r.id);
+}
+
+/** A start refused because a run is already in progress: show that run instead of an error. */
+async function rejoinOr(err: Error): Promise<{ id: string }> {
+  const s = await getStatus();
+  if (!s?.run) throw err;
+  attach(s.run);
+  throw new Rejoined();
+}
+export class Rejoined extends Error { constructor() { super("rejoined the run in progress"); } }
 
 const runId = () => run.get().runId;
 export const stopRun = () => post(`/api/runs/${runId()}/stop`, {});

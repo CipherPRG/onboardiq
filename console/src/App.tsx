@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { app, run, ui, useStore } from "./lib/store";
 import { getIndex, getOnboarded, getStatus } from "./lib/api";
-import { replay } from "./lib/control";
+import { attach, replay } from "./lib/control";
 import { TopBar } from "./components/TopBar";
 import { Sidebar } from "./components/Sidebar";
 import { RunGraph } from "./components/RunGraph";
@@ -34,6 +34,7 @@ export default function App() {
       try {
         const index = await getIndex();
         app.set({ index });
+        if (status?.run) { attach(status.run); return; }           // a live run is going: show it, not a recording
         const first = index.find((s) => s.id === FIRST) ?? index[0];
         if (first) { setCurrent(first.id); void replay(first.id); }
       } catch (e) { app.set({ error: (e as Error).message }); }

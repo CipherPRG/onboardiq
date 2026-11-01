@@ -480,6 +480,8 @@ class Handler(BaseHTTPRequestHandler):
             run = STATE["run"]
             out = {"live": True, "running": bool(run and not run.finished),
                    "mib_dir_found": STATE["mib_dir"].is_dir()}
+            if run and not run.finished and not SANDBOX:    # local only: a reopened page can follow the run again
+                out["run"] = {"id": run.id, "kind": run.kind, "device": run.opts.get("device")}
             if SANDBOX:
                 sb = STATE["sandbox"]
                 out.update({"sandbox": True, "model": MODEL, "device": SANDBOX_DEVICE,
@@ -617,6 +619,7 @@ class Handler(BaseHTTPRequestHandler):
                     except (ValueError, TypeError) as e:
                         return self._json(400, {"error": str(e)})
                 run = Run(secrets.token_hex(6))
+                run.opts = {"device": opts.get("device")}
                 STATE["run"] = run
             threading.Thread(target=execute, args=(run, opts), daemon=True).start()
             return self._json(202, {"id": run.id})

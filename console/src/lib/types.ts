@@ -59,5 +59,6 @@ export type Mode = "static" | "sandbox" | "local";
 export interface ServerStatus {
   live?: boolean; sandbox?: boolean; model?: string; runs_left?: number; per_visitor?: number; cooldown_s?: number;
   paused?: boolean; mib_dir_found?: boolean;
+  run?: { id: string; kind: "onboard" | "monitor"; device?: string | null };   // local server: the run in progress
 }
 export interface Onboarded { name: string; device?: string; modules?: string; host?: string; port?: number | null; summary: Record<string, Verdict> }
