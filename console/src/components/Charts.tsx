@@ -1,5 +1,5 @@
 // Time series as raw 1px lines: no area fills, no animation. Under-load periods are a flat band.
-import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { HealthSample, Series } from "../lib/types";
 import { num, type Tone } from "../lib/format";
 
@@ -40,10 +40,12 @@ export function ScoreChart({ samples, interval, height = 200 }: { samples: Healt
       <LineChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
         <CartesianGrid stroke="#262c35" vertical={false} />
         {bands.map(([a, b]) => <ReferenceArea key={a} x1={a} x2={b} fill="#D97706" fillOpacity={0.08} stroke="none" />)}
-        <ReferenceLine y={75} stroke="#D97706" strokeDasharray="2 3" strokeOpacity={0.6} />
-        <ReferenceLine y={40} stroke="#DC2626" strokeDasharray="2 3" strokeOpacity={0.6} />
+        <ReferenceArea y1={75} y2={100} fill="#059669" fillOpacity={0.06} stroke="none" />
+        <ReferenceArea y1={40} y2={75} fill="#D97706" fillOpacity={0.06} stroke="none" />
+        <ReferenceArea y1={0} y2={40} fill="#DC2626" fillOpacity={0.06} stroke="none" />
         <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} unit="s" {...AXIS} />
-        <YAxis width={34} domain={[0, 100]} ticks={[0, 40, 75, 100]} {...AXIS} />
+        <YAxis width={82} domain={[0, 100]} ticks={[20, 57, 87]} {...AXIS}
+          tickFormatter={(v: number) => (v > 75 ? "Healthy" : v > 40 ? "Under strain" : "In trouble")} />
         <Tooltip {...TIP} formatter={(v) => [String(v), "score"]} labelFormatter={(t) => `${t} s`} />
         <Line dataKey="score" stroke="#e3e7ec" strokeWidth={1} dot={false} isAnimationActive={false} connectNulls={false} />
       </LineChart>

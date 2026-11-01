@@ -60,7 +60,7 @@ function MetricCard({ fam, f }: { fam: string; f: FamilyScore }) {
       ) : <p className="text-2xs text-muted">{r.text}</p>}
       <p className="text-2xs text-faint leading-snug">
         {r.ok !== null ? `Normal up to ${r.ok}${r.unit}, worst at ${r.zero}${r.unit}. ` : ""}
-        {f.rows > 1 ? `${f.rows} readings, the highest is shown. ` : ""}Score {Math.round(f.score)}/100
+        {f.rows > 1 ? `${f.rows} readings, the highest is shown.` : ""}
       </p>
     </div>
   );
@@ -81,17 +81,16 @@ export function HealthMain() {
     <section className="flex flex-col min-h-0 flex-1" aria-label="Health">
       <PanelHeader title="Device health"><span className="text-2xs text-faint truncate">{device} · a reading every {interval} s</span></PanelHeader>
       <div className="overflow-auto p-3 space-y-3">
-        <div className="flex items-center gap-4">
-          <div className="flex items-baseline gap-1 shrink-0">
-            <span className={cn("font-mono text-[40px] leading-none tabular-nums", toneText(levelTone(x?.level)))}>{x?.score ?? "–"}</span>
-            <span className="text-xs text-faint">/100</span>
-          </div>
+        <div className="flex items-start gap-4">
           <div className="min-w-0">
-            <p className={cn("text-base font-semibold", toneText(levelTone(x?.level)))}>{word}</p>
-            <p className="text-xs text-muted">{x?.level && x.level !== "ok" && worst ? plainWorst(worst[0], worst[1]) : line}
-              {x?.capped_by ? ` Because a reading is ${x.capped_by}, the score is held at ${x.capped_by === "critical" ? 40 : 70} or below.` : ""}</p>
+            <p className={cn("text-[30px] leading-none font-semibold tracking-tight", toneText(levelTone(x?.level)))}>{word}</p>
+            <p className="mt-1.5 text-sm text-fg/90">{x?.level && x.level !== "ok" && worst ? plainWorst(worst[0], worst[1]) : line}</p>
           </div>
-          <span className="ml-auto text-2xs text-faint font-mono shrink-0">{x?.at ? `last reading ${x.at.slice(11, 19)} UTC` : ""}</span>
+          <div className="ml-auto text-right shrink-0">
+            <p className="text-2xs text-muted">health score</p>
+            <p className="font-mono text-sm tabular-nums"><span className={toneText(levelTone(x?.level))}>{x?.score ?? "–"}</span><span className="text-faint">/100</span></p>
+            <p className="text-2xs text-faint font-mono">{x?.at ? `${x.at.slice(11, 19)} UTC` : ""}</p>
+          </div>
         </div>
 
         <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))" }}>
@@ -105,7 +104,7 @@ export function HealthMain() {
         </div>
 
         <div className="border border-border rounded-sm bg-bg pt-1">
-          <p className="px-2 pt-1 text-2xs text-muted">Health over time{loaded ? ". The shaded part is the CPU load test." : "."} Lines mark where it turns High (75) and Critical (40).</p>
+          <p className="px-2 pt-1 text-2xs text-muted">Health over time{loaded ? ". The shaded part is the load test." : "."}</p>
           <ScoreChart samples={health} interval={interval} />
         </div>
 
@@ -114,7 +113,8 @@ export function HealthMain() {
           <ol className="mt-2 space-y-1 list-decimal pl-4 text-muted">
             <li>Every reading gets a score from 0 to 100. It keeps full marks while it is in the normal range shown on its card, then falls; at the worst value it reaches 0.</li>
             <li>A metric with several readings (one per CPU core, say) takes its worst one, so one overloaded core is not hidden by idle ones.</li>
-            <li>The device score is the average of the metric scores. If any reading is critical the score is held at 40 or below; if one is high, at 70 or below.</li>
+            <li>The device score is the average of the metric scores. If any reading is critical the score is held at 40 or below; if one is high, at 70 or below. That is why one overloaded CPU can pull the whole device to "In trouble".</li>
+            <li>75 and above reads as Healthy, 40 to 74 as Under strain, below 40 as In trouble.</li>
             <li>Only readings proven on this device during onboarding are scored. The limits come from a policy file you can edit (<span className="font-mono">health_policy.json</span>).</li>
           </ol>
         </details>
