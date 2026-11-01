@@ -89,3 +89,40 @@ def test_the_dialog_recipient_replaces_alert_to_but_never_the_account():
     cfg = alerts.smtp_settings(env, to=["you@example.org"])
     assert cfg["to"] == ["you@example.org"] and cfg["user"] == "me@example.com" and cfg["password"] == "pw"
     assert not alerts.mail_configured({"OIQ_ALERT_TO": "you@example.org"})   # a recipient alone is not an account
+
+
+def test_settings_forgive_stray_spaces_and_quotes_and_465_uses_tls(monkeypatch):
+    from onboardiq import alerts
+    env = {"OIQ_SMTP_HOST": " smtp.gmail.com ", "OIQ_SMTP_PORT": "465 ", "OIQ_SMTP_USER": '"me@gmail.com"',
+           "OIQ_SMTP_PASS": "abcd efgh ijkl mnop ", "OIQ_ALERT_TO": "me@gmail.com"}
+    cfg = alerts.smtp_settings(env)
+    assert cfg["host"] == "smtp.gmail.com" and cfg["port"] == 465 and cfg["user"] == "me@gmail.com"
+    used = {}
+
+    class Fake:
+        def __init__(self, host, port, timeout):
+            used["cls"] = type(self).__name__
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def starttls(self): used["starttls"] = True
+        def login(self, u, p): used["login"] = u
+        def send_message(self, m): used["sent"] = True
+
+    class SMTP_SSL(Fake):
+        pass
+    monkeypatch.setattr(alerts.smtplib, "SMTP_SSL", SMTP_SSL)
+    out = alerts.deliver("s", "t", "<p>p</p>", settings=cfg)
+    assert out["via"] == "smtp" and used == {"cls": "SMTP_SSL", "login": "me@gmail.com", "sent": True}
+
+
+def test_a_failed_send_says_what_to_fix_without_the_password(tmp_path, monkeypatch):
+    import smtplib
+    from onboardiq import alerts
+
+    def hangup(*a, **k):
+        raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
+    monkeypatch.setattr(alerts.smtplib, "SMTP", hangup)
+    cfg = {"host": "smtp.gmail.com", "port": 587, "user": "me@gmail.com", "password": "secret-pw",
+           "from": "me@gmail.com", "to": ["me@gmail.com"]}
+    out = alerts.deliver("s", "t", "<p>p</p>", settings=cfg, outbox=tmp_path)
+    assert out["via"] == "outbox" and "OIQ_SMTP_PORT" in out["smtp_error"] and "secret-pw" not in out["smtp_error"]

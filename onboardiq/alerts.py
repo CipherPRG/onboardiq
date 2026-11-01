@@ -51,7 +51,9 @@ def mail_configured(env=None):
 def smtp_settings(env=None, to=None):
     """The SMTP settings from the environment, or None when email is not configured. `to` replaces the
     recipients from OIQ_ALERT_TO (the account and its password still come only from the environment)."""
-    e = env if env is not None else os.environ
+    raw = env if env is not None else os.environ
+    e = {k: str(raw.get(k) or "").strip().strip('"').strip("'") for k in               # a stray space or quote in .env
+         ("OIQ_SMTP_HOST", "OIQ_SMTP_PORT", "OIQ_SMTP_USER", "OIQ_SMTP_PASS", "OIQ_ALERT_FROM", "OIQ_ALERT_TO")}
     host = e.get("OIQ_SMTP_HOST")
     to = list(to) if to else [a for a in re.split(r"[,;]\s*", e.get("OIQ_ALERT_TO", "")) if a]
     if not host or not to or not all(ADDR.fullmatch(a) for a in to):
@@ -139,6 +141,17 @@ def render(device, res, recovered=False, previous=None):
     return subject, "\n".join(text), page
 
 
+def smtp_reason(e):
+    """A short, password-free reason for a failed send, with what usually fixes it."""
+    name = type(e).__name__
+    hint = {"SMTPAuthenticationError": "the mail server refused the login: for Gmail use an app password",
+            "SMTPServerDisconnected": "the mail server hung up: check OIQ_SMTP_PORT (587, or 465) and OIQ_SMTP_HOST",
+            "gaierror": "the mail server name was not found: check OIQ_SMTP_HOST",
+            "TimeoutError": "no answer from the mail server: the network may block outgoing mail",
+            "ConnectionRefusedError": "the mail server refused the connection: check the port"}.get(name)
+    return f"{name}: {hint}" if hint else name
+
+
 def deliver(subject, text, page, settings=None, outbox=None, now=None):
     """Send by SMTP when configured, else write to outbox/. Returns {"via", "file"?, "error"?}. Never raises:
     an SMTP failure falls back to the outbox so the alert is not lost."""
@@ -150,14 +163,19 @@ def deliver(subject, text, page, settings=None, outbox=None, now=None):
             msg["Subject"], msg["From"], msg["To"] = subject, cfg["from"], ", ".join(cfg["to"])
             msg.set_content(text)
             msg.add_alternative(page, subtype="html")
-            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=15) as s:
-                s.starttls()
+            if cfg["port"] == 465:                  # implicit TLS (465), not STARTTLS (587)
+                conn = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=15)
+            else:
+                conn = smtplib.SMTP(cfg["host"], cfg["port"], timeout=15)
+            with conn as s:
+                if cfg["port"] != 465:
+                    s.starttls()
                 if cfg["user"]:
                     s.login(cfg["user"], cfg["password"])
                 s.send_message(msg)
             return {"via": "smtp", "to": len(cfg["to"])}
         except Exception as e:  # noqa: BLE001 - fall back to the outbox
-            err = type(e).__name__
+            err = smtp_reason(e)
     out = Path(outbox or OUTBOX)
     out.mkdir(parents=True, exist_ok=True)
     name = time.strftime("alert-%Y%m%d-%H%M%S", time.gmtime(now or time.time())) + ".html"
