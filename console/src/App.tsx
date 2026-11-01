@@ -22,6 +22,7 @@ const FIRST = "laptop_full";                         // the recording shown on a
 export default function App() {
   const kind = useStore(run, (s) => s.kind);
   const dialog = useStore(ui, (s) => s.dialog);
+  const drawerOpen = useStore(ui, (s) => s.drawer);
   const [current, setCurrent] = useState<string | null>(null);
   const [side, setSide] = useSize("oiq.inspector", 420, 300, 720);
   const [drawer, setDrawer] = useSize("oiq.drawer", 220, 90, 600);
@@ -69,7 +70,7 @@ export default function App() {
               {kind === "health" ? <HealthSide /> : <Inspector />}
             </div>
           </div>
-          <Splitter axis="y" size={drawer} onSize={setDrawer} />
+          {drawerOpen && <Splitter axis="y" size={drawer} onSize={setDrawer} />}
           <StreamDrawer height={drawer} />
         </main>
       </div>

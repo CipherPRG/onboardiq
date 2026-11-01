@@ -23,7 +23,7 @@ export function StreamDrawer({ height }: { height: number }) {
 
   return (
     <section className="flex flex-col min-h-0 bg-bg border-t border-border" style={{ height: drawer ? height : 28 }} aria-label="Event stream">
-      <PanelHeader title={<>Event stream <span className="text-faint font-normal">{shown.length}{shown.length !== events.length && ` of ${events.length}`}</span></>}>
+      <PanelHeader title={<>Raw events <span className="text-faint font-normal">{shown.length}{shown.length !== events.length && ` of ${events.length}`}</span></>}>
         {drawer && (
           <>
             <label className="flex items-center gap-1 text-2xs text-muted"><input type="checkbox" checked={wrap} onChange={(e) => ui.set({ wrap: e.target.checked })} /> wrap</label>

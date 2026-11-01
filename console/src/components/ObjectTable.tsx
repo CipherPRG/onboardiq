@@ -5,7 +5,7 @@ import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, use
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { run, ui, useStore, type Attempt } from "../lib/store";
 import { matchAttempt, parse } from "../lib/query";
-import { FAMILY_LABEL, num, secs, verdictLabel } from "../lib/format";
+import { FAMILY_LABEL, num, verdictLabel } from "../lib/format";
 import { seriesFromSamples, summarize } from "../lib/series";
 import { PanelHeader, Pill, cn } from "./ui";
 
@@ -14,27 +14,21 @@ interface Row extends Attempt { base: number | null; load: number | null; change
 const col = createColumnHelper<Row>();
 const mono = "font-mono tabular-nums";
 const columns = [
-  col.accessor("family", { header: "Metric", size: 92, cell: (c) => FAMILY_LABEL[c.getValue()] ?? c.getValue() }),
-  col.accessor("attempt", { header: "#", size: 34, cell: (c) => <span className={mono}>{c.getValue()}</span> }),
-  col.accessor("object", { header: "Object", size: 190, cell: (c) => <span className={cn(mono, "text-fg")} title={c.getValue()}>{c.getValue()}</span> }),
-  col.accessor("oid", { header: "OID", size: 200, cell: (c) => <span className={cn(mono, "text-muted")} title={c.getValue()}>{c.getValue()}</span> }),
-  col.accessor((r) => r.pick.value_type ?? "–", { id: "type", header: "Type", size: 72 }),
-  col.accessor((r) => r.pick.under_load ?? "–", { id: "predicted", header: "Predicted", size: 78 }),
-  col.accessor("base", { header: "Baseline", size: 92, cell: (c) => <span className={mono}>{num(c.getValue(), c.row.original.unit)}</span> }),
-  col.accessor("load", { header: "Under load", size: 92, cell: (c) => <span className={mono}>{num(c.getValue(), c.row.original.unit)}</span> }),
+  col.accessor("family", { header: "Metric", size: 132, cell: (c) => (
+    <span>{FAMILY_LABEL[c.getValue()] ?? c.getValue()}{c.row.original.attempt > 1 && <span className="text-warn text-2xs"> · try {c.row.original.attempt}</span>}</span>) }),
+  col.accessor("object", { header: "Object", size: 200, cell: (c) => <span className={cn(mono, "text-fg")} title={`${c.getValue()} (${c.row.original.oid})`}>{c.getValue()}</span> }),
+  col.accessor("base", { header: "At rest", size: 96, cell: (c) => <span className={mono}>{num(c.getValue(), c.row.original.unit)}</span> }),
+  col.accessor("load", { header: "Under load", size: 96, cell: (c) => <span className={mono}>{num(c.getValue(), c.row.original.unit)}</span> }),
   col.accessor("change", {
-    header: "Δ under load", size: 96, cell: (c) => {
+    header: "Change", size: 84, cell: (c) => {
       const v = c.getValue();
       // large rises read better as a factor (×503) than as a percentage (+50,200%)
       const text = v === null ? "–" : v >= 9 ? `×${Math.round(1 + v).toLocaleString()}` : `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`;
       return <span className={cn(mono, v === null ? "text-faint" : v > 0 ? "text-ok" : "text-crit")}>{text}</span>;
     },
   }),
-  col.accessor((r) => (r.total ? r.passed / r.total : -1), { id: "checks", header: "Checks", size: 64,
-    cell: (c) => <span className={mono}>{c.row.original.total ? `${c.row.original.passed}/${c.row.original.total}` : "–"}</span> }),
-  col.accessor((r) => r.verdict ?? "", { id: "verdict", header: "Verdict", size: 156,
+  col.accessor((r) => r.verdict ?? "", { id: "verdict", header: "Verdict", size: 160,
     cell: (c) => { const [l, t] = verdictLabel(c.row.original.verdict); return <Pill tone={t}>{l}</Pill>; } }),
-  col.accessor("seconds", { header: "Time", size: 60, cell: (c) => <span className={mono}>{secs(c.getValue())}</span> }),
 ];
 
 export function ObjectTable() {

@@ -1,10 +1,11 @@
 // Left pane: recorded sessions (everywhere), onboarded devices (local server) and what this deployment can do.
+import { useState } from "react";
 import { app, run, ui, useStore } from "../lib/store";
 import { replay } from "../lib/control";
 import { verdictLabel } from "../lib/format";
 import { utcStamp } from "../lib/time";
 import { Dot, PanelHeader, cn } from "./ui";
-import type { Onboarded } from "../lib/types";
+import type { Onboarded, SessionIndexEntry } from "../lib/types";
 
 const OWN = /-(\d{8})-(\d{6})$/;            // recordings your own runs saved carry their start time in the name
 
@@ -18,35 +19,44 @@ function recordingOf(o: Onboarded, ids: string[]) {
 export function Sidebar({ current, onPick }: { current: string | null; onPick: (id: string) => void }) {
   const { mode, index, onboarded, status } = useStore(app, (s) => ({ mode: s.mode, index: s.index, onboarded: s.onboarded, status: s.status }));
   const origin = useStore(run, (s) => s.origin);
+  const [mineOpen, setMineOpen] = useState(false);
+  const examples = index.filter((s) => !OWN.test(s.id));
+  const mine = index.filter((s) => OWN.test(s.id));
+
+  const item = (s: SessionIndexEntry) => {
+    const verdicts = Object.values(s.summary ?? {});
+    const own = OWN.test(s.id);
+    const active = origin === "replay" && current === s.id;
+    const when = own ? utcStamp(s.recorded) : s.recorded?.slice(0, 10);
+    return (
+      <li key={s.id}>
+        <button onClick={() => { onPick(s.id); void replay(s.id); }} aria-current={active || undefined} title={`${s.highlight ?? s.id}: ${s.device}`}
+          className={cn("w-full text-left px-2 py-1.5 border-b border-border/60 hover:bg-hover block",
+            active && "bg-raise shadow-[inset_2px_0_0_#4c8dff]")}>
+          <span className="block text-xs text-fg leading-4">{s.highlight ?? s.id}</span>
+          <span className="flex items-center gap-1 mt-0.5 text-2xs text-faint min-w-0">
+            {s.kind === "health" ? <span className="shrink-0">monitor ·</span> : verdicts.map((v, i) => <Dot key={i} tone={verdictLabel(v)[1]} />)}
+            <span className="truncate ml-0.5">{own ? when : `${s.device} · ${when}`}</span>
+          </span>
+        </button>
+      </li>
+    );
+  };
 
   return (
     <aside className="w-64 shrink-0 border-r border-border bg-panel flex flex-col min-h-0" aria-label="Sessions and devices">
-      <PanelHeader title="Recordings"><span className="text-2xs text-faint">{index.length}</span></PanelHeader>
-      <ul className="overflow-auto min-h-0 flex-1">
-        {index.map((s) => {
-          const verdicts = Object.values(s.summary ?? {});
-          const own = OWN.test(s.id);
-          const active = origin === "replay" && current === s.id;
-          return (
-            <li key={s.id}>
-              <button onClick={() => { onPick(s.id); void replay(s.id); }} aria-current={active || undefined}
-                className={cn("w-full text-left px-2 py-1.5 border-b border-border/60 hover:bg-hover block",
-                  active && "bg-raise shadow-[inset_2px_0_0_#4c8dff]")}>
-                <span className="block text-xs text-fg leading-4">{s.highlight ?? s.id}</span>
-                <span className="block text-2xs text-muted truncate">{own && <span className="text-accent">your run · </span>}{s.device}</span>
-                <span className="flex items-center gap-1 mt-1">
-                  {s.kind === "health"
-                    ? <span className="text-2xs text-faint font-mono">monitor run · {own ? utcStamp(s.recorded) : s.recorded?.slice(0, 10)}</span>
-                    : <>
-                        {verdicts.map((v, i) => <Dot key={i} tone={verdictLabel(v)[1]} />)}
-                        <span className="text-2xs text-faint font-mono ml-1">onboarding · {own ? utcStamp(s.recorded) : s.recorded?.slice(0, 10)}</span>
-                      </>}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="overflow-auto min-h-0 flex-1">
+        <PanelHeader title="Example runs"><span className="text-2xs text-faint">{examples.length}</span></PanelHeader>
+        <ul>{examples.map(item)}</ul>
+        {mine.length > 0 && (
+          <details open={mineOpen} onToggle={(e) => setMineOpen((e.target as HTMLDetailsElement).open)}>
+            <summary className="flex items-center h-7 px-2 border-y border-border bg-raise text-xs font-semibold cursor-pointer select-none">
+              Your runs<span className="ml-auto text-2xs text-faint font-normal">{mine.length}</span>
+            </summary>
+            <ul>{mine.map(item)}</ul>
+          </details>
+        )}
+      </div>
 
       {mode === "local" && (
         <>

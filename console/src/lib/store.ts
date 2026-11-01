@@ -48,7 +48,7 @@ export interface UiState {
   dialog: "onboard" | "monitor" | null; speed: number; paused: boolean;
 }
 export const ui = create<UiState>({
-  selected: null, query: "", drawer: true, wrap: false, follow: true, sidebar: true, dialog: null, speed: 4, paused: false,
+  selected: null, query: "", drawer: false, wrap: false, follow: true, sidebar: true, dialog: null, speed: 4, paused: false,
 });
 
 export interface AppState {
@@ -135,4 +135,7 @@ export function reduce(s: RunState, ev: RunEvent): Partial<RunState> {
   }
 }
 
-export const dispatch = (ev: RunEvent) => run.set((s) => reduce(s, ev));
+export const dispatch = (ev: RunEvent) => {
+  run.set((s) => reduce(s, ev));
+  if (ev.kind === "verify-start") ui.set({ selected: null });    // the inspector follows the pick being tested
+};
