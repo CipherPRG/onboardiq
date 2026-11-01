@@ -81,10 +81,21 @@ def test_a_hostile_request_still_runs_only_the_fixed_demo(sandbox_srv):
     assert code == 429 and "run limit" in out["error"]          # second run refused (limit is 1 in this test)
 
 
-def test_monitor_mode_is_off_in_the_sandbox(sandbox_srv):
+def test_hosted_monitor_needs_a_proven_onboarding_and_ignores_the_request(sandbox_srv, monkeypatch):
     port, _ = sandbox_srv
+    server.STATE.pop("proven", None)
     code, out = post(port, "/api/monitor", {"onboarded": "onboard_20260101_000000"})
-    assert code == 404 and "not available" in out["error"]
+    assert code == 409 and "onboarding first" in out["error"]
+    watched = []
+    monkeypatch.setattr(server, "watch", lambda run, opts: watched.append(opts) or setattr(run, "finished", True))
+    server.STATE["proven"] = {"device": "d", "args": {"modules": "UCD-SNMP-MIB"}, "spec": {}}
+    code, out = post(port, "/api/monitor", {"host": "10.0.0.5", "port": 22, "interval": 1, "alert_to": "a@b.c",
+                                            "record": True, "community": "secret"})
+    assert code == 202 and watched == [server.sandbox_monitor_options()]
+    o = watched[0]
+    assert o["host"] == "localhost" and not o["alert"] and not o["record"] and o["alert_to"] == []
+    assert o["script"]["end_at"] <= 300 and o["script"]["load_s"] <= 120     # short, and it ends by itself
+    server.STATE.pop("proven", None)
 
 
 def test_status_reports_the_sandbox(sandbox_srv):

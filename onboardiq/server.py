@@ -132,6 +132,18 @@ def sandbox_options():
             "snmp": credentials({}), "record": False}
 
 
+# The hosted monitor is a fixed four-minute show: quiet, then CPU and memory load together, then recovery.
+DEMO_MONITOR = {"interval": 10.0, "load_at": 40, "load_s": 120, "end_at": 240, "memory_target": 0.70}
+
+
+def sandbox_monitor_options():
+    """The only monitor the hosted demo allows: this machine's own agent, the picks its last onboarding proved,
+    a scripted load, no email, nothing saved. Nothing here comes from the request."""
+    return {"onboarded": None, "host": "localhost", "port": LOCAL_SNMP_PORT, "snmp": credentials({}),
+            "interval": DEMO_MONITOR["interval"], "explain": True, "record": False, "alert": False, "alert_to": [],
+            "local": True, "script": dict(DEMO_MONITOR)}
+
+
 def client_ip(xff, peer, hops=None):
     """The visitor's address. X-Forwarded-For is client-controlled on its left; only the entries appended by our
     own proxy (the right-most `hops`) can be trusted, so the visitor's address is the `hops`-th from the right.
@@ -363,7 +375,14 @@ def watch(run: Run, opts: dict):
     """Live health monitor: one reading every `interval` seconds until stopped (or 30 minutes)."""
     rec = None
     try:
-        saved, mods = load_onboarding(RESULTS / f"{opts['onboarded']}.json")
+        if opts.get("script"):
+            saved = STATE.get("proven")
+            if not saved:
+                raise ValueError("no proven picks yet")
+            mods = saved["args"]["modules"].split(",")
+        else:
+            saved, mods = load_onboarding(RESULTS / f"{opts['onboarded']}.json")
+        script, loaded = opts.get("script"), False
         device = str(saved.get("device") or saved.get("args", {}).get("device") or "device")[:200]
         snmp = Snmp(opts["host"], port=opts["port"], **opts["snmp"])
         mon = Monitor(snmp, saved, mods, STATE["mib_dir"], explain_on=opts["explain"],
@@ -377,8 +396,18 @@ def watch(run: Run, opts: dict):
                   "policy": f"{mon.pol['name']} ({mon.pol['source']})", "local": opts["local"],
                   "explain": opts["explain"], "record": bool(rec)})
         began, fails, first = time.time(), 0, True
-        while not run.stop.is_set() and time.time() - began < MAX_MONITOR_S:
+        limit = script["end_at"] if script else MAX_MONITOR_S
+        while not run.stop.is_set() and time.time() - began < limit:
             t0 = time.time()
+            if script and not loaded and t0 - began >= script["load_at"]:
+                loaded = True                     # the scripted load: CPU and memory together, ends by itself
+                procs = start_cpu_load(script["load_s"])
+                size = memory_load_bytes(target=script["memory_target"])
+                if size is not None:
+                    procs.append(default_load("memory", script["load_s"], size))
+                run.load = procs
+                run.emit({"kind": "load", "what": "both" if size is not None else "cpu", "seconds": script["load_s"],
+                          "at": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())})
             try:
                 res = mon.poll()
                 fails = 0
@@ -401,12 +430,14 @@ def watch(run: Run, opts: dict):
             export_all([rec])
             saved_as = rec.stem
         run.emit({"kind": "end", "monitor": True, "saved": saved_as,
-                  "reason": "stopped" if run.stop.is_set() else "30-minute limit reached"})
+                  "reason": "stopped" if run.stop.is_set() else ("demo finished" if script else "30-minute limit reached")})
     except Exception as e:  # noqa: BLE001
-        run.emit({"kind": "error", "message": type(e).__name__ + ": " + str(e)[:300]})
+        run.emit({"kind": "error", "message": public_error(e) if SANDBOX else type(e).__name__ + ": " + str(e)[:300]})
     finally:
         stop_load(run)
         run.finished = True
+        if SANDBOX:
+            STATE["sandbox"]["last_end"] = time.time()
         with run.cond:
             run.cond.notify_all()
 
@@ -450,6 +481,9 @@ def execute(run: Run, opts: dict):
             saved = name
         # saved like a terminal onboarding, so the live monitor can pick it up; no community is stored
         ob = None
+        if SANDBOX and any(str(v["verdict"]).startswith("proven") for v in out["spec"].values()):
+            # in memory only: the hosted monitor polls exactly what this machine's last onboarding proved
+            STATE["proven"] = {"device": opts["device"], "args": {"modules": ",".join(opts["modules"])}, "spec": out["spec"]}
         if not SANDBOX:                      # the hosted demo keeps nothing on disk
             RESULTS.mkdir(exist_ok=True)
             ob = f"onboard_{time.strftime('%Y%m%d_%H%M%S')}"
@@ -521,7 +555,7 @@ class Handler(BaseHTTPRequestHandler):
                 out["run"] = {"id": run.id, "kind": run.kind, "device": run.opts.get("device")}
             if SANDBOX:
                 sb = STATE["sandbox"]
-                out.update({"sandbox": True, "model": MODEL, "device": SANDBOX_DEVICE,
+                out.update({"sandbox": True, "model": MODEL, "device": SANDBOX_DEVICE, "monitor_ready": bool(STATE.get("proven")),
                             "modules": SANDBOX_MODULES, "cooldown_s": SANDBOX_COOLDOWN_S,
                             "runs_left": max(SANDBOX_MAX_RUNS - sb["runs"], 0),
                             "per_visitor": SANDBOX_PER_IP,
@@ -665,15 +699,25 @@ class Handler(BaseHTTPRequestHandler):
             threading.Thread(target=execute, args=(run, opts), daemon=True).start()
             return self._json(202, {"id": run.id})
         if url == "/api/monitor":
-            if SANDBOX:
-                return self._json(404, {"error": "monitoring is not available in the hosted demo"})
             with STATE["lock"]:
                 if STATE["run"] and not STATE["run"].finished:
                     return self._json(409, {"error": "a run is already in progress"})
-                try:
-                    opts = validate_monitor(body)
-                except (ValueError, TypeError) as e:
-                    return self._json(400, {"error": str(e)})
+                if SANDBOX:
+                    if not STATE.get("proven"):
+                        return self._json(409, {"error": "The monitor polls only what an onboarding proved on this machine. "
+                                                         "Run the live onboarding first, then monitor."})
+                    ip = client_ip(self.headers.get("X-Forwarded-For"), self.client_address[0])
+                    blocked = sandbox_gate(STATE["sandbox"], budget_left=budget_left(), ip=ip)
+                    if blocked:
+                        return self._json(429, {"error": blocked[0], "retry_after": blocked[1]})
+                    opts = sandbox_monitor_options()        # the request body is ignored on purpose
+                    STATE["sandbox"]["runs"] += 1
+                    ip_note(STATE["sandbox"].setdefault("ips", {}), ip, time.time())
+                else:
+                    try:
+                        opts = validate_monitor(body)
+                    except (ValueError, TypeError) as e:
+                        return self._json(400, {"error": str(e)})
                 run = Run(secrets.token_hex(6), kind="monitor")
                 run.opts = opts
                 STATE["run"] = run
@@ -682,6 +726,8 @@ class Handler(BaseHTTPRequestHandler):
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/(stop|load)", url)
         if m:
             run = STATE["run"]
+            if SANDBOX:
+                return self._json(404, {"error": "the hosted monitor runs its fixed four minutes"})
             if not run or run.id != m.group(1) or run.finished or run.kind != "monitor":
                 return self._json(404, {"error": "no such monitor"})
             if m.group(2) == "stop":

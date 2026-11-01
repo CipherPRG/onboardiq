@@ -1,6 +1,6 @@
 // The top bar: where you are (mode and source), the filter, playback for recordings and the run actions.
 import { app, notify, run, ui, useStore } from "../lib/store";
-import { Rejoined, attach, loadNow, replay, startRun, stopReplay, stopRun } from "../lib/control";
+import { Rejoined, attach, loadNow, replay, startMonitor, startRun, stopReplay, stopRun } from "../lib/control";
 import { utcStamp } from "../lib/time";
 import { CommandBar } from "./CommandBar";
 import { Button, Dot, Pill } from "./ui";
@@ -62,7 +62,8 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
               title="CPU and memory load together, for 120 s">CPU + memory 120 s</Button>
           </>
         )}
-        {liveRunning && kind === "health" && <Button variant="danger" onClick={() => stopRun()}>Stop</Button>}
+        {liveRunning && kind === "health" && mode === "sandbox" && <span className="text-2xs text-muted">Live monitor · CPU and memory load at 40 s · ends by itself after 4 min</span>}
+        {liveRunning && kind === "health" && mode !== "sandbox" && <Button variant="danger" onClick={() => stopRun()}>Stop</Button>}
         {mode === "local" && (
           <>
             <Button onClick={() => ui.set({ dialog: "monitor" })} disabled={liveRunning}>Monitor…</Button>
@@ -70,10 +71,16 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
           </>
         )}
         {mode === "sandbox" && (
-          <Button variant="primary" disabled={liveRunning || paused}
-            onClick={() => startRun({}, "Demo device").catch(showError)}>
-            Run live on demo device
-          </Button>
+          <>
+            <Button disabled={liveRunning || paused} title="Four minutes of live health readings with a CPU and memory load in the middle"
+              onClick={() => startMonitor({}, "Demo device").catch(showError)}>
+              Monitor demo device
+            </Button>
+            <Button variant="primary" disabled={liveRunning || paused}
+              onClick={() => startRun({}, "Demo device").catch(showError)}>
+              Run live on demo device
+            </Button>
+          </>
         )}
       </div>
     </header>

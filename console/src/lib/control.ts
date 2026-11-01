@@ -120,7 +120,7 @@ async function rejoinOr(err: Error): Promise<{ id: string }> {
   attach(s.run);
   throw new Rejoined();
 }
-export class Rejoined extends Error { constructor() { super("A run is already going, so you are watching it live. Start your own when it ends."); } }
+export class Rejoined extends Error { constructor() { super("Someone else's run is going on the demo device, so you are watching it live. Runs take turns because each one load-tests the same machine: two at once would spoil each other's measurements. Start yours when this one ends."); } }
 
 const runId = () => run.get().runId;
 export const stopRun = () => post(`/api/runs/${runId()}/stop`, {});
