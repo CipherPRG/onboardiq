@@ -124,3 +124,30 @@ def test_scrub_also_cleans_the_saved_device_line():
          "polls": []}
     out = json.dumps(replay.scrub_raw(d))
     assert "OFFICEPC" not in out and "Linux device 6.1" in out
+
+
+def test_every_level_change_is_explained_and_an_alert_never_goes_out_bare(tmp_path):
+    dev = _device(tmp_path)
+    clock = [1_000_000.0]
+    asked = []
+    mon = Monitor(dev, {"spec": SPEC}, ["HOST-RESOURCES-MIB"], None, policy=health.load_policy(None),
+                  cands=_cands(), clock=lambda: clock[0], explain_on=True)
+    fake = lambda ev: asked.append(ev["score_out_of_100"]) or {"headline": "h", "source": "model"}
+    out = []
+    for cpu in (10, 99, 10, 99):                  # level changes 10 s apart: inside the old one-a-minute limit
+        _set(dev, "1.3.6.1.2.1.25.3.3.1.2.1", "INTEGER", cpu)
+        out.append(mon.poll(explain_now=fake))
+        clock[0] += 10
+    assert len(asked) == 3 and all("explanation" in r for r in out[1:])
+
+    class Alerts:                                 # explanations off: the alert still carries what, why and what to check
+        def consider(self, res):
+            return {"subject": "s", "via": "outbox"} if res.get("explanation") else None
+    mon = Monitor(dev, {"spec": SPEC}, ["HOST-RESOURCES-MIB"], None, policy=health.load_policy(None),
+                  cands=_cands(), clock=lambda: clock[0], alerter=Alerts())
+    _set(dev, "1.3.6.1.2.1.25.3.3.1.2.1", "INTEGER", 10)
+    mon.poll()
+    _set(dev, "1.3.6.1.2.1.25.3.3.1.2.1", "INTEGER", 99)
+    r = mon.poll()
+    card = r["explanation"]
+    assert r.get("alert") and card["source"] == "template" and card["what_happened"] and card["why"] and card["check"]

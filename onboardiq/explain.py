@@ -27,7 +27,9 @@ SYSTEM = (
     "rows_below_full_marks equals rows for a family, say all of them moved together, which points to one cause "
     "for the whole device; if only some did, name the part that is out on its own; give the reading and the limit "
     'it was compared with). '
-    "If the device is healthy, say so plainly. No markdown, no lists."
+    "If the device is healthy, say so plainly. No markdown, no lists. "
+    "Write for someone who is not a network specialist: say CPU, memory, disk, temperature or fan, and never use "
+    "the words families, rows, served, coverage or full marks."
 )
 FIELDS = ("headline", "what_happened", "why")
 LABEL = {"cpu": "CPU", "cpu_load": "CPU load", "memory": "Memory", "disk": "Disk", "temperature": "Temperature",
@@ -132,6 +134,12 @@ def template_card(ev):
     if ev.get("anomalies"):
         why += " Unusual for this device: " + "; ".join(ev["anomalies"][:2]) + "."
     return {"headline": f"{LABEL.get(fam, fam)} {level}: {row['row']}"[:80], "what_happened": what + ".", "why": why}
+
+
+def template_explanation(ev, note=None):
+    """The template card with what to check, in the same shape explain() returns (no model call)."""
+    c = {**template_card(ev), "check": next_step(ev)}
+    return {**c, "text": _flat(c), "source": "template", "checked": True, **({"note": note} if note else {})}
 
 
 def template(ev):

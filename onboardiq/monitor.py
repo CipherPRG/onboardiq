@@ -89,14 +89,19 @@ class Monitor:
         res["at"] = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(now))
         self.history.append((res["at"][11:], res["score"]))
         moved = res["level"] != self.last_level and self.last_level is not None
-        if self.explain_on and res["score"] is not None and self.explained < self.max_explain \
-                and now - self.last_explained >= 60 \
-                and (moved or events or (res["anomalies"] and res["level"] != "ok")):
+        # a level change is always explained (it may send an email); other notes at most once a minute
+        worth = moved or ((events or (res["anomalies"] and res["level"] != "ok")) and now - self.last_explained >= 60)
+        ev = None
+        if self.explain_on and res["score"] is not None and self.explained < self.max_explain and worth:
             ev = explain.evidence(res, res["anomalies"], prof.get("provenance"), self.history, res["at"][11:])
             if events:
                 ev["events"] = events
             res["explanation"] = (explain_now or explain.explain)(ev)
             self.last_explained, self.explained = now, self.explained + 1
+        elif moved and self.alerter and res["score"] is not None:
+            # no model this time (explanations off, or this run's allowance used): the alert still says what and why
+            ev = explain.evidence(res, res["anomalies"], prof.get("provenance"), self.history, res["at"][11:])
+            res["explanation"] = explain.template_explanation(ev)
         self.last_level = res["level"]
         if self.alerter:
             sent = self.alerter.consider(res)    # an email (or outbox file) when the level changed
