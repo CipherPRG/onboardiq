@@ -1,7 +1,7 @@
 // The top bar: where you are (mode and source), the filter, playback for recordings and the run actions.
 import { app, run, ui, useStore } from "../lib/store";
 import { attach, loadNow, replay, startRun, stopReplay, stopRun } from "../lib/control";
-import { localStamp } from "../lib/time";
+import { utcStamp } from "../lib/time";
 import { CommandBar } from "./CommandBar";
 import { Button, Dot, Pill } from "./ui";
 
@@ -25,7 +25,7 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
       <span className="text-faint">/</span>
       <span className="text-xs text-muted">console</span>
       <Pill tone={tone}><Dot tone={tone} />&nbsp;{label}</Pill>
-      {origin === "replay" && <Pill tone="info" className="!h-6 !text-xs">Recording from {recorded ? localStamp(recorded) : "an earlier run"}, not live</Pill>}
+      {origin === "replay" && <Pill tone="info" className="!h-6 !text-xs">Recording from {recorded ? utcStamp(recorded) : "an earlier run"}, not live</Pill>}
       {origin === "live" && (
         <Pill tone="crit" className="!h-6 !text-xs"><Dot tone="crit" />&nbsp;
           {status === "running" ? "Live now" : "Live run, ended"}{mode === "sandbox" ? " on the demo device" : ""}
