@@ -2,165 +2,131 @@
 
 [![tests](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml/badge.svg)](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml) License: Apache-2.0
 
-An agent that onboards an SNMP device into monitoring without a hand-made template: Muse Spark reads the device's MIB text and picks the object for each health family (CPU, memory, disk, temperature, fan); the agent then tests every pick on the device (existence, type and range, a rise under load, an independent second reading) and monitors only what passed. The 0-100 health score uses only proven readings, and readings that leave a row's own normal are flagged. When the score moves, Muse Spark Open explains why in plain English, and code checks that every number in the explanation appears in the readings.
+**An agent that onboards a network device into monitoring by reading its manual, and lets the device check every answer.**
 
-**What has and has not been shown.** Live on two devices: a Linux machine (net-snmp) and a MikroTik RouterOS 7 virtual router; neither serves temperature or fan sensors. Accuracy numbers come from recorded walks of real devices (LibreNMS test recordings), not live hardware. A family with nothing provable is reported as unproven or not supported and left out of the score.
+Muse Spark reads a device's MIB files and picks the object to monitor for each health metric (CPU, memory, disk,
+temperature, fan). OnboardIQ then tests every pick on the device itself: does it exist, is the type and range right,
+does it move the way the model predicted under real load, does an independent object agree. A pick that fails goes
+back to the model with the measured evidence, and the model reads again. Only proven picks are monitored, scored
+0-100 and explained in plain English. Code checks that every number in the explanation comes from the readings.
 
-Built for the Meta Global AI Developer Hackathon (Oct 26 - Nov 4, 2026), Indie track, theme "Push the Frontier".
+Built for the Meta Global AI Developer Hackathon (Oct 26 - Nov 4, 2026), Indie track.
 
-## Built during the hackathon
-Everything in this repository was written on or after Oct 27, 2026 (IST). See BUILD_LOG.md for a dated record and the git history for proof.
+## Try it
 
-## Setup (WSL2 Ubuntu)
+| | What you get | What you need |
+|---|---|---|
+| **Replay in the browser** ([cipherprg.github.io/onboardiq](https://cipherprg.github.io/onboardiq/)) | The story page and the console, playing recordings of real runs | Nothing |
+| **Run it yourself** (`docker compose up --build`) | The full console: onboard any device you can reach, upload its MIB files, monitor it live, export every event | Docker; a Meta API key for live runs (recordings play without one) |
+| **Hosted live demo** | The real agent, live, on a fixed demo device; limited runs per visitor | Nothing (see [docs/SANDBOX.md](docs/SANDBOX.md); not deployed if no link is shown here) |
+
+```bash
+git clone https://github.com/CipherPRG/onboardiq && cd onboardiq
+echo "MODEL_API_KEY=..." > .env          # optional: without it, recordings still replay
+docker compose up --build                # open http://127.0.0.1:8765/console/ (this machine only)
+docker compose run --rm oiq verify       # offline tests and a keyless replay, then exit
+```
+The container holds the web page and console, the agent, the tests and a real net-snmp agent on 127.0.0.1 inside it.
+That agent is the device you can onboard and monitor straight away: in **Onboard device…** keep host `localhost`,
+modules `HOST-RESOURCES-MIB,UCD-SNMP-MIB` and choose "Load this machine". Only the open IETF/net-snmp MIBs are bundled;
+for any other device, add its MIB files in the dialog (converted locally, never uploaded anywhere else).
+
+## How a device is onboarded
+
+1. **Ask the device.** One read-only SNMP query (`sysDescr`, `sysObjectID`) says what it is.
+2. **Read the manual.** Its MIB files are converted locally (pysmi, with automatic repairs for common vendor mistakes)
+   and reduced to the candidate objects for each metric.
+3. **Pick.** Muse Spark 1.3 picks one object per metric, quotes the MIB line it relied on and predicts how the value
+   should move under load.
+4. **Test on the device.** Existence, type, range and units; then a baseline, real CPU or memory load, and a check
+   that the value moved the predicted way; or an independent second object that must agree.
+5. **Correct.** A failed pick goes back to the model with the readings that disproved it; it picks again (up to three
+   attempts). What cannot be proven is reported as unproven or not on the device, never guessed.
+6. **Score and explain.** Proven objects are polled into a 0-100 health score per metric and overall. When the level
+   changes, Muse Spark Open writes a short explanation; code rejects it if any number in it is not in the readings,
+   and falls back to a labelled template. "What to check next" comes from a fixed list per metric, not the model.
+
+A recorded example (`laptop_full`): the model's first CPU pick, `ssCpuRawIdle`, was meant to rise under load. On the
+device its rate fell from 1197/s to 1.5/s, so it was rejected; the model re-read with that evidence and picked
+`ssCpuRawUser`, which rose under load and was proven.
+
+## The console
+
+`console/` is a React, TypeScript and Vite app (Tailwind, TanStack Table and Virtual, Recharts; exact versions in
+`console/package-lock.json`). Everything it shows is real: live runs stream from the server, recordings replay at
+their recorded timing (1×, 4×, 16× or instantly). Nothing is simulated.
+
+- **Run graph:** device → MIB modules → model → each attempt → final verdict, coloured by what the device measured.
+- **Object table:** every pick with its prediction, baseline, value under load, change, checks passed and verdict.
+- **Inspector:** the selected pick's measurements, the MIB line the model quoted, every check, the re-read reasoning.
+- **Health view:** score per poll with thresholds, each metric's sub-score and worst row, the latest explanation.
+- **Command bar:** `family:cpu verdict:rejected object:ssCpu oid:2021 kind:verify attempt:2` and free text (⌘K).
+- **Event stream:** every event exactly as it arrived, with word wrap, follow, and **Export JSON**.
+
+The same console runs everywhere and shows what the server behind it allows: recordings only (static hosting), one
+fixed live run (hosted demo), or the full onboard, upload and monitor tools (your own server).
+
+## What has been shown, and what has not
+
+- **Live** on two devices: a Linux machine (net-snmp) and a MikroTik RouterOS 7 virtual router. Neither serves
+  temperature or fan sensors, so those metrics are reported as not on the device.
+- **Accuracy figures** come from recorded walks of real devices (LibreNMS test recordings) replayed through the same
+  verifier, not from live hardware of every vendor.
+- **Recordings are recomputed, not stored.** A health recording keeps every raw SNMP answer; replaying it runs the
+  same scoring, anomaly and explanation-check code, so editing one raw number changes the replayed score
+  (`tests/test_monitor_raw.py` does exactly that).
+- **Cost:** a full onboarding run with Muse Spark 1.3 costs about $0.25-0.30 in model calls (measured: $0.27 for one
+  live run, 6 calls). Every call passes a daily dollar cap, a per-run cap and an off switch in code.
+
+## Models
+
+Every model called at runtime is a Meta model: **Muse Spark 1.3** (Meta Model API) reads MIBs and picks objects;
+**Muse Spark Open** (Baseten, or Fireworks) writes the health explanations. `onboardiq/config.py` warns if any other
+model is configured.
+
+## Security
+
+Read-only SNMP (no SET path); model output can only choose among numeric OIDs from your MIB files and never reaches a
+shell; SNMP credentials never reach a command line, a log or a recording; the server listens on 127.0.0.1, checks
+Host and Origin, and sends a strict Content-Security-Policy; the hosted demo ignores the request body and runs a fixed
+target with per-visitor, cooldown and dollar limits. Details, what leaves your machine, and how to report a problem:
+[SECURITY.md](SECURITY.md).
+
+## Without Docker (WSL2 or Linux)
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-cp .env.example .env          # paste MODEL_API_KEY into .env
-.venv/bin/python -m pytest -q tests      # offline tests, no API calls
-.venv/bin/python scripts/smoke.py        # first API call, prints cost
+cp .env.example .env                          # put MODEL_API_KEY in it
+.venv/bin/python -m pytest -q tests           # offline tests, no API calls
+(cd console && npm ci && npm run build)       # builds the console into web/console
+.venv/bin/python scripts/intake.py ~/vendor_mibs --out ~/data/mibs_json   # convert a folder of MIB files
+.venv/bin/python -m onboardiq.server          # open http://127.0.0.1:8765/console/
 ```
+Command line: `scripts/onboard.py` (onboard, `--record`, `--replay`), `scripts/monitor.py` (score, `--alert`,
+`--record-raw`, `--replay-raw`), `scripts/accuracy_test.py` and `scripts/build_benchmark.py` (benchmarks).
 
-MIB files are not stored in this repo (vendor MIBs have their own licences). To onboard a device, put its MIB files in a folder
-and convert them to JSON with the bundled intake script (uses pysmi's `mibdump`, installed by `requirements.txt`):
+## Alerts
 
-```bash
-.venv/bin/python scripts/intake.py ~/vendor_mibs --out ~/data/mibs_json
-.venv/bin/python scripts/intake.py ~/vendor_mibs --out ~/data/mibs_json --only HOST-RESOURCES-MIB,UCD-SNMP-MIB
-```
+When a device's level changes, the monitor sends one email (and one when it recovers) with the score, the per-metric
+table, the explanation and what to check. SMTP settings come from the environment only (`OIQ_SMTP_HOST`,
+`OIQ_SMTP_PORT`, `OIQ_SMTP_USER`, `OIQ_SMTP_PASS`, `OIQ_ALERT_TO`); without them, each alert is written to `outbox/`.
 
-The open IETF/net-snmp MIBs (HOST-RESOURCES-MIB, UCD-SNMP-MIB, LM-SENSORS-MIB) usually ship with net-snmp (look in `/usr/share/snmp/mibs` after `apt install snmp`).
-To only watch a recorded session, no MIBs, key or device are needed (see "Judge mode" below).
+## Repository
 
-## Day-1 accuracy test
+| Path | What |
+|---|---|
+| `onboardiq/` | The agent: MIB intake and repair, reader (Muse Spark), verifier, health scoring, explanations, server |
+| `console/` | The React console |
+| `web/` | The story page; `web/sessions/` holds the recordings both pages play |
+| `tests/` | Offline tests: recorded sessions replayed through the real verifier, security and sandbox checks |
+| `scripts/` | Command-line tools, benchmarks, MIB fetch and intake |
+| `docs/SANDBOX.md` | The hosted demo: its locks and how to deploy, pause and delete it |
 
-```bash
-.venv/bin/python scripts/accuracy_test.py --modes baseline   # free, keyword parser only
-.venv/bin/python scripts/accuracy_test.py                    # baseline vs Muse Spark with MIB vs without MIB
-```
-
-Ground truth (`eval/ground_truth_day1.json`) covers Cisco, Fortinet and Linux (net-snmp), taken from
-the public MIB files, with deliberate traps: deprecated objects, thresholds, and per-VDOM / per-cluster
-CPU objects that look right but are not device-wide.
-
-## Spend safety
-
-Every paid call goes through `onboardiq/spend_guard.py` (daily dollar cap, per-run call cap, `OIQ_PAID=off`
-switch) and identical requests are served from a disk cache. The Meta Model API billing "spend limit"
-only sends an email, so the limit is enforced in code.
-
-## Multi-vendor benchmark
-
-```bash
-python scripts/build_benchmark.py            # needs ~/data/librenms and ~/data/mibs_json
-OIQ_MAX_CALLS_PER_RUN=60 python scripts/accuracy_test.py --truth data/benchmark_librenms.json \
-    --split dev --modes baseline,with-mib,no-mib --effort high
-```
-The answer key comes from LibreNMS device definitions (GPL) and is generated locally, not committed.
-Tune on `--split dev`; report on `--split test`.
-
-## Judge mode: one command, no key, no accounts
-
-```bash
-docker compose up --build            # then open http://localhost:8765 (reachable from this machine only)
-docker compose run --rm oiq verify   # offline tests + a keyless replay, then exit
-```
-The container runs the web page, a real net-snmp agent on 127.0.0.1 inside it (the device that gets onboarded and
-monitored), the offline tests and the replays. Only the open IETF/net-snmp MIBs are bundled (HOST-RESOURCES, UCD-SNMP,
-LM-SENSORS); vendor MIBs never are. To run a live onboarding inside the container, put your own key in a `.env` file
-next to `docker-compose.yml` (`MODEL_API_KEY=...`); without one, recorded sessions replay with their recorded model answers.
-
-### Without Docker: replay a real session (no device, no API key)
-
-```bash
-pip install -r requirements.txt
-python scripts/onboard.py --replay demo/laptop_hostresources.json
-```
-This replays a recorded live onboarding of a Linux host (net-snmp) given only HOST-RESOURCES-MIB:
-Muse Spark picks `hrMemorySize` (total installed RAM) for memory, the verifier allocates 1 GiB and sees
-+0 bytes, rejects it, Muse Spark re-reads with that evidence and picks `hrStorageUsed`, and the verifier
-finds the RAM row and measures +1.1 GB: proven. Every SNMP response and model answer comes from the
-recording, served to the same verifier step in the same order, on a virtual clock.
-
-Record your own: `python scripts/onboard.py --device "..." --modules ... --lab --record demo/mine.json`
-
-## Security and privacy
-
-- **Read-only:** only SNMP GET/WALK; the code has no SET path.
-- **No secrets in the repo:** keys live in `.env` (gitignored, mode 600); recordings keep no host, community or local paths.
-- **No secrets on command lines:** the SNMP community or v3 credentials go into a private `snmp.conf` (dir 0700, file 0600) read by net-snmp through `SNMPCONFPATH`, deleted at exit; `ps` never shows them.
-- **Untrusted model output:** only numeric OIDs reach net-snmp (strict regex, `--` ends option parsing); hosts are validated; anything else is rejected before touching the device.
-- **Lab experiments** (CPU/memory load) only run against the machine's own agent.
-- **What leaves the network:** MIB text, the device description and verifier readings go to the model provider (Meta API, or Baseten for open weights). Credentials never do.
-- **Spend limits** in code (daily cap, per-run cap, off switch); dependencies pinned.
-- SNMPv2c sends the community in clear text on the wire; use SNMPv3 (`authPriv`) on real networks.
-
-## Web player (replays in the browser)
-
-`web/` is a static page that plays recorded sessions: the model's pick, the measurements drawn as they were
-taken, the verdict, and the model's re-read when a pick fails. No server, no API key, no device.
-
-```bash
-python scripts/export_playback.py          # demo/*.json -> web/sessions/*.json
-python -m http.server 8765 --directory web --bind 127.0.0.1   # replay only: open http://127.0.0.1:8765
-```
-The page runs no third-party scripts (Content-Security-Policy `script-src 'self'`) and inserts every string
-from a session as text, never as HTML.
-
-## Live mode (local server)
-
-```bash
-(cd console && npm ci && npm run build)  # once: builds the console into web/console (Docker does this for you)
-python -m onboardiq.server --port 8766   # live mode: open http://127.0.0.1:8766/console/
-```
-The console (React, TypeScript, Vite; exact versions in `console/package-lock.json`) opens on a recorded run and,
-connected to a local server, gains **Onboard device** and **Monitor**: add MIB files (converted locally), choose
-the device, the modules and how to prove CPU/memory picks (read-only plus a second object, load on this machine, or load you start on the device when
-asked). Steps and measurements stream to the page as they happen; finished runs are recorded and appear in the
-recordings list; every event can be exported as JSON. The server listens on 127.0.0.1 only, checks the Host header, refuses cross-site requests, keeps the
-API key in the process and the SNMP community in memory for the run only, and serves files from `web/` only.
-
-**Monitor live.** Below it, a **Monitor live** panel polls a device you have onboarded (from this page or from
-`scripts/onboard.py`) and draws the health score, the per-family breakdown, anomalies and Muse Spark's checked
-explanation as readings arrive. When the device is this machine's own agent, a button puts CPU load on it for
-120 seconds so you can watch the score fall and recover. A run stops after 30 minutes and can be saved as a replay.
-
-## Replays are recomputed, not stored
-
-A health recording made with `--record-raw` keeps every raw SNMP answer of every poll. Replaying it feeds those
-answers back into the same scoring, anomaly, restart-detection and explanation-check code, so the score on the page
-is calculated at replay time, not read from a file:
-
-```bash
-python scripts/monitor.py --replay-raw demo/laptop_stress.raw.json      # no device, no key
-```
-Edit one raw number in the file and the replayed score changes (`tests/test_monitor_raw.py` does exactly that). Only
-the model's wording of an explanation is served from the recording, and it is checked again against the recomputed
-readings. The monitor also reads `sysUpTime`: when uptime falls it reports a device restart (a 32-bit uptime wrap at
-497 days is told apart from a restart) and resets what counts as normal for each row.
-
-## Alerts and the explanation card
-
-When a device's level changes, `scripts/monitor.py --alert` (and the **Monitor live** panel) send one email, and one
-more when it recovers: score, per-family table, the explanation card and what to check next. A cooldown stops a
-flapping device filling an inbox; a move to a worse level is always sent. SMTP settings come from the environment
-only (`OIQ_SMTP_HOST`, `OIQ_SMTP_PORT`, `OIQ_SMTP_USER`, `OIQ_SMTP_PASS`, `OIQ_ALERT_TO`; for Gmail use an app
-password you create yourself). Without SMTP, each alert is written to `outbox/` as an HTML file you can open.
-
-The explanation card (headline, what happened, why, what to check) is written by Muse Spark Open from the measured
-facts only. Code checks that every number in the card occurs in those facts (it does not judge whether the wording is apt) and rejects a card that is cut off or not plain prose; then a
-template card from the same facts is shown and labelled. "What to check" is chosen by code from a fixed list per
-family, never written by the model.
-
-## Models
-Every model called at runtime is a Meta model: Muse Spark 1.3 (Meta Model API) reads MIBs, and Muse Spark Open (served on Baseten, or Fireworks) writes the explanations. `onboardiq/config.py` prints a warning if any other model name is configured.
-
-## Second opinion from the open model
-
-`python scripts/model_audit.py` asks Muse Spark Open (Baseten) to review this repository against the hackathon rubric
-and writes `results/model_audit.md`. It is a second opinion to check against the code, not a verdict.
+Everything here was written during the hackathon (on or after Oct 27, 2026, IST); see `BUILD_LOG.md` and the git
+history.
 
 ## License
 
-Apache License 2.0 (see `LICENSE`). Third-party data and libraries keep their own licences: LibreNMS test
-recordings and definitions (GPL) are downloaded by `scripts/build_benchmark.py` for evaluation only and are
-never committed; vendor MIB files are never committed or bundled.
+Apache License 2.0 (see `LICENSE`). Third-party data keeps its own licence: LibreNMS test recordings and definitions
+(GPL) are downloaded by `scripts/build_benchmark.py` for evaluation only and never committed; vendor MIB files are
+never committed or bundled.
