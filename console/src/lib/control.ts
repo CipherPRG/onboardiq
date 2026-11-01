@@ -79,10 +79,15 @@ function follow(id: string) {
 }
 
 /** Start an onboarding run. On the hosted demo the server ignores the body and runs its fixed device. */
+let starting = false;                                  // a start request is in flight: a second click must not wipe the view
 export async function startRun(body: unknown, device: string) {
-  reset({ origin: "live", kind: "onboarding", status: "running", device, source: "Live" });
-  const { id } = await post<{ id: string }>("/api/runs", body).catch(rejoinOr);
-  follow(id);
+  if (starting) return;
+  starting = true;
+  try {
+    reset({ origin: "live", kind: "onboarding", status: "running", device, source: "Live" });
+    const { id } = await post<{ id: string }>("/api/runs", body).catch(rejoinOr);
+    follow(id);
+  } finally { starting = false; }
 }
 
 export async function startMonitor(body: unknown, device: string) {
