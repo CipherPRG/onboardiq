@@ -50,7 +50,6 @@ STRICT_NAME = {"fan"}
 USED = ("used", "alloc", "busy", "inuse")
 FREE = ("free", "avail", "unused")
 TOTAL = ("total", "size", "capacity")
-NUMERIC_TYPES = {"gauge", "counter"}
 
 # Severity from the MIB's own enum label. Checked in this order; anything else is "unknown".
 ABSENT_LABELS = ("notpresent", "notinstalled", "absent", "missing", "removed", "notavailable")

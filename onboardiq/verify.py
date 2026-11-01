@@ -170,11 +170,6 @@ def _row_means(series):
     return {r: statistics.fmean(v) for r, v in rows.items()}
 
 
-def _mean(series):
-    vals = [v for _, rows in series for v in rows.values() if v is not None]
-    return statistics.fmean(vals) if vals else None
-
-
 # ---------------------------------------------------------------- 1. static
 def static_checks(snmp, item: Item) -> Result:
     res = Result(item)

@@ -44,7 +44,6 @@ from .snmp import Snmp, credentials
 from .verify import NotInducible, default_load, prompt_load, stress_cmd
 
 WEB = (ROOT / "web").resolve()
-DEMO = ROOT / "demo"
 RESULTS = ROOT / "results"
 ONBOARDED = re.compile(r"onboard_\d{8}_\d{6}")
 MAX_MONITOR_S = 30 * 60      # a live monitor stops by itself after 30 minutes

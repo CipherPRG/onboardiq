@@ -99,17 +99,6 @@ def scrub_raw(d, extra_names=()):
     return d
 
 
-def anonymise_answer_ids(path):
-    """Rewrite an older recording's cache-hash ids to a0, a1, ... (same answers, same order)."""
-    d = json.loads(Path(path).read_text())
-    ids = {}
-    for k in d["llm_order"]:
-        ids.setdefault(k, f"a{len(ids)}")
-    d["llm_cache"] = {ids[k]: v for k, v in d["llm_cache"].items() if k in ids}
-    d["llm_order"] = [ids[k] for k in d["llm_order"]]
-    Path(path).write_text(json.dumps(d, indent=1))
-
-
 class VirtualClock:
     def __init__(self):
         self.now = 0.0

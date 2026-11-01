@@ -143,11 +143,6 @@ def template_explanation(ev, note=None):
     return {**c, "text": _flat(c), "source": "template", "checked": True, **({"note": note} if note else {})}
 
 
-def template(ev):
-    c = template_card(ev)
-    return f"{c['what_happened']} {c['why']}"
-
-
 def _flat(card):
     """The card as plain text (what happened, then why), for alert emails and older consumers."""
     return " ".join(card[k] for k in ("what_happened", "why") if card.get(k))

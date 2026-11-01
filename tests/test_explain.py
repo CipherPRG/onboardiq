@@ -98,7 +98,7 @@ def test_no_model_means_template_not_a_crash(monkeypatch):
 
 def test_template_says_nothing_proven_when_there_is_no_score():
     ev = explain.evidence(health.score({"metrics": {}}))
-    assert "No health score" in explain.template(ev)
+    assert "No health score" in explain.template_explanation(ev)["text"]
 
 
 def test_cut_off_answer_is_rejected():
