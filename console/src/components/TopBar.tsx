@@ -11,7 +11,8 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
   const mode = useStore(app, (s) => s.mode);
   const paused = useStore(app, (s) => s.status?.paused);
   const serverRun = useStore(app, (s) => s.status?.run);
-  const { origin, status, kind, loadUntil } = useStore(run, (s) => ({ origin: s.origin, status: s.status, kind: s.kind, loadUntil: s.loadUntil }));
+  const { origin, status, kind, loadUntil, recorded } = useStore(run, (s) => ({ origin: s.origin, status: s.status, kind: s.kind,
+    loadUntil: s.loadUntil, recorded: s.source.startsWith("Replay") ? s.source.replace(/^Replay · recorded /, "") : "" }));
   const { speed, uiPaused } = useStore(ui, (s) => ({ speed: s.speed, uiPaused: s.paused }));
   const [label, tone] = MODE[mode];
   const liveRunning = origin === "live" && status === "running";
@@ -22,6 +23,12 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
       <span className="text-faint">/</span>
       <span className="text-xs text-muted">console</span>
       <Pill tone={tone}><Dot tone={tone} />&nbsp;{label}</Pill>
+      {origin === "replay" && <Pill tone="info" className="!h-6 !text-xs">Recording from {recorded || "an earlier run"}, not live</Pill>}
+      {origin === "live" && (
+        <Pill tone="crit" className="!h-6 !text-xs"><Dot tone="crit" />&nbsp;
+          {status === "running" ? "Live now" : "Live run, ended"}{mode === "sandbox" ? " on the demo device" : ""}
+        </Pill>
+      )}
       <CommandBar />
       <div className="ml-auto flex items-center gap-1.5">
         {origin === "replay" && (

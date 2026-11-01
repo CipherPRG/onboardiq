@@ -604,7 +604,9 @@ class Handler(BaseHTTPRequestHandler):
         if url == "/api/runs":
             with STATE["lock"]:
                 if STATE["run"] and not STATE["run"].finished:
-                    return self._json(409, {"error": "a run is already in progress"})
+                    busy = ("another visitor's run is in progress; it ends within a few minutes, then try again"
+                            if SANDBOX else "a run is already in progress")
+                    return self._json(409, {"error": busy})
                 if SANDBOX:
                     ip = client_ip(self.headers.get("X-Forwarded-For"), self.client_address[0])
                     blocked = sandbox_gate(STATE["sandbox"], budget_left=budget_left(), ip=ip)
