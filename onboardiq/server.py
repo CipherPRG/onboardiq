@@ -41,7 +41,7 @@ from .monitor import Monitor, load_onboarding
 from .playback import export_all
 from .config import MODEL, ROOT
 from .snmp import Snmp, credentials
-from .verify import prompt_load
+from .verify import prompt_load, stress_cmd
 
 WEB = (ROOT / "web").resolve()
 DEMO = ROOT / "demo"
@@ -316,7 +316,7 @@ def start_cpu_load(seconds: int) -> list:
     Every process carries its own timeout, so nothing outlives the request even if the server dies."""
     n = max(1, os.cpu_count() or 2)
     if shutil.which("stress-ng"):
-        cmd = [["stress-ng", "--cpu", str(n), "--timeout", f"{seconds}s", "--quiet"]]
+        cmd = [stress_cmd("--cpu", str(n), "--timeout", f"{seconds}s")]
     else:
         cmd = [["timeout", str(seconds), "yes"]] * n
     return [subprocess.Popen(c, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) for c in cmd]

@@ -13,6 +13,7 @@ import os
 import re
 import statistics
 import subprocess
+import tempfile
 import time
 from dataclasses import dataclass, field
 
@@ -270,21 +271,34 @@ def _meminfo_kb(key="MemTotal"):
     return None
 
 
+def stress_cmd(*args) -> list:
+    """stress-ng with its scratch files in the system temp folder: it refuses to start when the current folder is
+    not writable, as in the container (/app belongs to root, the server runs as an unprivileged user)."""
+    return ["stress-ng", "--temp-path", tempfile.gettempdir(), *args, "--quiet"]
+
+
 def default_load(kind: str, seconds: int, size_bytes: int = 0):
-    """Start a local load generator (stress-ng). Returns a Popen to wait on."""
+    """Start a local load generator (stress-ng). Returns a Popen to wait on.
+    A generator that exits at once (bad option, no permission) is reported, never taken as load applied."""
     if kind == "cpu":
         n = max(1, (os.cpu_count() or 2))
-        cmd = ["stress-ng", "--cpu", str(n), "--timeout", f"{seconds}s", "--quiet"]
+        cmd = stress_cmd("--cpu", str(n), "--timeout", f"{seconds}s")
     elif kind == "memory":
-        cmd = ["stress-ng", "--vm", "1", "--vm-bytes", str(size_bytes), "--vm-keep",
-               "--timeout", f"{seconds}s", "--quiet"]
+        cmd = stress_cmd("--vm", "1", "--vm-bytes", str(size_bytes), "--vm-keep", "--timeout", f"{seconds}s")
     else:
         raise ValueError(kind)
     try:
-        return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
     except FileNotFoundError:
         raise NotInducible("stress-ng is not installed on this machine, so no load could be applied "
                            "(sudo apt install stress-ng); this pick stays unproven") from None
+    try:
+        p.wait(timeout=1.0)
+    except subprocess.TimeoutExpired:
+        return p                        # still running: the load is on
+    err = (p.stderr.read() if p.stderr else "").strip().splitlines()
+    raise NotInducible("the load generator stopped at once (" + (err[-1][:200] if err else f"exit {p.returncode}")
+                       + "), so no load was applied; this pick stays unproven")
 
 
 class NotInducible(Exception):

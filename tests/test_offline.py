@@ -245,3 +245,24 @@ def test_reader_parse_empty_reply_is_a_bad_reply():
     for empty in (None, "", "  \n"):
         with pytest.raises(ValueError):
             reader._parse(empty)
+
+
+def test_stress_ng_keeps_its_scratch_files_in_the_temp_folder():
+    import tempfile
+    from onboardiq import verify
+    cmd = verify.stress_cmd("--cpu", "2")
+    assert cmd[:3] == ["stress-ng", "--temp-path", tempfile.gettempdir()]   # the container's /app is not writable
+
+
+def test_a_load_generator_that_dies_at_once_is_unproven_not_load_applied(monkeypatch):
+    import pytest
+    from onboardiq import verify
+    monkeypatch.setattr(verify, "stress_cmd", lambda *a: [
+        "sh", "-c", "echo \"aborting: temp-path '.' must be readable and writeable\" >&2; exit 1"])
+    with pytest.raises(verify.NotInducible) as e:
+        verify.default_load("cpu", 5)
+    assert "temp-path" in str(e.value) and "unproven" in str(e.value)
+    monkeypatch.setattr(verify, "stress_cmd", lambda *a: ["sleep", "3"])          # a generator that keeps running
+    p = verify.default_load("cpu", 5)
+    assert p.poll() is None
+    p.terminate()
