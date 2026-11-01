@@ -1,12 +1,12 @@
 // The top bar: where you are (mode and source), the filter, playback for recordings and the run actions.
-import { app, run, ui, useStore } from "../lib/store";
+import { app, notify, run, ui, useStore } from "../lib/store";
 import { attach, loadNow, replay, startRun, stopReplay, stopRun } from "../lib/control";
 import { utcStamp } from "../lib/time";
 import { CommandBar } from "./CommandBar";
 import { Button, Dot, Pill } from "./ui";
 
 const MODE = { static: ["Replay only", "muted"], sandbox: ["Hosted demo", "info"], local: ["Local server", "ok"] } as const;
-const showError = (e: Error) => run.set({ message: e.message });
+const showError = (e: Error) => notify(e.message);
 const SPEEDS: [number, string][] = [[1, "1×"], [4, "4×"], [16, "16×"], [0, "instant"]];
 
 export function TopBar({ lastReplay }: { lastReplay: string | null }) {
@@ -69,7 +69,7 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
         )}
         {mode === "sandbox" && (
           <Button variant="primary" disabled={liveRunning || paused}
-            onClick={() => startRun({}, "Demo device").catch((e: Error) => run.set({ status: "error", message: e.message }))}>
+            onClick={() => startRun({}, "Demo device").catch(showError)}>
             Run live on demo device
           </Button>
         )}

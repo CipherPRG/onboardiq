@@ -54,6 +54,10 @@ export const ui = create<UiState>({
 export interface AppState {
   mode: Mode; status: ServerStatus | null; index: SessionIndexEntry[]; onboarded: Onboarded[]; error: string;
 }
+/** A short message shown over the page (a refused click, a failed load), then dismissed. */
+export const toast = create<{ text: string; id: number }>({ text: "", id: 0 });
+export const notify = (text: string) => toast.set((s) => ({ text, id: s.id + 1 }));
+
 export const app = create<AppState>({ mode: "static", status: null, index: [], onboarded: [], error: "" });
 
 function shallowEqual(a: unknown, b: unknown): boolean {

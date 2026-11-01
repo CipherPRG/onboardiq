@@ -15,6 +15,7 @@ import { StatusBar } from "./components/StatusBar";
 import { PromptBanner } from "./components/PromptBanner";
 import { MonitorDialog, OnboardDialog } from "./components/Dialogs";
 import { Splitter, useSize } from "./components/Splitter";
+import { Toast } from "./components/Toast";
 
 const FIRST = "laptop_full";                         // the recording shown on arrival: a pick caught and corrected
 
@@ -73,6 +74,7 @@ export default function App() {
         </main>
       </div>
       <StatusBar />
+      <Toast />
       {dialog === "onboard" && <OnboardDialog />}
       {dialog === "monitor" && <MonitorDialog />}
     </div>

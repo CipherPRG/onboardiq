@@ -84,15 +84,16 @@ export async function startRun(body: unknown, device: string) {
   if (starting) return;
   starting = true;
   try {
-    reset({ origin: "live", kind: "onboarding", status: "running", device, source: "Live" });
+    // Ask first: a refused start must leave what is on screen (a finished run) untouched.
     const { id } = await post<{ id: string }>("/api/runs", body).catch(rejoinOr);
+    reset({ origin: "live", kind: "onboarding", status: "running", device, source: "Live" });
     follow(id);
   } finally { starting = false; }
 }
 
 export async function startMonitor(body: unknown, device: string) {
-  reset({ origin: "live", kind: "health", status: "running", device, source: "Live monitor" });
   const { id } = await post<{ id: string }>("/api/monitor", body).catch(rejoinOr);
+  reset({ origin: "live", kind: "health", status: "running", device, source: "Live monitor" });
   follow(id);
 }
 
