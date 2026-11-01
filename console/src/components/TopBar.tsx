@@ -1,6 +1,6 @@
 // The top bar: where you are (mode and source), the filter, playback for recordings and the run actions.
 import { app, run, ui, useStore } from "../lib/store";
-import { loadCpu, replay, startRun, stopReplay, stopRun } from "../lib/control";
+import { attach, loadCpu, replay, startRun, stopReplay, stopRun } from "../lib/control";
 import { CommandBar } from "./CommandBar";
 import { Button, Dot, Pill } from "./ui";
 
@@ -10,6 +10,7 @@ const SPEEDS: [number, string][] = [[1, "1×"], [4, "4×"], [16, "16×"], [0, "i
 export function TopBar({ lastReplay }: { lastReplay: string | null }) {
   const mode = useStore(app, (s) => s.mode);
   const paused = useStore(app, (s) => s.status?.paused);
+  const serverRun = useStore(app, (s) => s.status?.run);
   const { origin, status, kind, loadUntil } = useStore(run, (s) => ({ origin: s.origin, status: s.status, kind: s.kind, loadUntil: s.loadUntil }));
   const { speed, uiPaused } = useStore(ui, (s) => ({ speed: s.speed, uiPaused: s.paused }));
   const [label, tone] = MODE[mode];
@@ -35,6 +36,12 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
             {status === "running" && <Button variant="ghost" onClick={stopReplay}>Skip to end</Button>}
           </>
         )}
+        {serverRun && !liveRunning && (
+          <Button variant="primary" onClick={() => attach(serverRun)}>
+            Watch live {serverRun.kind === "monitor" ? "monitor" : "run"}
+          </Button>
+        )}
+        {liveRunning && kind === "onboarding" && <span className="text-2xs text-muted">Live onboarding · ends by itself</span>}
         {liveRunning && kind === "health" && mode === "local" && (
           <Button onClick={() => loadCpu()} disabled={Date.now() < loadUntil}>CPU load 120 s</Button>
         )}

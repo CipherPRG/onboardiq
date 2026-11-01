@@ -39,6 +39,17 @@ export default function App() {
         if (first) { setCurrent(first.id); void replay(first.id); }
       } catch (e) { app.set({ error: (e as Error).message }); }
     })();
+    // Keep checking the server, so a run started elsewhere (or still going after a reload) can be watched.
+    const timer = setInterval(async () => {
+      if (app.get().mode === "static") return;
+      const status = await getStatus();
+      if (!status) return;
+      const was = app.get().status?.running;
+      app.set({ status });
+      if (was && !status.running && app.get().mode === "local")     // a run just ended: it may have onboarded a device
+        getOnboarded().then((list) => app.set({ onboarded: list })).catch(() => {});
+    }, 5000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
