@@ -119,10 +119,39 @@ def test_a_failed_send_says_what_to_fix_without_the_password(tmp_path, monkeypat
     import smtplib
     from onboardiq import alerts
 
+    calls = []
+
     def hangup(*a, **k):
+        calls.append(1)
         raise smtplib.SMTPServerDisconnected("Connection unexpectedly closed")
     monkeypatch.setattr(alerts.smtplib, "SMTP", hangup)
+    monkeypatch.setattr(alerts, "RETRY_S", 0)
     cfg = {"host": "smtp.gmail.com", "port": 587, "user": "me@gmail.com", "password": "secret-pw",
            "from": "me@gmail.com", "to": ["me@gmail.com"]}
     out = alerts.deliver("s", "t", "<p>p</p>", settings=cfg, outbox=tmp_path)
     assert out["via"] == "outbox" and "OIQ_SMTP_PORT" in out["smtp_error"] and "secret-pw" not in out["smtp_error"]
+    assert len(calls) == 3                                  # a slow, busy moment gets two more tries
+
+
+def test_a_send_that_succeeds_on_retry_is_emailed(tmp_path, monkeypatch):
+    import smtplib
+    from onboardiq import alerts
+    tries = []
+
+    def flaky(cfg, *a):
+        tries.append(1)
+        if len(tries) == 1:
+            raise smtplib.SMTPServerDisconnected("busy")
+    monkeypatch.setattr(alerts, "_send", flaky)
+    monkeypatch.setattr(alerts, "RETRY_S", 0)
+    cfg = {"host": "h", "port": 587, "user": "", "password": "", "from": "a@b.co", "to": ["c@d.co"]}
+    assert alerts.deliver("s", "t", "p", settings=cfg, outbox=tmp_path) == {"via": "smtp", "to": 1, "attempts": 2}
+
+
+import pytest as _pytest
+
+
+@_pytest.fixture(autouse=True)
+def _no_retry_wait(monkeypatch):
+    from onboardiq import alerts
+    monkeypatch.setattr(alerts, "RETRY_S", 0)

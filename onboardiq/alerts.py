@@ -152,30 +152,42 @@ def smtp_reason(e):
     return f"{name}: {hint}" if hint else name
 
 
+RETRY_S = 3.0
+
+
+def _send(cfg, subject, text, page):
+    msg = EmailMessage()
+    msg["Subject"], msg["From"], msg["To"] = subject, cfg["from"], ", ".join(cfg["to"])
+    msg.set_content(text)
+    msg.add_alternative(page, subtype="html")
+    if cfg["port"] == 465:                      # implicit TLS (465), not STARTTLS (587)
+        conn = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=30)
+    else:
+        conn = smtplib.SMTP(cfg["host"], cfg["port"], timeout=30)
+    with conn as s:
+        if cfg["port"] != 465:
+            s.starttls()
+        if cfg["user"]:
+            s.login(cfg["user"], cfg["password"])
+        s.send_message(msg)
+
+
 def deliver(subject, text, page, settings=None, outbox=None, now=None):
     """Send by SMTP when configured, else write to outbox/. Returns {"via", "file"?, "error"?}. Never raises:
     an SMTP failure falls back to the outbox so the alert is not lost."""
     cfg = settings if settings is not None else smtp_settings()
     err = None
-    if cfg:
+    for attempt in range(3 if cfg else 0):       # alerts fire when the machine is busiest: retry a slow connection
         try:
-            msg = EmailMessage()
-            msg["Subject"], msg["From"], msg["To"] = subject, cfg["from"], ", ".join(cfg["to"])
-            msg.set_content(text)
-            msg.add_alternative(page, subtype="html")
-            if cfg["port"] == 465:                  # implicit TLS (465), not STARTTLS (587)
-                conn = smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=15)
-            else:
-                conn = smtplib.SMTP(cfg["host"], cfg["port"], timeout=15)
-            with conn as s:
-                if cfg["port"] != 465:
-                    s.starttls()
-                if cfg["user"]:
-                    s.login(cfg["user"], cfg["password"])
-                s.send_message(msg)
-            return {"via": "smtp", "to": len(cfg["to"])}
-        except Exception as e:  # noqa: BLE001 - fall back to the outbox
+            _send(cfg, subject, text, page)
+            return {"via": "smtp", "to": len(cfg["to"]), **({"attempts": attempt + 1} if attempt else {})}
+        except smtplib.SMTPAuthenticationError as e:     # wrong login: retrying will not help
             err = smtp_reason(e)
+            break
+        except Exception as e:  # noqa: BLE001 - fall back to the outbox after the last try
+            err = smtp_reason(e)
+            if attempt < 2:
+                time.sleep(RETRY_S * (attempt + 1))
     out = Path(outbox or OUTBOX)
     out.mkdir(parents=True, exist_ok=True)
     name = time.strftime("alert-%Y%m%d-%H%M%S", time.gmtime(now or time.time())) + ".html"
