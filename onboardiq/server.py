@@ -841,6 +841,8 @@ class Handler(BaseHTTPRequestHandler):
             run = STATE["run"]
             if not run or run.id != m.group(1) or run.finished:
                 return self._json(404, {"error": "no such run"})
+            if SANDBOX and not (run.owner and secrets.compare_digest(str(body.get("owner") or ""), run.owner)):
+                return self._json(403, {"error": "only the visitor who started this run can confirm it"})
             run.confirm.put(True)
             return self._json(200, {"ok": True})
         return self._json(404, {"error": "not found"})

@@ -301,3 +301,16 @@ def test_hosted_export_comes_from_the_last_onboarding_in_memory(sandbox_srv, mon
         assert code == 200 and key in yaml.safe_load(body)
     assert get("/api/export/evil.yml")[0] == 404
     server.STATE.pop("proven", None)
+
+
+def test_hosted_confirm_needs_the_run_owner(sandbox_srv, monkeypatch):
+    port, _ = sandbox_srv
+    monkeypatch.setattr(server, "SANDBOX", True)
+    run = server.Run("abcdef012345")
+    server.STATE["run"] = run
+    code, out = post(port, "/api/runs/abcdef012345/confirm", {})
+    assert code == 403 and run.confirm.empty()                  # an onlooker cannot unblock someone else's run
+    run.owner = "k" * 32
+    assert post(port, "/api/runs/abcdef012345/confirm", {"owner": "wrong"})[0] == 403 and run.confirm.empty()
+    assert post(port, "/api/runs/abcdef012345/confirm", {"owner": "k" * 32})[0] == 200 and not run.confirm.empty()
+    server.STATE["run"] = None
