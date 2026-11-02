@@ -133,6 +133,12 @@ Host and Origin, and sends a strict Content-Security-Policy; the hosted demo ign
 target with per-visitor, cooldown and dollar limits. Details, what leaves your machine, and how to report a problem:
 [SECURITY.md](SECURITY.md).
 
+A security review of the hosted demo (source plus live probes, Nov 2, 2026) found no path traversal, CORS or CSRF
+hole, Host-header spoofing, injection, or secrets in the page or its source files. It found one low-severity gap (a
+run control without an ownership check, unreachable in the hosted setup), which is fixed, and one availability limit
+(one run at a time, so a visitor can occupy the slot until their daily limit stops them), which is a documented
+design choice.
+
 ## Without Docker (WSL2 or Linux)
 
 ```bash
