@@ -27,7 +27,7 @@ Built for the Meta Global AI Developer Hackathon (Oct 26 - Nov 4, 2026), Indie t
 |---|---|---|
 | **Replay in the browser** ([cipherprg.github.io/onboardiq](https://cipherprg.github.io/onboardiq/)) | The story page and the console, playing recordings of real runs | Nothing |
 | **Run it yourself** (`docker compose up --build`) | The full console: onboard any device you can reach, upload its MIB files, monitor it live, export every event | Docker; a Meta API key for live runs (recordings play without one) |
-| **Hosted live demo** ([onboardiq-demo…run.app/console](https://onboardiq-demo-430342543451.asia-south1.run.app/console/)) | The real agent, live, on a fixed demo device: onboard it, then monitor it under a load you pick; limited runs per visitor | Nothing (see [docs/SANDBOX.md](docs/SANDBOX.md)) |
+| **Hosted live demo** ([onboardiq-demo…run.app/console](https://onboardiq-demo-430342543451.asia-south1.run.app/console/)) | The real agent, live, on a fixed demo device: onboard it, then monitor it under a load you pick (kept gentle so the page stays responsive; the health score may stay Healthy, run it yourself to see it drop); limited runs per visitor | Nothing (see [docs/SANDBOX.md](docs/SANDBOX.md)) |
 
 ```bash
 git clone https://github.com/CipherPRG/onboardiq && cd onboardiq
