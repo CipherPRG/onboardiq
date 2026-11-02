@@ -263,3 +263,15 @@ def test_export_downloads_for_a_saved_onboarding(srv, tmp_path, monkeypatch):
     assert req(srv, "GET", "/api/onboarded/../etc/export/snmp.yml")[0] == 404
     monkeypatch.setattr(server, "SANDBOX", True)
     assert req(srv, "GET", "/api/onboarded/onboard_20261101_000000/export/snmp.yml")[0] == 404   # hosted: nothing kept
+
+
+def test_cpu_budget_follows_the_container_quota(tmp_path):
+    f = tmp_path / "cpu.max"
+    f.write_text("200000 100000\n")
+    assert server.cpu_budget(str(f)) == min(2, server.cpu_budget(str(tmp_path / "none")))
+    f.write_text("150000 100000\n")
+    assert server.cpu_budget(str(f)) <= 2                  # a 1.5 CPU quota rounds up to 2 workers
+    f.write_text("max 100000\n")
+    assert server.cpu_budget(str(f)) == server.cpu_budget(str(tmp_path / "none")) >= 1
+    f.write_text("garbage")
+    assert server.cpu_budget(str(f)) >= 1

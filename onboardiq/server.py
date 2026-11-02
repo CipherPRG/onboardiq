@@ -342,12 +342,27 @@ def validate_monitor(body: dict) -> dict:
 def start_cpu_load(seconds: int) -> list:
     """CPU load on this machine for `seconds`: stress-ng when installed, else one `yes` per core.
     Every process carries its own timeout, so nothing outlives the request even if the server dies."""
-    n = max(1, os.cpu_count() or 2)
+    n = cpu_budget()
+    low = ["nice", "-n", "19"] if shutil.which("nice") else []     # the page and the poller keep the CPU they need
     if shutil.which("stress-ng"):
-        cmd = [stress_cmd("--cpu", str(n), "--timeout", f"{seconds}s")]
+        cmd = [low + stress_cmd("--cpu", str(n), "--timeout", f"{seconds}s")]
     else:
-        cmd = [["timeout", str(seconds), "yes"]] * n
+        cmd = [low + ["timeout", str(seconds), "yes"]] * n
     return [subprocess.Popen(c, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) for c in cmd]
+
+
+def cpu_budget(cpu_max="/sys/fs/cgroup/cpu.max"):
+    """How many cores this process may really use: the container's CPU quota when there is one (Cloud Run gives
+    2 CPUs on a larger host), else the cores visible. More load workers than that make the whole container
+    stall at the quota, the web page included."""
+    n = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else (os.cpu_count() or 2)
+    try:
+        quota, period = Path(cpu_max).read_text().split()[:2]
+        if quota != "max":
+            n = min(n, int(int(quota) / int(period) + 0.999))
+    except (OSError, ValueError):
+        pass
+    return max(1, n)
 
 
 def memory_load_bytes(meminfo="/proc/meminfo", target=0.90, floor=0.05):
