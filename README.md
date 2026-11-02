@@ -73,6 +73,28 @@ their recorded timing (1×, 4×, 16× or instantly). Nothing is simulated.
 The same console runs everywhere and shows what the server behind it allows: recordings only (static hosting), one
 fixed live run plus a fixed four-minute monitor with its own CPU and memory load (hosted demo; one run at a time, others watch it live), or the full onboard, upload and monitor tools (your own server).
 
+## Results
+
+Measured on 94 held-out devices from the LibreNMS test set (224 questions, never used for tuning). The answer key is
+LibreNMS's single choice per sensor, so some "misses" are valid alternatives. Full method and caveats are in
+[BUILD_LOG.md](BUILD_LOG.md).
+
+| Setup | Right object (OID) |
+|---|---|
+| Muse Spark with no MIB text | 3 / 224 (**1%**) |
+| Keyword parser | 76 / 224 (34%) |
+| **Muse Spark reading the MIB** | **163 / 224 (73%)**; 156 / 224 (70%) with the correct scale |
+| Same, object names and OIDs scrambled | 153 / 224 (68%) |
+
+The model cannot recall these devices; reading the MIB is what makes the difference (1% to 73%).
+
+Full agent with device-side checks, on recorded real devices (222 questions): first pick 68%, final pick **78%**.
+When a pick passed the checks it was right **61 / 69 (88%)** of the time. Limits: that is 69 of 222 picks, all 25 fixes
+were triggered by "object absent" rather than by a failed range or behaviour test (no claimable self-corrections in
+this eval), and temperature and fan were not proven on a live device.
+
+Discovery without being told the MIB: on 109 recorded devices the right modules were found for 81%.
+
 ## What has been shown, and what has not
 
 - **Live** on two devices: a Linux machine (net-snmp) and a MikroTik RouterOS 7 virtual router. Neither serves
