@@ -92,6 +92,22 @@ function StatusLine() {
   );
 }
 
+/** After a finished onboarding with proven metrics: take the result into a real monitoring tool. */
+function ExportBar() {
+  const { exportBase, status, finals } = useStore(run, (r) => ({ exportBase: r.exportBase, status: r.status, finals: r.finals }));
+  const proven = Object.values(finals).filter((f) => String(f.verdict).startsWith("proven")).length;
+  if (status !== "done" || !exportBase || !proven) return null;
+  const link = "text-info hover:underline";
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-1.5 border-b border-border/60 text-[13px] bg-panel">
+      <span className="text-fg">Use these {proven} proven metrics in your own monitoring:</span>
+      <a className={link} href={`${exportBase}snmp.yml`} download title="snmp_exporter config with the proven objects">Prometheus config</a>
+      <a className={link} href={`${exportBase}onboardiq.rules.yml`} download title="Prometheus alert rules at the health score's own limits">Alert rules</a>
+      <a className={link} href={`${exportBase}zabbix_template.yaml`} download title="Zabbix 6.0+ template: items, discovery, triggers">Zabbix template</a>
+    </div>
+  );
+}
+
 export function RunGraph() {
   const { device, modules, model, attempts, finals, noPick, kind, planned, status } = useStore(run, (s) => ({
     device: s.device, modules: s.modules, model: s.model, attempts: s.attempts, finals: s.finals, noPick: s.noPick,
@@ -128,6 +144,7 @@ export function RunGraph() {
   return (
     <div className="border-b border-border bg-bg shrink-0">
       <StatusLine />
+      <ExportBar />
       <div className="overflow-auto max-h-[300px]">
         <svg width={width + 16} height={height} className="block" role="img" aria-label="Run graph">
           <g transform="translate(8,0)">
