@@ -26,7 +26,7 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
 
   return (
     <header className="flex items-center gap-3 h-9 px-3 border-b border-border bg-panel">
-      <a href="../" className="text-sm font-semibold tracking-tight text-fg no-underline">OnboardIQ</a>
+      <a href="../" className="no-underline flex items-center" aria-label="OnboardIQ home"><img src="../logo.svg" alt="OnboardIQ" className="h-6 w-auto block" /></a>
       <span className="text-faint">/</span>
       <span className="text-xs text-muted">console</span>
       <Pill tone={tone}><Dot tone={tone} />&nbsp;{label}</Pill>
