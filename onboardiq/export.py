@@ -212,7 +212,10 @@ def zabbix(saved, cands=None, policy=None):
     pol = policy or health.DEFAULT
     dev = _device(saved)
     # Zabbix host names allow only letters, digits, space, dot, dash and underscore (no #, (), : and so on).
-    tname = re.sub(r"\s+", " ", re.sub(r"[^A-Za-z0-9 ._-]+", " ", f"OnboardIQ {dev}"))[:60].strip()
+    short = re.split(r"\s[#(]", dev)[0]                      # drop the kernel build and sysObjectID tail
+    tname = re.sub(r"\s+", " ", re.sub(r"[^A-Za-z0-9 ._-]+", " ", f"OnboardIQ {short}")).strip()
+    if len(tname) > 60:
+        tname = tname[:60].rsplit(" ", 1)[0]                   # cut at a word, not mid-word
     group = "Templates/OnboardIQ"
     items, rules, macros = [], [], {}
 
