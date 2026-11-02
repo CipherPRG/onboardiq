@@ -122,7 +122,20 @@ Discovery without being told the MIB: on 109 recorded devices the right modules 
 - **Job:** it writes the 2-4 sentence plain-English explanation when a device's health changes (`onboardiq/explain.py`). It does not pick objects; Muse Spark 1.3 does that.
 - **Guard:** code checks every number in the explanation against the readings and rejects markdown or long text. If the check fails, or no key is set, a template built from the same facts is shown and labelled "template".
 - **Where it runs:** live runs with a Baseten key (your machine or Docker). The hosted demo has no explanation key, so it shows labelled template explanations.
-- **Not measured yet:** there is no finished open-model accuracy benchmark. The first overnight run crashed on one malformed reply; the reader now retries and maps renamed fields. An earlier 2-device trial before that fix scored 0 of 6, because Baseten does not enforce the JSON schema. The open-vs-closed table will be added here only when a full run exists.
+- **Open vs closed on the core task (measured Nov 2, 2026):** the same task as the benchmark above, 10 held-out devices
+  (the first 10 of the test split, 24 questions), `with-mib` mode, default effort, run back to back:
+
+  | Model | Right object (OID) | With the correct scale | CPU | Memory | Temperature | Fan |
+  |---|---|---|---|---|---|---|
+  | Muse Spark 1.3 (Meta API) | **15 / 24 (62%)** | 13 / 24 (54%) | 2/8 | 4/5 | 6/7 | 3/4 |
+  | Muse Spark Open (Baseten) | 8 / 24 (33%) | 7 / 24 (29%) | 1/8 | 3/5 | 3/7 | 1/4 |
+
+  Cost: about $0.43 per 10 devices for either. Read it with care: this is a small sample, at lower effort than the
+  73% headline (94 devices, high effort), so the two tables are not comparable with each other. On this sample the
+  closed model is clearly ahead, and the open model more often returns an object without its name, which the reader
+  cannot always map back. Both models make the same CPU choices that differ from the answer key (for example
+  `axSysAverageCpuUsage`, `healthDeviceCpuLatest`), which may be valid alternatives for another averaging window.
+  For that reason the open model writes explanations and the closed model picks the objects.
 
 ## Models
 
