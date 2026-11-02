@@ -20,7 +20,7 @@ export interface RunState {
   status: "idle" | "running" | "done" | "error"; message?: string;
   stats: { seconds?: number; snmp_calls?: number; cost_usd?: number };
   prompt: { text: string; cmd: string; waiting: boolean } | null;
-  loadUntil: number; connected: boolean; started: number;
+  loadUntil: number; connected: boolean; started: number; exportBase?: string;
 }
 
 export const emptyRun = (): RunState => ({
@@ -135,7 +135,7 @@ export function reduce(s: RunState, ev: RunEvent): Partial<RunState> {
       return { events, loadUntil: Date.now() + Number(ev.seconds) * 1000 };
     case "end":
       return { events, status: "done", prompt: null, stats: { seconds: ev.seconds as number, snmp_calls: ev.snmp_calls as number,
-        cost_usd: ev.cost_usd as number }, finals: typeof ev.summary === "object" ? Object.fromEntries(Object.entries(ev.summary).map(
+        cost_usd: ev.cost_usd as number }, exportBase: typeof ev.export_base === "string" ? ev.export_base : undefined, finals: typeof ev.summary === "object" ? Object.fromEntries(Object.entries(ev.summary).map(
         ([f, v]) => [f, { verdict: v, attempts: s.finals[f]?.attempts }])) : s.finals };
     case "error":
       return { events, status: "error", message: ev.message, prompt: null };

@@ -175,8 +175,16 @@ An onboarding can be handed to the monitoring a team already runs. In the consol
 Only proven objects and the standard ones the health score uses are exported. The alert limits are not new
 numbers: they are the readings at which OnboardIQ's own health score turns "Under strain" or "In trouble"
 (CPU 80% and 92%, memory and disk 86.25% and 95%, temperature about 69 °C and 81 °C under the default policy), so
-Prometheus, Zabbix and the console agree. Exports have been checked for shape by tests; import them into your
-own tools to confirm on your versions.
+Prometheus, Zabbix and the console agree.
+
+When an onboarding finishes with proven metrics, the console shows the three files right under the run, on the
+hosted demo too (the hosted files describe the fixed demo device and come from memory; nothing is stored).
+
+**Checked against real tools (Nov 2, 2026):** the alert rules pass `promtool check rules` (Prometheus 2.53); a real
+`snmp_exporter` v0.28.0 loaded the generated `snmp.yml` and scraped a live net-snmp agent (memory in bytes, CPU
+counter); the Zabbix template imported into Zabbix 6.0 ("Imported successfully") after one fix found by that test
+(the template name had to avoid characters Zabbix forbids in host names). Not yet checked: other Zabbix or
+snmp_exporter versions, and receiving the alerts in Alertmanager or Zabbix actions.
 
 ## Repository
 

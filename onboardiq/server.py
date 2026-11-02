@@ -504,16 +504,21 @@ def execute(run: Run, opts: dict):
         ob = None
         if SANDBOX and any(str(v["verdict"]).startswith("proven") for v in out["spec"].values()):
             # in memory only: the hosted monitor polls exactly what this machine's last onboarding proved
-            STATE["proven"] = {"device": opts["device"], "args": {"modules": ",".join(opts["modules"])}, "spec": out["spec"]}
+            STATE["proven"] = {"device": opts["device"], "args": {"modules": ",".join(opts["modules"])}, "spec": out["spec"],
+                                "profile": out.get("profile")}
         if not SANDBOX:                      # the hosted demo keeps nothing on disk
             RESULTS.mkdir(exist_ok=True)
             ob = f"onboard_{time.strftime('%Y%m%d_%H%M%S')}"
             args = {"device": opts["device"], "modules": ",".join(opts["modules"]), "host": opts["host"],
                     "port": opts["port"], "lab": lab, "families": ",".join(opts["families"])}
             (RESULTS / f"{ob}.json").write_text(json.dumps({"args": args, "recording": saved, **out}, indent=2, default=str))
+        has_proven = any(str(v["verdict"]).startswith("proven") for v in out["spec"].values())
+        export_base = None                   # where the console offers the Prometheus and Zabbix files for this run
+        if has_proven:
+            export_base = "/api/export/" if SANDBOX else (f"/api/onboarded/{ob}/export/" if ob else None)
         run.emit({"kind": "end", "onboarded": ob, "summary": {f: v["verdict"] for f, v in out["spec"].items()},
                   "cost_usd": out["cost_usd"], "seconds": out["seconds"], "snmp_calls": out["snmp_calls"],
-                  "saved": saved})
+                  "saved": saved, "export_base": export_base})
     except Exception as e:  # noqa: BLE001 - reported to the page without internals
         run.emit({"kind": "error", "message": public_error(e)})
     finally:
@@ -608,6 +613,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(400, {"error": f"cannot export this onboarding: {e}"})
             return self._send(200, body.encode(), "application/yaml; charset=utf-8",
                               {"Content-Disposition": f'attachment; filename="{m.group(1)}-{m.group(2)}"'})
+        m = re.fullmatch(r"/api/export/(snmp\.yml|onboardiq\.rules\.yml|zabbix_template\.yaml)", url.path)
+        if m and SANDBOX:                          # hosted: the fixed demo device, from the last onboarding in memory
+            saved = STATE.get("proven")
+            if not saved or not saved.get("profile"):
+                return self._json(404, {"error": "run the onboarding first, then the files are available"})
+            try:
+                body = export_file(saved, m.group(1))
+            except (ValueError, KeyError) as e:
+                return self._json(400, {"error": f"cannot export this onboarding: {e}"})
+            return self._send(200, body.encode(), "application/yaml; charset=utf-8",
+                              {"Content-Disposition": f'attachment; filename="onboardiq-demo-{m.group(1)}"'})
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/events", url.path)
         if m:
             return self._stream(m.group(1))

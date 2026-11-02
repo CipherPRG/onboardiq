@@ -277,3 +277,27 @@ def test_the_hosted_demo_takes_no_mib_uploads(sandbox_srv):
     assert code == 404
     code, _ = post(port, "/api/mibs", {"files": [{"name": "x", "text": "y" * 70_000}]})
     assert code == 413                                      # the big-body allowance is local only
+
+
+def test_hosted_export_comes_from_the_last_onboarding_in_memory(sandbox_srv, monkeypatch):
+    import http.client
+    from pathlib import Path
+    import yaml
+    port, _ = sandbox_srv
+    monkeypatch.setattr(server, "SANDBOX", True)
+
+    def get(path):
+        c = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+        c.request("GET", path, headers={"Host": f"127.0.0.1:{port}"})
+        r = c.getresponse()
+        return r.status, r.read()
+
+    server.STATE.pop("proven", None)
+    assert get("/api/export/zabbix_template.yaml")[0] == 404           # nothing onboarded yet
+    fix = json.loads((Path(__file__).parent / "fixtures" / "onboard_hr_storage_memory.json").read_text())
+    server.STATE["proven"] = {"device": fix["device"], "args": fix["args"], "spec": {}, "profile": fix["profile"]}
+    for name, key in (("snmp.yml", "modules"), ("onboardiq.rules.yml", "groups"), ("zabbix_template.yaml", "zabbix_export")):
+        code, body = get(f"/api/export/{name}")
+        assert code == 200 and key in yaml.safe_load(body)
+    assert get("/api/export/evil.yml")[0] == 404
+    server.STATE.pop("proven", None)
