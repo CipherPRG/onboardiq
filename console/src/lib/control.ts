@@ -133,7 +133,8 @@ export async function confirmPrompt() {
   await post(`/api/runs/${runId()}/confirm`, {});
 }
 
-export function stopReplay() { token++; run.set((r) => ({ status: r.status === "running" ? "done" : r.status })); }
+/** Jump to the end of a recording: play the rest at once, so the finished picture is complete (not a cut-off one). */
+export function skipToEnd() { ui.set({ speed: 0, paused: false }); }
 
 /** Download what was captured, as JSON, for debugging elsewhere. */
 export function exportJson() {

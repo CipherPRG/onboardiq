@@ -1,6 +1,6 @@
 // The top bar: where you are (mode and source), the filter, playback for recordings and the run actions.
 import { app, notify, run, ui, useStore } from "../lib/store";
-import { Rejoined, attach, loadNow, replay, startMonitor, startRun, stopReplay, stopRun } from "../lib/control";
+import { Rejoined, attach, loadNow, replay, startMonitor, startRun, skipToEnd, stopRun } from "../lib/control";
 import { utcStamp } from "../lib/time";
 import { CommandBar } from "./CommandBar";
 import { Button, Dot, Pill } from "./ui";
@@ -47,7 +47,7 @@ export function TopBar({ lastReplay }: { lastReplay: string | null }) {
             <select aria-label="Replay speed" value={speed} onChange={(e) => ui.set({ speed: Number(e.target.value) })} className="!w-auto !h-6 text-xs">
               {SPEEDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
-            {status === "running" && <Button variant="ghost" onClick={stopReplay}>Skip to end</Button>}
+            {status === "running" && <Button variant="ghost" onClick={skipToEnd}>Skip to end</Button>}
           </>
         )}
         {serverRun && !liveRunning && (

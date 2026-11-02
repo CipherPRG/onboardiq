@@ -1,7 +1,7 @@
 // The console layout: top bar, sessions on the left, the run in the middle (graph and table, or health),
 // the inspector on the right, the raw event stream at the bottom, the status line under everything.
 import { useEffect, useState } from "react";
-import { app, run, ui, useStore } from "./lib/store";
+import { app, run, ui, useStore, rememberRun } from "./lib/store";
 import { getIndex, getOnboarded, getStatus } from "./lib/api";
 import { attach, replay } from "./lib/control";
 import { TopBar } from "./components/TopBar";
@@ -42,12 +42,19 @@ export default function App() {
       } catch (e) { app.set({ error: (e as Error).message }); }
     })();
     // Keep checking the server, so a run started elsewhere (or still going after a reload) can be watched.
+    let idle = 0;
     const timer = setInterval(async () => {
       if (app.get().mode === "static") return;
       const status = await getStatus();
       if (!status) return;
       const was = app.get().status?.running;
       app.set({ status });
+      // Safety net: this page still shows a live run as running, but the server has had none for two checks in a
+      // row (the stream dropped before the final event arrived). Mark it ended so the buttons come back.
+      const r = run.get();
+      if (r.origin === "live" && r.status === "running" && !status.running && !status.run && Date.now() - r.started > 12000) {
+        if (++idle >= 2) { idle = 0; run.set({ status: "done" }); if (app.get().ownRun?.id === r.runId) rememberRun(null); }
+      } else idle = 0;
       if (was && !status.running && app.get().mode === "local")     // a run just ended: it may have onboarded a device
         getOnboarded().then((list) => app.set({ onboarded: list })).catch(() => {});
     }, 5000);

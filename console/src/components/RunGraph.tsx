@@ -19,8 +19,8 @@ function wrap(text: string, n: number): string[] {
   return [text.slice(0, at).trim(), rest.length > n ? rest.slice(0, n - 1) + "…" : rest];
 }
 
-function Node({ x, y, title, sub, tone, w = NODE_W, h = NODE_H, active, busy, pending, onClick }: {
-  x: number; y: number; title: string; sub?: string; tone: Tone; w?: number; h?: number; active?: boolean; busy?: boolean; pending?: boolean;
+function Node({ x, y, title, sub, tip, tone, w = NODE_W, h = NODE_H, active, busy, pending, onClick }: {
+  x: number; y: number; title: string; sub?: string; tip?: string; tone: Tone; w?: number; h?: number; active?: boolean; busy?: boolean; pending?: boolean;
   onClick?: () => void;
 }) {
   const n = Math.floor((w - 14) / 6.7);                    // characters that fit at 11px monospace
@@ -28,7 +28,7 @@ function Node({ x, y, title, sub, tone, w = NODE_W, h = NODE_H, active, busy, pe
   return (
     <g transform={`translate(${x},${y})`} onClick={onClick} className={onClick ? "cursor-pointer" : undefined}
       role={onClick ? "button" : undefined} aria-label={onClick ? `${title} ${sub ?? ""}` : undefined}>
-      <title>{sub ? `${title}: ${sub}` : title}</title>
+      <title>{tip ? `${title}: ${tip}` : sub ? `${title}: ${sub}` : title}</title>
       <rect width={w} height={h} rx={3} fill={active ? "#1d222a" : pending ? "transparent" : "#111418"}
         stroke={STROKE[tone]} strokeWidth={active ? 1.75 : 1} strokeDasharray={pending ? "4 3" : undefined}
         className={busy ? "motion-safe:animate-pulse" : undefined} />
@@ -177,11 +177,19 @@ export function RunGraph() {
                   {list.length > 0 && edge(LEFT_W, cy(yModel), xPick(list[0].attempt), cy(y), tone(list[0]))}
                   {list.slice(1).map((a, i) => edge(xPick(list[i].attempt) + NODE_W, cy(y), xPick(a.attempt), cy(y), "warn", false, true))}
                   {fin && edge(from[0], from[1], xFinal, cy(y), finTone, String(fin.verdict).startsWith("proven"))}
-                  {list.map((a) => (
+                  {list.map((a) => {
+                    // The same object asked again after a rejection: the object was right, the model's prediction of how it
+                    // moves under load was wrong, and the measurement corrected it. Say so, so it does not look like a loop.
+                    const again = list.some((p) => p.attempt < a.attempt && p.object === a.object && String(p.verdict) === "rejected");
+                    const v = a.verdict ? verdictLabel(a.verdict)[0] : "";
+                    return (
                     <Node key={a.key} x={xPick(a.attempt)} y={y} title={a.object} tone={tone(a)}
-                      sub={a.verdict ? `${label(f)} · ${verdictLabel(a.verdict)[0]}` : `${label(f)} · testing now`}
+                      sub={again ? `prediction fixed · ${v.split(" · ")[0] || "testing now"}`
+                        : a.verdict ? `${label(f)} · ${v}` : `${label(f)} · testing now`}
+                      tip={again ? "Same object as the rejected pick. The measurement showed it moves the other way from what the model predicted, so the model kept the object and corrected its prediction." : undefined}
                       busy={!a.verdict && running} active={selected === a.key} onClick={() => ui.set({ selected: a.key })} />
-                  ))}
+                    );
+                  })}
                   {fin
                     ? <Node x={xFinal} y={y} title={label(f)} tone={finTone}
                         sub={verdictLabel(fin.verdict)[0] + (noPick.includes(f) && fin.verdict !== "not-supported" ? " · no object found" : "")} />
