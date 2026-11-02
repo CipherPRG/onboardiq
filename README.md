@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/assets/logo.svg" alt="OnboardIQ" width="420"></p>
+
 # OnboardIQ
 
 [![tests](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml/badge.svg)](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml) License: Apache-2.0
