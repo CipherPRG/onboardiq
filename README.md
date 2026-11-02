@@ -109,6 +109,14 @@ Discovery without being told the MIB: on 109 recorded devices the right modules 
 - **Cost:** a full onboarding run with Muse Spark 1.3 costs about $0.25-0.30 in model calls (measured: $0.27 for one
   live run, 6 calls). Every call passes a daily dollar cap, a per-run cap and an off switch in code.
 
+## Open weights (Muse Spark Open)
+
+- **Model:** `meta-models/muse-spark-open-1026`, called through Baseten (`BASETEN_API_KEY`). It is chosen by model name, so it can be swapped with `OIQ_EXPLAIN_MODEL`.
+- **Job:** it writes the 2-4 sentence plain-English explanation when a device's health changes (`onboardiq/explain.py`). It does not pick objects; Muse Spark 1.3 does that.
+- **Guard:** code checks every number in the explanation against the readings and rejects markdown or long text. If the check fails, or no key is set, a template built from the same facts is shown and labelled "template".
+- **Where it runs:** live runs with a Baseten key (your machine or Docker). The hosted demo has no explanation key, so it shows labelled template explanations.
+- **Not measured yet:** there is no finished open-model accuracy benchmark. The first overnight run crashed on one malformed reply; the reader now retries and maps renamed fields. An earlier 2-device trial before that fix scored 0 of 6, because Baseten does not enforce the JSON schema. The open-vs-closed table will be added here only when a full run exists.
+
 ## Models
 
 Every model called at runtime is a Meta model: **Muse Spark 1.3** (Meta Model API) reads MIBs and picks objects;
