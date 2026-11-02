@@ -16,3 +16,4 @@ outbox/
 web/console/
 console/node_modules/
 recordings/
+exports/

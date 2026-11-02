@@ -248,3 +248,18 @@ def test_live_run_refused_with_a_plain_message_when_no_key(monkeypatch):
     assert "MODEL_API_KEY" in server.NO_KEY and "example runs" in server.NO_KEY
     monkeypatch.setenv(server.PROVIDERS["meta"]["key_env"], "x")
     assert not server.key_missing()
+
+
+def test_export_downloads_for_a_saved_onboarding(srv, tmp_path, monkeypatch):
+    import yaml
+    from pathlib import Path
+    fix = Path(__file__).parent / "fixtures" / "onboard_hr_storage_memory.json"
+    (tmp_path / "onboard_20261101_000000.json").write_text(fix.read_text())
+    monkeypatch.setattr(server, "RESULTS", tmp_path)
+    for name, key in (("snmp.yml", "modules"), ("onboardiq.rules.yml", "groups"), ("zabbix_template.yaml", "zabbix_export")):
+        code, body = req(srv, "GET", f"/api/onboarded/onboard_20261101_000000/export/{name}")
+        assert code == 200 and key in yaml.safe_load(body)
+    assert req(srv, "GET", "/api/onboarded/onboard_20261101_999999/export/snmp.yml")[0] == 404
+    assert req(srv, "GET", "/api/onboarded/../etc/export/snmp.yml")[0] == 404
+    monkeypatch.setattr(server, "SANDBOX", True)
+    assert req(srv, "GET", "/api/onboarded/onboard_20261101_000000/export/snmp.yml")[0] == 404   # hosted: nothing kept

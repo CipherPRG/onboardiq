@@ -447,6 +447,22 @@ def watch(run: Run, opts: dict):
             run.cond.notify_all()
 
 
+def export_file(saved, name):
+    """One export file (snmp.yml, onboardiq.rules.yml or zabbix_template.yaml) as YAML text."""
+    import yaml
+    from . import export
+    if not (saved.get("profile") or {}).get("metrics"):
+        raise ValueError("no device profile in this onboarding")
+    mods = [m for m in str((saved.get("args") or {}).get("modules") or "").split(",") if m]
+    try:
+        cands = mib.candidates(STATE["mib_dir"], mods) if mods else None
+    except (FileNotFoundError, OSError):
+        cands = None                               # index names fall back to the standard ones
+    snmp_yml, rules = export.snmp_exporter(saved, cands)
+    doc = {"snmp.yml": snmp_yml, "onboardiq.rules.yml": rules}.get(name) or export.zabbix(saved, cands)
+    return yaml.safe_dump(doc, sort_keys=False, allow_unicode=True, width=120)
+
+
 def slug(text):
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:40] or "device"
 
@@ -580,6 +596,18 @@ class Handler(BaseHTTPRequestHandler):
                               {"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox"})
         if url.path == "/api/onboarded":
             return self._json(200, [] if SANDBOX else onboarded_list())
+        m = re.fullmatch(r"/api/onboarded/(onboard_\d{8}_\d{6})/export/(snmp\.yml|onboardiq\.rules\.yml|zabbix_template\.yaml)",
+                         url.path)
+        if m and not SANDBOX:                      # local only: the hosted demo keeps no onboardings
+            f = RESULTS / f"{m.group(1)}.json"
+            if not f.is_file():
+                return self._send(404, b'{"error":"not found"}')
+            try:
+                body = export_file(json.loads(f.read_text()), m.group(2))
+            except (ValueError, KeyError) as e:
+                return self._json(400, {"error": f"cannot export this onboarding: {e}"})
+            return self._send(200, body.encode(), "application/yaml; charset=utf-8",
+                              {"Content-Disposition": f'attachment; filename="{m.group(1)}-{m.group(2)}"'})
         m = re.fullmatch(r"/api/runs/([a-f0-9]{12})/events", url.path)
         if m:
             return self._stream(m.group(1))
