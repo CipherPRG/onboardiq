@@ -314,3 +314,16 @@ def test_hosted_confirm_needs_the_run_owner(sandbox_srv, monkeypatch):
     assert post(port, "/api/runs/abcdef012345/confirm", {"owner": "wrong"})[0] == 403 and run.confirm.empty()
     assert post(port, "/api/runs/abcdef012345/confirm", {"owner": "k" * 32})[0] == 200 and not run.confirm.empty()
     server.STATE["run"] = None
+
+
+def test_monitor_gate_skips_budget_cooldown_and_run_cap_but_keeps_its_own_limit():
+    st = {"runs": 40, "last_end": server.time.time()}               # run cap used up, cooldown running
+    assert server.monitor_gate(st, ip="1.2.3.4", now=1000.0, paid=True, per_ip=2) is None
+    assert server.monitor_gate(st, ip="1.2.3.4", now=1000.0, paid=True, per_ip=2) is None   # not counted until noted
+    server.ip_note(st.setdefault("mips", {}), "1.2.3.4", 1000.0)
+    server.ip_note(st["mips"], "1.2.3.4", 1001.0)
+    msg, wait = server.monitor_gate(st, ip="1.2.3.4", now=1002.0, paid=True, per_ip=2)
+    assert "live monitors" in msg and wait == 0                      # its own daily limit
+    assert server.monitor_gate(st, ip="5.6.7.8", now=1002.0, paid=True, per_ip=2) is None   # another visitor is fine
+    assert "paused" in server.monitor_gate(st, ip="5.6.7.8", paid=False)[0]                 # kill switch still works
+    assert "ips" not in st                                           # onboarding allowance untouched

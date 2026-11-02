@@ -68,6 +68,7 @@ SANDBOX_MODULES = ["UCD-SNMP-MIB", "HOST-RESOURCES-MIB"]
 SANDBOX_COOLDOWN_S = int(os.environ.get("OIQ_SANDBOX_COOLDOWN", "60"))
 SANDBOX_MAX_RUNS = int(os.environ.get("OIQ_SANDBOX_MAX_RUNS", "40"))
 SANDBOX_PER_IP = int(os.environ.get("OIQ_SANDBOX_PER_IP", "3"))          # runs per visitor address per 24 h
+SANDBOX_MONITOR_PER_IP = int(os.environ.get("OIQ_SANDBOX_MONITOR_PER_IP", "10"))   # monitors per visitor per 24 h (no model tokens)
 SANDBOX_MIN_BUDGET = float(os.environ.get("OIQ_SANDBOX_MIN_BUDGET", "0.30"))   # dollars that must remain to start
 SANDBOX_ATTEMPTS = int(os.environ.get("OIQ_SANDBOX_ATTEMPTS", "3"))      # model tries per metric (3 = two re-reads)
 SANDBOX_EFFORT = os.environ.get("OIQ_SANDBOX_EFFORT") or EFFORT
@@ -161,7 +162,7 @@ def client_ip(xff, peer, hops=None):
     return str(ip)
 
 
-def ip_gate(table, ip, now, per_ip=None):
+def ip_gate(table, ip, now, per_ip=None, noun="live runs"):
     """None if this address may start another run today, else a message. `table` maps address -> start times."""
     per_ip = SANDBOX_PER_IP if per_ip is None else per_ip
     recent = [t for t in table.get(ip, []) if now - t < DAY]
@@ -170,7 +171,7 @@ def ip_gate(table, ip, now, per_ip=None):
     else:
         table.pop(ip, None)
     if len(recent) >= per_ip:
-        return (f"This address has used its {per_ip} live runs for today. Play a recorded session, or run "
+        return (f"This address has used its {per_ip} {noun} for today. Play a recorded session, or run "
                 "OnboardIQ yourself (README: docker compose up).")
     return None
 
@@ -204,6 +205,22 @@ def sandbox_gate(state, now=None, cooldown=None, max_runs=None, paid=None, budge
     wait = state["last_end"] + cooldown - now
     if wait > 0:
         return (f"The demo device is cooling down after the last run. Try again in {int(wait) + 1} s.", int(wait) + 1)
+    return None
+
+
+def monitor_gate(state, ip=None, now=None, paid=None, per_ip=None):
+    """None if a hosted monitor may start, else (message, 0). A monitor uses no model tokens, so it skips the dollar
+    budget, the run cap and the cooldown, and does not use up the visitor's onboarding runs. It keeps the owner's
+    kill switch and its own daily limit per visitor, so nobody can hold the single slot all day."""
+    now = time.time() if now is None else now
+    paid = os.environ.get("OIQ_PAID", "on").lower() != "off" if paid is None else paid
+    if not paid:
+        return ("The live demo is paused by its owner. Play a recorded session instead.", 0)
+    if ip is not None:
+        why = ip_gate(state.setdefault("mips", {}), ip, now,
+                      SANDBOX_MONITOR_PER_IP if per_ip is None else per_ip, noun="live monitors")
+        if why:
+            return (why, 0)
     return None
 
 
@@ -455,9 +472,7 @@ def watch(run: Run, opts: dict):
         run.emit({"kind": "error", "message": public_error(e) if SANDBOX else type(e).__name__ + ": " + str(e)[:300]})
     finally:
         stop_load(run)
-        run.finished = True
-        if SANDBOX:
-            STATE["sandbox"]["last_end"] = time.time()
+        run.finished = True                  # a monitor ending starts no cooldown: only onboarding runs have one
         with run.cond:
             run.cond.notify_all()
 
@@ -599,7 +614,7 @@ class Handler(BaseHTTPRequestHandler):
                 out.update({"sandbox": True, "model": MODEL, "device": SANDBOX_DEVICE, "monitor_ready": bool(STATE.get("proven")),
                             "modules": SANDBOX_MODULES, "cooldown_s": SANDBOX_COOLDOWN_S,
                             "runs_left": max(SANDBOX_MAX_RUNS - sb["runs"], 0),
-                            "per_visitor": SANDBOX_PER_IP,
+                            "per_visitor": SANDBOX_PER_IP, "monitor_per_visitor": SANDBOX_MONITOR_PER_IP,
                             "paused": os.environ.get("OIQ_PAID", "on").lower() == "off"})
             return self._json(200, out)
         if url.path == "/api/modules":
@@ -771,12 +786,11 @@ class Handler(BaseHTTPRequestHandler):
                         return self._json(409, {"error": "The monitor polls only what an onboarding proved on this machine. "
                                                          "Run the live onboarding first, then monitor."})
                     ip = client_ip(self.headers.get("X-Forwarded-For"), self.client_address[0])
-                    blocked = sandbox_gate(STATE["sandbox"], budget_left=budget_left(), ip=ip)
+                    blocked = monitor_gate(STATE["sandbox"], ip=ip)
                     if blocked:
                         return self._json(429, {"error": blocked[0], "retry_after": blocked[1]})
                     opts = sandbox_monitor_options()        # the request body is ignored on purpose
-                    STATE["sandbox"]["runs"] += 1
-                    ip_note(STATE["sandbox"].setdefault("ips", {}), ip, time.time())
+                    ip_note(STATE["sandbox"].setdefault("mips", {}), ip, time.time())   # not an onboarding run
                 else:
                     try:
                         opts = validate_monitor(body)
