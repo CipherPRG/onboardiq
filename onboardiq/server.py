@@ -68,6 +68,7 @@ SANDBOX_MODULES = ["UCD-SNMP-MIB", "HOST-RESOURCES-MIB"]
 SANDBOX_COOLDOWN_S = int(os.environ.get("OIQ_SANDBOX_COOLDOWN", "60"))
 SANDBOX_MAX_RUNS = int(os.environ.get("OIQ_SANDBOX_MAX_RUNS", "40"))
 SANDBOX_PER_IP = int(os.environ.get("OIQ_SANDBOX_PER_IP", "3"))          # runs per visitor address per 24 h
+SANDBOX_LOAD_PCT = int(os.environ.get("OIQ_SANDBOX_LOAD_PCT", "80"))              # hosted CPU load: duty per worker, %
 SANDBOX_MONITOR_PER_IP = int(os.environ.get("OIQ_SANDBOX_MONITOR_PER_IP", "10"))   # monitors per visitor per 24 h (no model tokens)
 SANDBOX_MIN_BUDGET = float(os.environ.get("OIQ_SANDBOX_MIN_BUDGET", "0.30"))   # dollars that must remain to start
 SANDBOX_ATTEMPTS = int(os.environ.get("OIQ_SANDBOX_ATTEMPTS", "3"))      # model tries per metric (3 = two re-reads)
@@ -362,7 +363,10 @@ def start_cpu_load(seconds: int) -> list:
     n = cpu_budget()
     low = ["nice", "-n", "19"] if shutil.which("nice") else []     # the page and the poller keep the CPU they need
     if shutil.which("stress-ng"):
-        cmd = [low + stress_cmd("--cpu", str(n), "--timeout", f"{seconds}s")]
+        # Hosted: 80% duty per worker, so the container stays under its CPU quota. At 100% the host throttles the
+        # whole container and Cloud Run answers 429 to the page's own requests while the load runs.
+        duty = ["--cpu-load", str(SANDBOX_LOAD_PCT)] if SANDBOX else []
+        cmd = [low + stress_cmd("--cpu", str(n), *duty, "--timeout", f"{seconds}s")]
     else:
         cmd = [low + ["timeout", str(seconds), "yes"]] * n
     return [subprocess.Popen(c, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) for c in cmd]

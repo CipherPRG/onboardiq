@@ -275,3 +275,16 @@ def test_cpu_budget_follows_the_container_quota(tmp_path):
     assert server.cpu_budget(str(f)) == server.cpu_budget(str(tmp_path / "none")) >= 1
     f.write_text("garbage")
     assert server.cpu_budget(str(f)) >= 1
+
+
+def test_hosted_cpu_load_keeps_a_duty_cycle_below_the_quota(monkeypatch):
+    seen = []
+    monkeypatch.setattr(server.subprocess, "Popen", lambda cmd, **kw: seen.append(cmd) or object())
+    monkeypatch.setattr(server.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(server, "SANDBOX", True)
+    server.start_cpu_load(5)
+    assert "--cpu-load" in seen[-1] and seen[-1][seen[-1].index("--cpu-load") + 1] == str(server.SANDBOX_LOAD_PCT)
+    assert seen[-1][:3] == ["nice", "-n", "19"]
+    monkeypatch.setattr(server, "SANDBOX", False)
+    server.start_cpu_load(5)
+    assert "--cpu-load" not in seen[-1]                      # your own machine: full load
