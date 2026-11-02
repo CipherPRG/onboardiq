@@ -10,6 +10,8 @@ does it move the way the model predicted under real load, does an independent ob
 back to the model with the measured evidence, and the model reads again. Only proven picks are monitored, scored
 0-100 and explained in plain English. Code checks that every number in the explanation comes from the readings.
 
+**Why it matters:** every new device type normally needs someone to read its manual and wire up monitoring by hand. That is why monitoring tools support so few devices and why many devices go unmonitored. OnboardIQ reads the manual with a model, then makes the device itself prove each answer, so wrong picks are caught before they raise false alarms or hide real ones.
+
 Built for the Meta Global AI Developer Hackathon (Oct 26 - Nov 4, 2026), Indie track.
 
 ## Try it
