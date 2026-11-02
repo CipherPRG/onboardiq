@@ -136,6 +136,9 @@ Discovery without being told the MIB: on 109 recorded devices the right modules 
   cannot always map back. Both models make the same CPU choices that differ from the answer key (for example
   `axSysAverageCpuUsage`, `healthDeviceCpuLatest`), which may be valid alternatives for another averaging window.
   For that reason the open model writes explanations and the closed model picks the objects.
+- **Agreement between the two (same 24 questions, `scripts/compare_accuracy.py`):** they picked the same object on
+  21 of 24 (14 of those 21 correct). On the 3 where they differed, Spark 1.3 was right once, Open was right never,
+  and neither was right twice. Same small sample, so treat it as a rough signal.
 
 ## Models
 
