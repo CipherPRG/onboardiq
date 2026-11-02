@@ -211,7 +211,8 @@ def zabbix(saved, cands=None, policy=None):
     """A Zabbix 6.0 template (importable into 6.0 and later) as a dict ready for YAML."""
     pol = policy or health.DEFAULT
     dev = _device(saved)
-    tname = f"OnboardIQ {dev}"[:128]
+    # Zabbix host names allow only letters, digits, space, dot, dash and underscore (no #, (), : and so on).
+    tname = re.sub(r"\s+", " ", re.sub(r"[^A-Za-z0-9 ._-]+", " ", f"OnboardIQ {dev}"))[:60].strip()
     group = "Templates/OnboardIQ"
     items, rules, macros = [], [], {}
 

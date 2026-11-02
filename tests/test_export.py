@@ -127,3 +127,13 @@ def test_cli_writes_three_files(tmp_path):
     names = sorted(p.name for p in (tmp_path / "x").iterdir())
     assert names == ["onboardiq.rules.yml", "snmp.yml", "zabbix_template.yaml"]
     assert yaml.safe_load((tmp_path / "x" / "zabbix_template.yaml").read_text())["zabbix_export"]["version"] == "6.0"
+
+
+def test_zabbix_template_name_uses_only_allowed_characters():
+    saved = copy.deepcopy(UCD)
+    saved["profile"]["device"] = "Linux LAPTOP 6.18 #1 SMP (sysObjectID 1.3.6.1.4.1.8072.3.2.10) Tue 19:13:07"
+    saved["device"] = saved["profile"]["device"]
+    z = export.zabbix(saved)["zabbix_export"]
+    t = z["templates"][0]
+    assert re.fullmatch(r"[A-Za-z0-9 ._-]+", t["template"]) and len(t["template"]) <= 64
+    assert t["template"] in yaml.safe_dump(z)
