@@ -7,7 +7,7 @@
 
 # OnboardIQ
 
-**▶ [Watch the 3-minute demo](https://youtu.be/qBE-j0qqIVo)** · **[Try it in your browser](https://onboardiq-demo-430342543451.asia-south1.run.app/console/)** · **[Replay recorded runs](https://cipherprg.github.io/onboardiq/)**
+**▶ [Watch the 3-minute demo](https://youtu.be/qBE-j0qqIVo)** · **[Try it in your browser](https://onboardiq-demo-430342543451.asia-south1.run.app/console/)** · **[Replay recorded runs](https://cipherprg.github.io/onboardiq/)** · **[Post on X](https://x.com/GamerX71059690/status/2117715897637089680)**
 
 [![tests](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml/badge.svg)](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml) License: Apache-2.0
 
