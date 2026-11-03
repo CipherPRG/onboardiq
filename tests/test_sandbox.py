@@ -11,7 +11,7 @@ from onboardiq import server
 
 def test_sandbox_options_ignore_the_request():
     o = server.sandbox_options()
-    assert o["host"] == "localhost" and o["port"] is None and o["lab"] is True
+    assert o["host"] == "localhost" and o["port"] == server.LOCAL_SNMP_PORT and o["lab"] is True
     assert o["modules"] == ["UCD-SNMP-MIB", "HOST-RESOURCES-MIB"] and o["load_by_hand"] is None
     assert o["record"] is False and o["device"] == server.SANDBOX_DEVICE
     assert o == server.sandbox_options()                 # nothing request-dependent can change it
