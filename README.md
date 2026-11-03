@@ -7,6 +7,8 @@
 
 # OnboardIQ
 
+**▶ [Watch the 3-minute demo](https://youtu.be/qBE-j0qqIVo)** · **[Try it in your browser](https://onboardiq-demo-430342543451.asia-south1.run.app/console/)** · **[Replay recorded runs](https://cipherprg.github.io/onboardiq/)**
+
 [![tests](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml/badge.svg)](https://github.com/CipherPRG/onboardiq/actions/workflows/tests.yml) License: Apache-2.0
 
 **An agent that onboards a network device into monitoring by reading its manual, and lets the device check every answer.**
